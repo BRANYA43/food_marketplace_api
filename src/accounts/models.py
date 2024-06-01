@@ -6,6 +6,8 @@ from django.db import models
 from django.utils.translation import gettext as _
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from accounts import managers
+
 
 def foo():
     return datetime.now() - timedelta(days=365 * 18)
@@ -58,6 +60,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
 
     USERNAME_FIELD = 'email'
+
+    objects = managers.UserManager()
 
     class Meta:
         verbose_name = _('user')

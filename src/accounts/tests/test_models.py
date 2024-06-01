@@ -6,7 +6,7 @@ from django.contrib.auth.models import PermissionsMixin, AbstractBaseUser
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import Token
 
-from accounts import models
+from accounts import models, managers
 
 
 class UserModelTest(TestCase):
@@ -119,3 +119,6 @@ class UserModelTest(TestCase):
     def test_refresh_token_and_access_token_dont_match(self):
         user = self.model_class(**self.data)
         self.assertNotEqual(user.access_token, user.refresh_token)
+
+    def test_model_uses_expected_object_manager(self):
+        self.assertIsInstance(self.model_class.objects, managers.UserManager)
