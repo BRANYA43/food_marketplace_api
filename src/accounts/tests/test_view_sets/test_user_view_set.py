@@ -9,6 +9,44 @@ from accounts import services
 User = get_user_model()
 
 
+class RefreshViewTest(APITestCase):
+    def setUp(self) -> None:
+        self.url = reverse('user-refresh')
+        self.user = self.create_test_user()
+        self.refresh_token = self.user.refresh_token
+        self.data = {'refresh': str(self.refresh_token)}
+
+    def test_view_allows_only_post_method(self):
+        response = self.client.post(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+        self.assert_not_allowed_methods(['get', 'put', 'patch', 'delete'], self.url)
+
+    def test_view_is_accessed_for_unauthenticated_user(self):
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+    def test_view_is_accessed_for_authenticated_user(self):
+        self.login_user_by_token(self.user)
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+    def test_view_refreshes_valid_refresh_token(self):
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+
+    def test_view_doesnt_refresh_invalid_refresh_token(self):
+        self.data['refresh'] = 'invalid_token' + self.data['refresh']
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data['detail'], 'Token is invalid or expired')
+
+
 class LogoutViewTest(APITestCase):
     def setUp(self) -> None:
         self.url = reverse('user-logout')
