@@ -1,11 +1,56 @@
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
+
 from accounts.tests import APITestCase
 
 from accounts import services
 
 User = get_user_model()
+
+
+class LogoutViewTest(APITestCase):
+    def setUp(self) -> None:
+        self.url = reverse('user-logout')
+        self.user = self.create_test_user()
+        self.login_user_by_token(self.user)
+        self.refresh_token = self.user.refresh_token
+        self.data = {'refresh': str(self.refresh_token)}
+
+    def test_view_allows_only_post_method(self):
+        response = self.client.post(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+        self.assert_not_allowed_methods(['get', 'put', 'patch', 'delete'], self.url)
+
+    def test_view_isnt_accessed_for_unauthenticated_user(self):
+        self.logout_user_by_token(self.user, clear_auth_header=True)
+
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assert_response_permission_error(response, 'Authentication credentials were not provided.')
+
+    def test_view_is_accessed_for_authenticated_user(self):
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+    def test_view_logs_user_out_with_valid_refresh_token(self):
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+        response = self.client.post(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data['detail'], 'Token is blacklisted')
+
+    def test_view_logs_user_out_with_invalid_refresh_token(self):
+        self.data['refresh'] = 'invalid_token' + self.data['refresh']
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data['detail'], 'Token is invalid or expired')
 
 
 class LoginViewTest(APITestCase):

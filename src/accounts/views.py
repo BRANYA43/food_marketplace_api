@@ -1,4 +1,5 @@
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 
@@ -21,3 +22,7 @@ class UserViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], permission_classes=[IsUnauthenticated])
     def login(self, request):
         return jwt_views.token_obtain_pair(request._request)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def logout(self, request):
+        return jwt_views.token_blacklist(request._request)
