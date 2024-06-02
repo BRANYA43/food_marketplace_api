@@ -10,7 +10,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['email', 'password', 'phone']
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {'password': {'write_only': True, 'min_length': 8}}
 
     def validate_phone(self, phone):
         validators.validate_ukrainian_phone(phone)

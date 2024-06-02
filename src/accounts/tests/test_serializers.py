@@ -35,6 +35,16 @@ class UserRegisterSerializerTest(APITestCase):
         self.assertTrue(serializer.is_valid())
         self.assertNotIn('password', serializer.data)
 
+    def test_password_field_has_min_length_8(self):
+        self.data['password'] = 'qwe'
+        serializer = self.serializer_class(data=self.data)
+        self.assertRaisesRegex(
+            ValidationError,
+            r'Ensure this field has at least 8 characters\.',
+            serializer.is_valid,
+            raise_exception=True,
+        )
+
     def test_serializer_validates_phone(self):
         invalid_phone = '+38 1234 56 7890'
         self.data['phone'] = invalid_phone
