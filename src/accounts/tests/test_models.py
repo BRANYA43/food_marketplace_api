@@ -109,15 +109,15 @@ class UserModelTest(TestCase):
         self.assertIs(self.model_class, get_user_model())
 
     def test_access_token_property_returns_access_token(self):
-        user = self.model_class(**self.data)
+        user = self.model_class.objects.create_user(**self.data)
         self.assertIsInstance(user.access_token, Token)
 
     def test_refresh_token_returns_refresh_token(self):
-        user = self.model_class(**self.data)
+        user = self.model_class.objects.create_user(**self.data)
         self.assertIsInstance(user.refresh_token, Token)
 
     def test_refresh_token_and_access_token_dont_match(self):
-        user = self.model_class(**self.data)
+        user = self.model_class.objects.create_user(**self.data)
         self.assertNotEqual(user.access_token, user.refresh_token)
 
     def test_model_uses_expected_object_manager(self):
