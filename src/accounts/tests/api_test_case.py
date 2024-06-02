@@ -4,17 +4,29 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APITestCase as RFAPITestCase
 
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 class APITestCase(RFAPITestCase):
     TEST_USER_MODEL = get_user_model()
     TEST_EMAIL = 'rick.sanchez@test.com'
     TEST_PASSWORD = 'qwr123!@#'
+    AUTH_HEADER_NAME = settings.SIMPLE_JWT['AUTH_HEADER_NAME']
+    AUTH_HEADER_TYPES = settings.SIMPLE_JWT['AUTH_HEADER_TYPES']
 
     def login_user_by_token(self, user):
-        auth_header_name = settings.SIMPLE_JWT['AUTH_HEADER_NAME']
-        auth_header_type = settings.SIMPLE_JWT['AUTH_HEADER_TYPES'][0]
-        credentials = {auth_header_name: f'{auth_header_type} {user.access_token}'}
+        credentials = {self.AUTH_HEADER_NAME: f'{self.AUTH_HEADER_TYPES[0]} {user.access_token}'}
         self.client.credentials(**credentials)
+
+    def logout_user_by_token(self, user, clear_auth_header=False):
+        tokens = OutstandingToken.objects.filter(user=user)
+        for token in tokens:
+            RefreshToken(token.token).blacklist()
+
+        if clear_auth_header:
+            credentials = {self.AUTH_HEADER_NAME: None}
+            self.client.credentials(**credentials)
 
     def create_test_user(self, email=TEST_EMAIL, password=TEST_PASSWORD, user_model=TEST_USER_MODEL, **extra_fields):
         return user_model.objects.create_user(email, password, **extra_fields)
