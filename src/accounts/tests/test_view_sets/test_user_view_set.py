@@ -8,6 +8,49 @@ from accounts import services
 User = get_user_model()
 
 
+class LoginViewTest(APITestCase):
+    def setUp(self) -> None:
+        self.url = reverse('user-login')
+        self.user = self.create_test_user()
+        self.data = {
+            'email': self.TEST_EMAIL,
+            'password': self.TEST_PASSWORD,
+        }
+
+    def test_view_allows_only_post_method(self):
+        response = self.client.post(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+        self.assert_not_allowed_methods(['get', 'put', 'patch', 'delete'], self.url)
+
+    def test_view_is_accessed_for_unauthenticated_user(self):
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+    def test_view_isnt_accessed_for_authenticated_user(self):
+        self.login_user_by_token(self.user)
+
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_403_FORBIDDEN)
+        self.assert_response_permission_error(response, 'User is already authenticated.')
+
+    def test_view_logs_user_in_with_valid_credentials(self):
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
+
+    def test_view_doesnt_log_user_in_with_invalid_credentials(self):
+        invalid_data = {'email': 'invalid.email@test.com', 'password': 'invalid_password'}
+        response = self.client.post(self.url, invalid_data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('detail', response.data)
+
+
 class RegisterViewTest(APITestCase):
     def setUp(self) -> None:
         self.url = reverse('user-register')
