@@ -1,9 +1,8 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APITestCase as RFAPITestCase
-
-from core.settings.components.simple_jwt import SIMPLE_JWT
 
 
 class APITestCase(RFAPITestCase):
@@ -12,8 +11,8 @@ class APITestCase(RFAPITestCase):
     TEST_PASSWORD = 'qwr123!@#'
 
     def login_user_by_token(self, user):
-        auth_header_name = SIMPLE_JWT['AUTH_HEADER_NAME']
-        auth_header_type = SIMPLE_JWT['AUTH_HEADER_TYPES'][0]
+        auth_header_name = settings.SIMPLE_JWT['AUTH_HEADER_NAME']
+        auth_header_type = settings.SIMPLE_JWT['AUTH_HEADER_TYPES'][0]
         credentials = {auth_header_name: f'{auth_header_type} {user.access_token}'}
         self.client.credentials(**credentials)
 
