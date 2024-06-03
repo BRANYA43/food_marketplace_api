@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.utils.module_loading import import_string
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -10,9 +12,27 @@ from accounts.permissions import IsUnauthenticated
 
 
 class UserViewSet(viewsets.ViewSet):
+    def get_serializer_class(self):
+        """
+        Return a serializer class by the action.
+        """
+        match self.action:
+            case 'register':
+                return serializers.UserRegisterSerializer
+            case 'login':
+                return import_string(settings.SIMPLE_JWT['TOKEN_OBTAIN_SERIALIZER'])
+            case 'logout':
+                return import_string(settings.SIMPLE_JWT['TOKEN_BLACKLIST_SERIALIZER'])
+            case 'refresh':
+                return import_string(settings.SIMPLE_JWT['TOKEN_REFRESH_SERIALIZER'])
+
+    def get_serializer(self, *args, **kwargs):
+        serializer = self.get_serializer_class()
+        return serializer(*args, **kwargs)
+
     @action(detail=False, methods=['post'], permission_classes=[IsUnauthenticated])
     def register(self, request):
-        serializer = serializers.UserRegisterSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(status=status.HTTP_201_CREATED)
