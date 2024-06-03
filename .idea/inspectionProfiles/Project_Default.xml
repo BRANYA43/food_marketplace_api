@@ -1,0 +1,36 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="10">
+            <item index="0" class="java.lang.String" itemvalue="django-baton" />
+            <item index="1" class="java.lang.String" itemvalue="psycopg2" />
+            <item index="2" class="java.lang.String" itemvalue="drf-spectacular" />
+            <item index="3" class="java.lang.String" itemvalue="python-dotenv" />
+            <item index="4" class="java.lang.String" itemvalue="django-debug-toolbar" />
+            <item index="5" class="java.lang.String" itemvalue="products" />
+            <item index="6" class="java.lang.String" itemvalue="django-filter" />
+            <item index="7" class="java.lang.String" itemvalue="django-split-settings" />
+            <item index="8" class="java.lang.String" itemvalue="pillow" />
+            <item index="9" class="java.lang.String" itemvalue="djangorestframework" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyTypedDictInspection" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="accounts.models.Profile.objects" />
+          <option value="src.products.views.products" />
+          <option value="datetime.time.__sub__" />
+          <option value="notes.models.Worktable.objects" />
+          <option value="typing.Generator.__add__" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="TaskProblemsInspection" enabled="true" level="ERROR" enabled_by_default="true" />
+  </profile>
+</component>
