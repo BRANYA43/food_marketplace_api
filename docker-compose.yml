@@ -28,7 +28,7 @@ services:
 
   db:
     build: ./docker/postgres
-    image: branya/food_marketplace_db::latest
+    image: branya/food_marketplace_db:latest
     container_name: db
     volumes:
       - db_volume:/var/lib/postgresql/data/
