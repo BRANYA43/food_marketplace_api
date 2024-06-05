@@ -25,7 +25,11 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
             status.HTTP_200_OK: OpenApiResponse(
                 description=_('User profile data.'),
                 response=serializers.UserProfileSerializer,
-            )
+            ),
+            status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description=_('User not auth.'),
+                response=openapi_serializers.ErrorResponse401Serializer,
+            ),
         },
     ),
     register=extend_schema(

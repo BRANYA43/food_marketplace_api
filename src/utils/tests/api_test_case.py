@@ -26,8 +26,7 @@ class APITestCase(RFAPITestCase):
             RefreshToken(token.token).blacklist()
 
         if clear_auth_header:
-            credentials = {self.AUTH_HEADER_NAME: None}
-            self.client.credentials(**credentials)
+            self.client.credentials()
 
     def create_test_user(self, email=TEST_EMAIL, password=TEST_PASSWORD, user_model=TEST_USER_MODEL, **extra_fields):
         return user_model.objects.create_user(email, password, **extra_fields)
