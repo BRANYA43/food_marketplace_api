@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -6,13 +8,12 @@ from accounts import validators, services
 User = get_user_model()
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class BaseUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'password', 'full_name', 'phone']
+        fields: list[str] | str = '__all__'
         extra_kwargs = {
-            'email': {'required': False},
-            'password': {'required': False, 'min_length': 8, 'write_only': True},
+            'password': {'min_length': 8, 'write_only': True},
             'full_name': {'min_length': 3},
         }
 
@@ -20,6 +21,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
         validators.validate_ukrainian_phone(phone)
         phone = services.normalize_phone_to_ukrainian_format(phone)
         return phone
+
+
+class UserProfileSerializer(BaseUserSerializer):
+    class Meta(BaseUserSerializer.Meta):
+        fields = ['email', 'password', 'full_name', 'phone']
+        extra_kwargs = deepcopy(BaseUserSerializer.Meta.extra_kwargs)
+        extra_kwargs['email'] = {'required': False}
+        extra_kwargs['password']['required'] = False
 
     def update(self, instance, validated_data):
         if 'password' in validated_data:
@@ -33,20 +42,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return instance
 
 
-class UserRegisterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
+class UserRegisterSerializer(BaseUserSerializer):
+    class Meta(BaseUserSerializer.Meta):
         fields = ['email', 'password', 'full_name', 'phone']
-        extra_kwargs = {
-            'password': {'write_only': True, 'min_length': 8},
-            'full_name': {'required': True, 'min_length': 3},
-            'phone': {'required': True},
-        }
-
-    def validate_phone(self, phone):
-        validators.validate_ukrainian_phone(phone)
-        phone = services.normalize_phone_to_ukrainian_format(phone)
-        return phone
+        extra_kwargs = deepcopy(BaseUserSerializer.Meta.extra_kwargs)
+        extra_kwargs['full_name']['required'] = True
+        extra_kwargs['phone'] = {'required': True}
 
     def create(self, validated_data: dict):
         return User.objects.create_user(**validated_data)
