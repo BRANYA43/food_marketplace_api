@@ -2,13 +2,14 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.test import APITestCase as RFAPITestCase
+from rest_framework.test import APITestCase as RFAPITestCase, APIRequestFactory
 
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class APITestCase(RFAPITestCase):
+    request_factory = APIRequestFactory()
     TEST_USER_MODEL = get_user_model()
     TEST_EMAIL = 'rick.sanchez@test.com'
     TEST_PASSWORD = 'qwr123!@#'
@@ -35,14 +36,6 @@ class APITestCase(RFAPITestCase):
         for method in methods:
             response = getattr(self.client, method)(url)
             self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def assert_response_permission_error(self, response: Response, expected_msg: str, is_regex=False):
-        data = response.data
-        self.assertIn('detail', data)
-        if is_regex:
-            self.assertRegex(data['detail'], expected_msg)
-        else:
-            self.assertEqual(data['detail'], expected_msg)
 
     def assert_response_status(self, response: Response, status: int):
         self.assertEqual(response.status_code, status)
