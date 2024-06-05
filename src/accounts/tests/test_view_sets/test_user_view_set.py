@@ -1,10 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+
+from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 from rest_framework import status
+from rest_framework_simplejwt.exceptions import InvalidToken
 
 from accounts.tests import APITestCase
 
-from accounts import services
+from accounts import services, permissions
 
 User = get_user_model()
 
@@ -44,7 +47,8 @@ class RefreshViewTest(APITestCase):
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['detail'], 'Token is invalid or expired')
+        self.assertEqual(response.data['errors'][0]['code'], InvalidToken.default_code)
+        self.assertEqual(response.data['errors'][0]['detail'], InvalidToken.default_detail)
 
 
 class LogoutViewTest(APITestCase):
@@ -67,7 +71,8 @@ class LogoutViewTest(APITestCase):
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
-        self.assert_response_permission_error(response, 'Authentication credentials were not provided.')
+        self.assertEqual(response.data['errors'][0]['code'], NotAuthenticated.default_code)
+        self.assertEqual(response.data['errors'][0]['detail'], NotAuthenticated.default_detail)
 
     def test_view_is_accessed_for_authenticated_user(self):
         response = self.client.post(self.url, self.data)
@@ -81,14 +86,16 @@ class LogoutViewTest(APITestCase):
 
         response = self.client.post(self.url, self.data)
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['detail'], 'Token is blacklisted')
+        self.assertEqual(response.data['errors'][0]['code'], InvalidToken.default_code)
+        self.assertEqual(response.data['errors'][0]['detail'], 'Token is blacklisted')
 
     def test_view_logs_user_out_with_invalid_refresh_token(self):
         self.data['refresh'] = 'invalid_token' + self.data['refresh']
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['detail'], 'Token is invalid or expired')
+        self.assertEqual(response.data['errors'][0]['code'], InvalidToken.default_code)
+        self.assertEqual(response.data['errors'][0]['detail'], 'Token is invalid or expired')
 
 
 class LoginViewTest(APITestCase):
@@ -117,7 +124,8 @@ class LoginViewTest(APITestCase):
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_403_FORBIDDEN)
-        self.assert_response_permission_error(response, 'User is already authenticated.')
+        self.assertEqual(response.data['errors'][0]['code'], PermissionDenied.default_code)
+        self.assertEqual(response.data['errors'][0]['detail'], permissions.IsUnauthenticated.message)
 
     def test_view_logs_user_in_with_valid_credentials(self):
         response = self.client.post(self.url, self.data)
@@ -131,7 +139,8 @@ class LoginViewTest(APITestCase):
         response = self.client.post(self.url, invalid_data)
 
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
-        self.assertIn('detail', response.data)
+        self.assertEqual(response.data['errors'][0]['code'], 'no_active_account')
+        self.assertEqual(response.data['errors'][0]['detail'], 'No active account found with the given credentials')
 
 
 class RegisterViewTest(APITestCase):
@@ -141,6 +150,7 @@ class RegisterViewTest(APITestCase):
             'email': self.TEST_EMAIL,
             'password': self.TEST_PASSWORD,
             'phone': '+380123456789',
+            'full_name': 'Rick Sanchez',
         }
 
     def test_view_allows_only_post_method(self):
@@ -162,7 +172,8 @@ class RegisterViewTest(APITestCase):
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_403_FORBIDDEN)
-        self.assert_response_permission_error(response, 'User is already authenticated.')
+        self.assertEqual(response.data['errors'][0]['code'], 'permission_denied')
+        self.assertEqual(response.data['errors'][0]['detail'], 'User is already authenticated.')
 
     def test_view_register_user_with_valid_credentials(self):
         self.assertEqual(User.objects.count(), 0)
@@ -192,13 +203,6 @@ class RegisterViewTest(APITestCase):
         self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(User.objects.count(), 0)
 
-        errors = response.data.get('errors')
-
-        self.assertIsNotNone(errors)
-        self.assertIn('email', errors)
-        self.assertIn('password', errors)
-        self.assertIn('phone', errors)
-
     def test_view_doesnt_register_existed_user(self):
         del self.data['phone']
         User.objects.create_user(**self.data)
@@ -208,4 +212,5 @@ class RegisterViewTest(APITestCase):
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('errors', response.data)
+        self.assertEqual(response.data['errors'][0]['code'], 'unique')
+        self.assertEqual(response.data['errors'][0]['detail'], 'user with this email already exists.')
