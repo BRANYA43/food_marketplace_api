@@ -14,6 +14,7 @@ class UserRegisterSerializerTest(APITestCase):
             'email': 'test@test.com',
             'password': 'qwe123!@#',
             'phone': '+380123456789',
+            'full_name': 'Rick Sanchez',
         }
 
     def test_serializer_creates_user_correctly(self):
@@ -41,6 +42,36 @@ class UserRegisterSerializerTest(APITestCase):
         self.assertRaisesRegex(
             ValidationError,
             r'Ensure this field has at least 8 characters\.',
+            serializer.is_valid,
+            raise_exception=True,
+        )
+
+    def test_phone_is_required_field(self):
+        del self.data['phone']
+        serializer = self.serializer_class(data=self.data)
+        self.assertRaisesRegex(
+            ValidationError,
+            r'This field is required',
+            serializer.is_valid,
+            raise_exception=True,
+        )
+
+    def test_full_name_is_required_field(self):
+        del self.data['full_name']
+        serializer = self.serializer_class(data=self.data)
+        self.assertRaisesRegex(
+            ValidationError,
+            r'This field is required',
+            serializer.is_valid,
+            raise_exception=True,
+        )
+
+    def test_full_name_field_has_min_length_3(self):
+        self.data['full_name'] = 'qw'
+        serializer = self.serializer_class(data=self.data)
+        self.assertRaisesRegex(
+            ValidationError,
+            r'Ensure this field has at least 3 characters\.',
             serializer.is_valid,
             raise_exception=True,
         )
