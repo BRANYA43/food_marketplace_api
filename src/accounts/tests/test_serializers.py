@@ -10,40 +10,25 @@ User = get_user_model()
 class UserProfileSerializerTest(APITestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.UserProfileSerializer
-        self.user = self.create_test_user()
         self.data = {
-            'email': 'another@test.com',
-            'password': 'new_password123!@#',
-            'phone': '+380123456789',
-            'full_name': 'Rick Sanchez',
+            'email': 'another.email@test.com',
+            'phone': '+38 (98) 765 4321',
+            'full_name': 'Morty',
         }
+        self.user = self.create_test_user(phone='+38 (012) 345 6789', full_name='Rick Sanchez')
 
-    def test_serializer_inherits_base_user_serializer(self):
-        self.assertTrue(issubclass(self.serializer_class, serializers.BaseUserSerializer))
+    def test_serializer_gets_expected_data(self):
+        serializer = self.serializer_class(instance=self.user)
+        for field in self.data.keys():
+            self.assertEqual(serializer.data[field], getattr(self.user, field))
 
-    def test_serializer_updates_user_correctly(self):
-        self.assertNotEqual(self.data['email'], self.user.email)
-        self.assertNotEqual(self.data['phone'], self.user.phone)
-        self.assertNotEqual(self.data['full_name'], self.user.full_name)
-
+    def test_all_fields_is_read_only_fields(self):
         serializer = self.serializer_class(instance=self.user, data=self.data)
-        self.assertTrue(serializer.is_valid())
+        serializer.is_valid()
         serializer.save()
 
-        self.assertEqual(self.user.email, self.data['email'])
-        self.assertTrue(self.user.check_password(self.data['password']))
-        self.assertEqual(self.user.phone, services.normalize_phone_to_ukrainian_format(self.data['phone']))
-        self.assertEqual(self.user.full_name, self.data['full_name'])
-
-    def test_email_field_isnt_required(self):
-        del self.data['email']
-        serializer = self.serializer_class(instance=self.user, data=self.data)
-        self.assertTrue(serializer.is_valid())
-
-    def test_password_field_isnt_required(self):
-        del self.data['password']
-        serializer = self.serializer_class(instance=self.user, data=self.data)
-        self.assertTrue(serializer.is_valid())
+        for field in self.data.keys():
+            self.assertEqual(serializer.data[field], getattr(self.user, field))
 
 
 class UserRegisterSerializerTest(APITestCase):

@@ -23,23 +23,11 @@ class BaseUserSerializer(serializers.ModelSerializer):
         return phone
 
 
-class UserProfileSerializer(BaseUserSerializer):
+class UserProfileSerializer(serializers.ModelSerializer):
     class Meta(BaseUserSerializer.Meta):
-        fields = ['email', 'password', 'full_name', 'phone']
-        extra_kwargs = deepcopy(BaseUserSerializer.Meta.extra_kwargs)
-        extra_kwargs['email'] = {'required': False}
-        extra_kwargs['password']['required'] = False
-
-    def update(self, instance, validated_data):
-        if 'password' in validated_data:
-            password = validated_data.pop('password')
-            instance.set_password(password)
-
-        for field, value in validated_data.items():
-            setattr(instance, field, value)
-
-        instance.save()
-        return instance
+        model = User
+        fields = ['email', 'full_name', 'phone']
+        read_only_fields = fields
 
 
 class UserRegisterSerializer(BaseUserSerializer):
