@@ -5,7 +5,7 @@ from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 from rest_framework import status
 from rest_framework_simplejwt.exceptions import InvalidToken
 
-from accounts.tests import APITestCase
+from utils.tests import APITestCase
 
 from accounts import services, permissions
 

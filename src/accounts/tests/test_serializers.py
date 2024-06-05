@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError
-from rest_framework.test import APITestCase
+from utils.tests import APITestCase
 
 from accounts import serializers, services
 
@@ -11,8 +11,8 @@ class UserRegisterSerializerTest(APITestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.UserRegisterSerializer
         self.data = {
-            'email': 'test@test.com',
-            'password': 'qwe123!@#',
+            'email': self.TEST_EMAIL,
+            'password': self.TEST_PASSWORD,
             'phone': '+380123456789',
             'full_name': 'Rick Sanchez',
         }
