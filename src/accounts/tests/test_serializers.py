@@ -7,6 +7,82 @@ from accounts import serializers, services
 User = get_user_model()
 
 
+class UserProfileSerializerTest(APITestCase):
+    def setUp(self) -> None:
+        self.serializer_class = serializers.UserProfileSerializer
+        self.user = self.create_test_user()
+        self.data = {
+            'email': 'another@test.com',
+            'password': 'new_password123!@#',
+            'phone': '+380123456789',
+            'full_name': 'Rick Sanchez',
+        }
+
+    def test_serializer_updates_user_correctly(self):
+        self.assertNotEqual(self.data['email'], self.user.email)
+        self.assertNotEqual(self.data['phone'], self.user.phone)
+        self.assertNotEqual(self.data['full_name'], self.user.full_name)
+
+        serializer = self.serializer_class(instance=self.user, data=self.data)
+        self.assertTrue(serializer.is_valid())
+        serializer.save()
+
+        self.assertEqual(self.user.email, self.data['email'])
+        self.assertTrue(self.user.check_password(self.data['password']))
+        self.assertEqual(self.user.phone, services.normalize_phone_to_ukrainian_format(self.data['phone']))
+        self.assertEqual(self.user.full_name, self.data['full_name'])
+
+    def test_email_field_isnt_required(self):
+        del self.data['email']
+        serializer = self.serializer_class(instance=self.user, data=self.data)
+        self.assertTrue(serializer.is_valid())
+
+    def test_password_field_isnt_required(self):
+        del self.data['password']
+        serializer = self.serializer_class(instance=self.user, data=self.data)
+        self.assertTrue(serializer.is_valid())
+
+    def test_password_field_has_min_length_8(self):
+        self.data['password'] = 'qwe'
+        serializer = self.serializer_class(data=self.data)
+        self.assertRaisesRegex(
+            ValidationError,
+            r'Ensure this field has at least 8 characters\.',
+            serializer.is_valid,
+            raise_exception=True,
+        )
+
+    def test_full_name_field_has_min_length_3(self):
+        self.data['full_name'] = 'qw'
+        serializer = self.serializer_class(instance=self.user, data=self.data)
+        self.assertRaisesRegex(
+            ValidationError,
+            r'Ensure this field has at least 3 characters\.',
+            serializer.is_valid,
+            raise_exception=True,
+        )
+
+    def test_serializer_validates_phone(self):
+        invalid_phone = '+38 1234 56 7890'
+        self.data['phone'] = invalid_phone
+        serializer = self.serializer_class(instance=self.user, data=self.data)
+
+        self.assertFalse(serializer.is_valid())
+        self.assertRaisesRegex(
+            ValidationError,
+            r'Phone must be at ukrainian format\. Example \+38 XXX XXX XXXX\.',
+            serializer.is_valid,
+            raise_exception=True,
+        )
+
+    def test_serializer_normalize_phone(self):
+        normalized_phone = services.normalize_phone_to_ukrainian_format(self.data['phone'])
+        serializer = self.serializer_class(instance=self.user, data=self.data)
+        self.assertTrue(serializer.is_valid())
+        serializer.save()
+        self.assertEqual(serializer.data['phone'], normalized_phone)
+
+
 class UserRegisterSerializerTest(APITestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.UserRegisterSerializer
