@@ -12,11 +12,22 @@ from rest_framework import viewsets, status
 from rest_framework_simplejwt import views as jwt_views
 
 from accounts import serializers
-from accounts.permissions import IsUnauthenticated
+from accounts.permissions import IsUnauthenticated, IsCurrentUser
 
 
 @extend_schema(tags=['Accounts'])
 @extend_schema_view(
+    me=extend_schema(
+        operation_id='user_me',
+        summary=_('Get profile of current user.'),
+        description=_('Get profile of current user.'),
+        responses={
+            status.HTTP_200_OK: OpenApiResponse(
+                description=_('User profile data.'),
+                response=serializers.UserProfileSerializer,
+            )
+        },
+    ),
     register=extend_schema(
         operation_id='user_register',
         summary=_('Register user.'),
@@ -86,6 +97,7 @@ from accounts.permissions import IsUnauthenticated
 )
 class UserViewSet(viewsets.ViewSet):
     serializer_classes = {
+        'me': serializers.UserProfileSerializer,
         'register': serializers.UserRegisterSerializer,
         'login': import_string(settings.SIMPLE_JWT['TOKEN_OBTAIN_SERIALIZER']),
         'logout': import_string(settings.SIMPLE_JWT['TOKEN_BLACKLIST_SERIALIZER']),
@@ -101,6 +113,11 @@ class UserViewSet(viewsets.ViewSet):
     def get_serializer(self, *args, **kwargs):
         serializer = self.get_serializer_class()
         return serializer(*args, **kwargs)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsCurrentUser])
+    def me(self, request):
+        serializer = self.get_serializer(instance=request.user)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], permission_classes=[IsUnauthenticated])
     def register(self, request):

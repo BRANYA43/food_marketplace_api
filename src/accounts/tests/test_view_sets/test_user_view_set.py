@@ -3,13 +3,39 @@ from django.urls import reverse
 
 from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 from rest_framework import status
+from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import InvalidToken
 
 from utils.tests import APITestCase
 
-from accounts import services, permissions
+from accounts import services, permissions, serializers
 
 User = get_user_model()
+
+
+class MeViewTest(APITestCase):
+    def setUp(self) -> None:
+        self.url = reverse('user-me')
+        self.user = self.create_test_user()
+        self.login_user_by_token(self.user)
+
+    def test_view_allowed_only_get_method(self):
+        response = self.client.get(self.url)
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+        self.assert_not_allowed_methods(['post', 'put', 'patch', 'delete'], self.url)
+
+    def test_view_isnt_accessed_for_unauthenticated_user(self):
+        self.logout_user_by_token(self.user, clear_auth_header=True)
+        response: Response = self.client.get(self.url)
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+
+    def test_view_is_accessed_for_authenticated_user_who_own_current_account(self):
+        expected_data = serializers.UserProfileSerializer(instance=self.user).data
+        response = self.client.get(self.url)
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+        self.assertDictEqual(response.data, expected_data)
 
 
 class RefreshViewTest(APITestCase):
