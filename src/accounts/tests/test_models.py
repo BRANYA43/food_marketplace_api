@@ -1,21 +1,21 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from django.contrib.auth.models import PermissionsMixin, AbstractBaseUser
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import Token
 
 from accounts import models, managers
+from utils.tests import APITestCase
 
 
-class UserModelTest(TestCase):
+class UserModelTest(APITestCase):
     def setUp(self) -> None:
         self.model_class = models.User
-        self.data = {
-            'email': 'test@test.com',
-            'password': 'qwe123!@#',
-        }
+        self.data = dict(
+            email=self.TEST_EMAIL,
+            password=self.TEST_PASSWORD,
+        )
 
     def test_model_inherits_permissions_mixin(self):
         self.assertTrue(issubclass(self.model_class, PermissionsMixin))
