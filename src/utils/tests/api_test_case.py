@@ -38,7 +38,7 @@ class APITestCase(RFAPITestCase):
         credentials = {self.AUTH_HEADER_NAME: f'{self.AUTH_HEADER_TYPES[0]} {user.access_token}'}
         self.client.credentials(**credentials)
 
-    def logout_user_by_token(self, user, clear_auth_header=False):
+    def logout_user_by_token(self, user, clear_auth_header=True):
         tokens = OutstandingToken.objects.filter(user=user)
         for token in tokens:
             RefreshToken(token.token).blacklist()
