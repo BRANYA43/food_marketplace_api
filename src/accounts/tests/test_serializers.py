@@ -7,6 +7,59 @@ from accounts import serializers, services
 User = get_user_model()
 
 
+class UserProfileUpdateSerializerTest(APITestCase):
+    def setUp(self) -> None:
+        self.serializer_class = serializers.UserProfileUpdateSerializer
+        self.user = self.create_test_user(phone='+38 (012) 345 6789', full_name='Rick Sanchez')
+        self.data = {
+            'email': 'morty@test.com',
+            'password': 'newpassword123!@#',
+            'phone': '+38 (987) 654 3210',
+            'full_name': 'Morty',
+        }
+
+    def test_serializer_inherits_base_user_serializer(self):
+        self.assertTrue(issubclass(self.serializer_class, serializers.BaseUserSerializer))
+
+    def test_serializer_updates_user_correctly(self):
+        self.assertNotEqual(self.user.email, self.data['email'])
+        self.assertNotEqual(self.user.full_name, self.data['full_name'])
+        self.assertNotEqual(self.user.phone, self.data['phone'])
+        self.assertFalse(self.user.check_password(self.data['password']))
+
+        serializer = self.serializer_class(instance=self.user, data=self.data)
+
+        self.assertTrue(serializer.is_valid())
+
+        serializer.save()
+
+        self.assertEqual(self.user.email, self.data['email'])
+        self.assertEqual(self.user.full_name, self.data['full_name'])
+        self.assertEqual(self.user.phone, self.data['phone'])
+        self.assertTrue(self.user.check_password(self.data['password']))
+
+    def test_serializer_returns_expected_data(self):
+        del self.data['password']
+        expected_data = self.data
+        serializer = self.serializer_class(instance=self.user, data=self.data)
+
+        self.assertTrue(serializer.is_valid())
+
+        serializer.save()
+
+        self.assertDictEqual(serializer.data, expected_data)
+
+    def test_email_field_isnt_required(self):
+        del self.data['email']
+        serializer = self.serializer_class(instance=self.user, data=self.data)
+        self.assertTrue(serializer.is_valid())
+
+    def test_password_isnt_required(self):
+        del self.data['password']
+        serializer = self.serializer_class(instance=self.user, data=self.data)
+        self.assertTrue(serializer.is_valid())
+
+
 class UserProfileSerializerTest(APITestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.UserProfileSerializer
