@@ -80,21 +80,17 @@ class UserProfileSerializerTest(APITestCase):
 class UserRegisterSerializerTest(APITestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.UserRegisterSerializer
-        self.data = {
-            'email': self.TEST_EMAIL,
-            'password': self.TEST_PASSWORD,
-            'phone': '+380123456789',
-            'full_name': 'Rick Sanchez',
-        }
+        self.data = self.rick_data
 
     def test_serializer_inherits_base_user_serializer(self):
         self.assertTrue(issubclass(self.serializer_class, serializers.BaseUserSerializer))
 
     def test_serializer_creates_user_correctly(self):
+        self.assertEqual(User.objects.count(), 0)
+
         serializer = self.serializer_class(data=self.data)
 
         self.assertTrue(serializer.is_valid())
-        self.assertEqual(User.objects.count(), 0)
 
         user = serializer.save()
 
