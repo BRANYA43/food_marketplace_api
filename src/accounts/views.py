@@ -75,7 +75,7 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
                 description=_('User registered successfully.'),
             ),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
-                description=_('Invalid credentials.'),
+                description=_('Invalid credentials or user exist with credentials.'),
                 response=openapi_serializers.ValidationErrorResponseSerializer,
             ),
         },

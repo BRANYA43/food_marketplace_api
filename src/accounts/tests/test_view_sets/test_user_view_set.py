@@ -365,34 +365,32 @@ class LoginViewTest(APITestCase):
 class RegisterViewTest(APITestCase):
     def setUp(self) -> None:
         self.url = reverse('user-register')
-        self.data = {
-            'email': self.TEST_EMAIL,
-            'password': self.TEST_PASSWORD,
-            'phone': '+380123456789',
-            'full_name': 'Rick Sanchez',
-        }
+        self.data = self.rick_data
 
     def test_view_allows_only_post_method(self):
+        self.assert_not_allowed_methods(['get', 'put', 'patch', 'delete'], self.url)
+
         response = self.client.post(self.url, self.data)
         self.assert_response_status(response, status.HTTP_201_CREATED)
-
-        self.assert_not_allowed_methods(['get', 'put', 'patch', 'delete'], self.url)
 
     def test_view_is_accessed_for_unauthenticated_user(self):
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_201_CREATED)
+        self.assertIsNone(response.data)
 
     def test_view_isnt_accessed_for_authenticated_user(self):
-        del self.data['phone']
         user = self.create_test_user(**self.data)
         self.login_user_by_token(user)
 
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.data['errors'][0]['code'], 'permission_denied')
-        self.assertEqual(response.data['errors'][0]['detail'], 'User is already authenticated.')
+        self.assert_response_client_error(
+            response,
+            'permission_denied',
+            'User is already authenticated.',
+        )
 
     def test_view_register_user_with_valid_credentials(self):
         self.assertEqual(User.objects.count(), 0)
@@ -413,6 +411,7 @@ class RegisterViewTest(APITestCase):
             'email': 'email.com',
             'password': 'qwe',
             'phone': '3324',
+            'full_name': 'qw',
         }
 
         self.assertEqual(User.objects.count(), 0)
@@ -422,7 +421,7 @@ class RegisterViewTest(APITestCase):
         self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(User.objects.count(), 0)
 
-    def test_view_doesnt_register_existed_user(self):
+    def test_view_doesnt_register_with_data_of_existed_user(self):
         del self.data['phone']
         User.objects.create_user(**self.data)
 
@@ -431,5 +430,16 @@ class RegisterViewTest(APITestCase):
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['errors'][0]['code'], 'unique')
-        self.assertEqual(response.data['errors'][0]['detail'], 'user with this email already exists.')
+        self.assert_response_client_error(
+            response,
+            'unique',
+            'user with this email already exists.',
+        )
+
+    def test_view_doesnt_register_user_with_empty_data(self):
+        self.assertEqual(User.objects.count(), 0)
+
+        response = self.client.post(self.url, {})
+
+        self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(User.objects.count(), 0)
