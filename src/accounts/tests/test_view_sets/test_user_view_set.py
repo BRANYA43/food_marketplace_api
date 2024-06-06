@@ -13,6 +13,35 @@ from accounts import services, permissions, serializers
 User = get_user_model()
 
 
+class DisableMeViewTest(APITestCase):
+    def setUp(self) -> None:
+        self.url = reverse('user-disable-me')
+        self.user = self.create_test_user()
+        self.login_user_by_token(self.user)
+
+    def test_view_allows_only_delete_method(self):
+        self.assert_not_allowed_methods(['get', 'post', 'put', 'patch'], self.url)
+
+        response = self.client.delete(self.url)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+    def test_view_isnt_accessed_for_unauthenticated_user(self):
+        self.logout_user_by_token(self.user, clear_auth_header=True)
+        response = self.client.delete(self.url)
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+
+    def test_view_is_accessed_for_authenticated_user_who_own_current_account(self):
+        response = self.client.delete(self.url)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+    def test_view_disabled_account_of_current_user(self):
+        response = self.client.delete(self.url)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_active)
+
+
 class UpdateMeViewTest(APITestCase):
     def setUp(self) -> None:
         self.url = reverse('user-update-me')

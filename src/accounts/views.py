@@ -17,6 +17,21 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
 
 @extend_schema(tags=['Accounts'])
 @extend_schema_view(
+    disable_me=extend_schema(
+        operation_id='user_disable_me',
+        summary=_('Disable account of current user.'),
+        description=_('Update profile of current user.'),
+        responses={
+            status.HTTP_204_NO_CONTENT: OpenApiResponse(
+                description='User account was disabled successfully.',
+                response=None,
+            ),
+            status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description=_('User not auth.'),
+                response=openapi_serializers.ErrorResponse401Serializer,
+            ),
+        },
+    ),
     update_me=extend_schema(
         operation_id='user_update',
         summary=_('Update profile of current user.'),
@@ -137,6 +152,13 @@ class UserViewSet(viewsets.ViewSet):
     def get_serializer(self, *args, **kwargs):
         serializer = self.get_serializer_class()
         return serializer(*args, **kwargs)
+
+    @action(detail=False, methods=['delete'], permission_classes=[IsCurrentUser])
+    def disable_me(self, request):
+        user = request.user
+        user.is_active = False
+        user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['put', 'patch'], permission_classes=[IsCurrentUser])
     def update_me(self, request):
