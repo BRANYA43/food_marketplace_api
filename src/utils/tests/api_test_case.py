@@ -38,3 +38,10 @@ class APITestCase(RFAPITestCase):
 
     def assert_response_status(self, response: Response, status: int):
         self.assertEqual(response.status_code, status)
+
+    def assert_response_client_error(self, response: Response, code: str, detail: str = None):
+        errors = response.data.get('errors')
+        self.assertIsNotNone(errors)
+        self.assertEqual(errors['code'], code)
+        if detail:
+            self.assertEqual(errors['detail'], detail)
