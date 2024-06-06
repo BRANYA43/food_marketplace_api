@@ -81,9 +81,9 @@ class UpdateMeViewTest(APITestCase):
         self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
 
 
-class MeViewTest(APITestCase):
+class RetrieveMeViewTest(APITestCase):
     def setUp(self) -> None:
-        self.url = reverse('user-me')
+        self.url = reverse('user-retrieve-me')
         self.user = self.create_test_user()
         self.login_user_by_token(self.user)
 
