@@ -3,10 +3,9 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from rest_framework.exceptions import NotAuthenticated, PermissionDenied
+from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework_simplejwt.exceptions import InvalidToken
 from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
 
 from utils.tests import APITestCase
@@ -254,42 +253,67 @@ class LogoutViewTest(APITestCase):
         self.data = {'refresh': str(self.refresh_token)}
 
     def test_view_allows_only_post_method(self):
-        response = self.client.post(self.url, self.data)
-        self.assert_response_status(response, status.HTTP_200_OK)
-
         self.assert_not_allowed_methods(['get', 'put', 'patch', 'delete'], self.url)
 
+        response = self.client.post(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
     def test_view_isnt_accessed_for_unauthenticated_user(self):
-        self.logout_user_by_token(self.user, clear_auth_header=True)
+        self.logout_user_by_token(self.user)
 
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['errors'][0]['code'], NotAuthenticated.default_code)
-        self.assertEqual(response.data['errors'][0]['detail'], NotAuthenticated.default_detail)
+        self.assert_response_client_error(
+            response,
+            code='not_authenticated',
+            detail='Authentication credentials were not provided.',
+        )
+
+    def test_view_isnt_accessed_for_authenticated_user_with_expired_access_token(self):
+        self.login_user_by_token(self.user, use_expired_token=True)
+        response = self.client.get(self.url)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assert_response_client_error(
+            response,
+            code='token_not_valid',
+            detail='Given token not valid for any token type',
+        )
 
     def test_view_is_accessed_for_authenticated_user(self):
         response = self.client.post(self.url, self.data)
 
-        self.assert_response_status(response, status.HTTP_200_OK)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+        self.assertIsNone(response.data)
 
     def test_view_logs_user_out_with_valid_refresh_token(self):
         response = self.client.post(self.url, self.data)
 
-        self.assert_response_status(response, status.HTTP_200_OK)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
 
         response = self.client.post(self.url, self.data)
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['errors'][0]['code'], InvalidToken.default_code)
-        self.assertEqual(response.data['errors'][0]['detail'], 'Token is blacklisted')
+        self.assert_response_client_error(
+            response,
+            code='token_not_valid',
+            detail='Token is blacklisted',
+        )
 
     def test_view_logs_user_out_with_invalid_refresh_token(self):
-        self.data['refresh'] = 'invalid_token' + self.data['refresh']
+        self.data['refresh'] = 'invalid_token'
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['errors'][0]['code'], InvalidToken.default_code)
-        self.assertEqual(response.data['errors'][0]['detail'], 'Token is invalid or expired')
+        self.assert_response_client_error(
+            response,
+            code='token_not_valid',
+            detail='Token is invalid or expired',
+        )
+
+    def test_view_doesnt_log_user_out_with_empty_data(self):
+        response = self.client.post(self.url, {})
+        self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
 
 
 class LoginViewTest(APITestCase):

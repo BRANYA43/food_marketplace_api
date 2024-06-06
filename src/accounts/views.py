@@ -108,11 +108,15 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
         summary=_('Log a user out.'),
         description=_('Log a user out by adding all user tokens to the blacklist.'),
         responses={
-            status.HTTP_200_OK: OpenApiResponse(
+            status.HTTP_204_NO_CONTENT: OpenApiResponse(
                 description=_('User logged out successfully.'),
             ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description=_('Invalid data.'),
+                response=openapi_serializers.ValidationErrorResponseSerializer,
+            ),
             status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
-                description=_('Credentials were not provided; Token is invalid, expired or blacklisted;'),
+                description=_('User is unauthenticated or token is invalid, expired or blacklisted.'),
                 response=openapi_serializers.ErrorResponse401Serializer,
             ),
         },
@@ -189,7 +193,11 @@ class UserViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def logout(self, request):
-        return jwt_views.token_blacklist(request._request)
+        response = jwt_views.token_blacklist(request._request)
+        if response.status_code == status.HTTP_200_OK:
+            response.status_code = status.HTTP_204_NO_CONTENT
+            response.data = None
+        return response
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def refresh(self, request):
