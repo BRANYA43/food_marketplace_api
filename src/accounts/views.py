@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets, status
 
 from rest_framework_simplejwt import views as jwt_views
+from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
 
 from accounts import serializers
 from accounts.permissions import IsUnauthenticated, IsCurrentUser
@@ -119,14 +120,18 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
     refresh=extend_schema(
         operation_id='user_refresh_token',
         summary=_('Refresh token.'),
-        description=_('Refresh a expiry of user refresh token and return new user access token.'),
+        description=_('Refresh a lifetime and expiry of user refresh token and return new user access token.'),
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description=_('Token was refreshed successfully.'),
-                response=import_string(settings.SIMPLE_JWT['TOKEN_REFRESH_SERIALIZER']),
+                response=jwt_api_settings.TOKEN_REFRESH_SERIALIZER,
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description=_('Invalid data.'),
+                response=openapi_serializers.ValidationErrorResponseSerializer,
             ),
             status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
-                description=_('Token is invalid, expired or blacklisted;'),
+                description=_('Refresh token is invalid, expired or blacklisted.'),
                 response=openapi_serializers.ErrorResponse401Serializer,
             ),
         },

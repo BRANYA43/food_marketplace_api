@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
@@ -5,6 +7,7 @@ from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
 
 from utils.tests import APITestCase
 
@@ -184,35 +187,62 @@ class RefreshViewTest(APITestCase):
         self.data = {'refresh': str(self.refresh_token)}
 
     def test_view_allows_only_post_method(self):
+        self.assert_not_allowed_methods(['get', 'put', 'patch', 'delete'], self.url)
+
         response = self.client.post(self.url, self.data)
         self.assert_response_status(response, status.HTTP_200_OK)
-
-        self.assert_not_allowed_methods(['get', 'put', 'patch', 'delete'], self.url)
 
     def test_view_is_accessed_for_unauthenticated_user(self):
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_200_OK)
+        self.assertTrue(response.data.get('access'))
 
     def test_view_is_accessed_for_authenticated_user(self):
         self.login_user_by_token(self.user)
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_200_OK)
-
-    def test_view_refreshes_valid_refresh_token(self):
-        response = self.client.post(self.url, self.data)
-
-        self.assert_response_status(response, status.HTTP_200_OK)
-        self.assertIn('access', response.data)
+        self.assertTrue(response.data.get('access'))
 
     def test_view_doesnt_refresh_invalid_refresh_token(self):
-        self.data['refresh'] = 'invalid_token' + self.data['refresh']
+        self.data['refresh'] = 'invalid_token'
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['errors'][0]['code'], InvalidToken.default_code)
-        self.assertEqual(response.data['errors'][0]['detail'], InvalidToken.default_detail)
+        self.assert_response_client_error(
+            response,
+            'token_not_valid',
+            'Token is invalid or expired',
+        )
+
+    def test_view_doesnt_refresh_expired_refresh_token(self):
+        self.refresh_token.set_exp(from_time=datetime.now() - jwt_api_settings.REFRESH_TOKEN_LIFETIME)
+        self.data['refresh'] = str(self.refresh_token)
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assert_response_client_error(
+            response,
+            'token_not_valid',
+            'Token is invalid or expired',
+        )
+
+    def test_view_doesnt_refresh_blacklisted_refresh_token(self):
+        self.logout_user_by_token(self.user)
+
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assert_response_client_error(
+            response,
+            'token_not_valid',
+            'Token is blacklisted',
+        )
+
+    def test_view_doesnt_refresh_token_with_empty_data(self):
+        response = self.client.post(self.url, {})
+        self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutViewTest(APITestCase):
