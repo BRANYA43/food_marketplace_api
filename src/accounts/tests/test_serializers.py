@@ -100,6 +100,22 @@ class UserRegisterSerializerTest(APITestCase):
         self.assertTrue(user.check_password(self.data['password']))
         self.assertIsNotNone(user.phone)
 
+    def test_serializer_is_invalid_with_invalid_credentials(self):
+        invalid_data = dict(
+            email='invalid.email.com',
+            password='qwe',
+            full_name='qw',
+            phone='123',
+        )
+        serializer = self.serializer_class(data=invalid_data)
+
+        self.assertFalse(serializer.is_valid())
+
+    def test_serializer_is_invalid_with_empty_credentials(self):
+        serializer = self.serializer_class(data={})
+
+        self.assertFalse(serializer.is_valid())
+
     def test_phone_is_required_field(self):
         del self.data['phone']
         serializer = self.serializer_class(data=self.data)
