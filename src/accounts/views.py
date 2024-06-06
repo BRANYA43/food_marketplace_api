@@ -87,7 +87,7 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description='User logged in successfully.',
-                response=import_string(settings.SIMPLE_JWT['TOKEN_OBTAIN_SERIALIZER']),
+                response=import_string(jwt_api_settings.TOKEN_OBTAIN_SERIALIZER),
             ),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
                 description=_('Invalid credentials.'),

@@ -3,14 +3,13 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from rest_framework.exceptions import PermissionDenied
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
 
 from utils.tests import APITestCase
 
-from accounts import services, permissions, serializers
+from accounts import services, serializers
 
 User = get_user_model()
 
@@ -326,15 +325,17 @@ class LoginViewTest(APITestCase):
         }
 
     def test_view_allows_only_post_method(self):
+        self.assert_not_allowed_methods(['get', 'put', 'patch', 'delete'], self.url)
+
         response = self.client.post(self.url, self.data)
         self.assert_response_status(response, status.HTTP_200_OK)
-
-        self.assert_not_allowed_methods(['get', 'put', 'patch', 'delete'], self.url)
 
     def test_view_is_accessed_for_unauthenticated_user(self):
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_200_OK)
+        self.assertTrue(response.data.get('access'))
+        self.assertTrue(response.data.get('refresh'))
 
     def test_view_isnt_accessed_for_authenticated_user(self):
         self.login_user_by_token(self.user)
@@ -342,23 +343,23 @@ class LoginViewTest(APITestCase):
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.data['errors'][0]['code'], PermissionDenied.default_code)
-        self.assertEqual(response.data['errors'][0]['detail'], permissions.IsUnauthenticated.message)
-
-    def test_view_logs_user_in_with_valid_credentials(self):
-        response = self.client.post(self.url, self.data)
-
-        self.assert_response_status(response, status.HTTP_200_OK)
-        self.assertIn('access', response.data)
-        self.assertIn('refresh', response.data)
+        self.assert_response_client_error(response, 'permission_denied', 'User is already authenticated.')
 
     def test_view_doesnt_log_user_in_with_invalid_credentials(self):
         invalid_data = {'email': 'invalid.email@test.com', 'password': 'invalid_password'}
         response = self.client.post(self.url, invalid_data)
 
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['errors'][0]['code'], 'no_active_account')
-        self.assertEqual(response.data['errors'][0]['detail'], 'No active account found with the given credentials')
+        self.assert_response_client_error(
+            response,
+            'no_active_account',
+            'No active account found with the given credentials',
+        )
+
+    def test_view_doesnt_log_user_in_with_empty_credentials(self):
+        response = self.client.post(self.url, {})
+
+        self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
 
 
 class RegisterViewTest(APITestCase):
