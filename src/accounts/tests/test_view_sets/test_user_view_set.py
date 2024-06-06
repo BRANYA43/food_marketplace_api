@@ -13,6 +13,45 @@ from accounts import services, permissions, serializers
 User = get_user_model()
 
 
+class UpdateMeViewTest(APITestCase):
+    def setUp(self) -> None:
+        self.url = reverse('user-update-me')
+        self.serializer_class = serializers.UserProfileUpdateSerializer
+        self.user = self.create_test_user()
+        self.login_user_by_token(self.user)
+        self.data = {
+            'full_name': 'Rick Sanchez',
+        }
+
+    def test_view_allows_only_put_and_patch_methods(self):
+        response = self.client.put(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+        response = self.client.patch(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+        self.assert_not_allowed_methods(['get', 'post', 'delete'], self.url)
+
+    def test_view_isnt_accessed_for_unauthenticated_user(self):
+        self.logout_user_by_token(self.user, clear_auth_header=True)
+        response: Response = self.client.put(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+
+    def test_view_is_accessed_for_authenticated_user_who_own_current_account(self):
+        expected_data = self.serializer_class(instance=self.user).data
+        expected_data['full_name'] = self.data['full_name']
+        response = self.client.put(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_200_OK)
+        self.assertDictEqual(response.data, expected_data)
+
+    def test_view_doesnt_update_with_invalid_data(self):
+        self.data['full_name'] = 'qw'
+        response = self.client.put(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
+
+
 class MeViewTest(APITestCase):
     def setUp(self) -> None:
         self.url = reverse('user-me')

@@ -17,6 +17,25 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
 
 @extend_schema(tags=['Accounts'])
 @extend_schema_view(
+    update_me=extend_schema(
+        operation_id='user_update',
+        summary=_('Update profile of current user.'),
+        description=_('Update profile of current user.'),
+        responses={
+            status.HTTP_200_OK: OpenApiResponse(
+                description=_('User profile was updated successfully.'),
+                response=serializers.UserProfileUpdateSerializer,
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description=_('Invalid data.'),
+                response=openapi_serializers.ValidationErrorResponseSerializer,
+            ),
+            status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description=_('User not auth.'),
+                response=openapi_serializers.ErrorResponse401Serializer,
+            ),
+        },
+    ),
     me=extend_schema(
         operation_id='user_me',
         summary=_('Get profile of current user.'),
@@ -101,6 +120,7 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
 )
 class UserViewSet(viewsets.ViewSet):
     serializer_classes = {
+        'update_me': serializers.UserProfileUpdateSerializer,
         'me': serializers.UserProfileSerializer,
         'register': serializers.UserRegisterSerializer,
         'login': import_string(settings.SIMPLE_JWT['TOKEN_OBTAIN_SERIALIZER']),
@@ -117,6 +137,13 @@ class UserViewSet(viewsets.ViewSet):
     def get_serializer(self, *args, **kwargs):
         serializer = self.get_serializer_class()
         return serializer(*args, **kwargs)
+
+    @action(detail=False, methods=['put', 'patch'], permission_classes=[IsCurrentUser])
+    def update_me(self, request):
+        serializer = self.get_serializer(instance=request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], permission_classes=[IsCurrentUser])
     def me(self, request):
