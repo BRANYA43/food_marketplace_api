@@ -59,14 +59,11 @@ class UserProfileUpdateSerializerTest(APITestCase):
 class UserProfileSerializerTest(APITestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.UserProfileSerializer
-        self.data = {
-            'email': 'another.email@test.com',
-            'phone': '+38 (98) 765 4321',
-            'full_name': 'Morty',
-        }
-        self.user = self.create_test_user(phone='+38 (012) 345 6789', full_name='Rick Sanchez')
+        self.user = self.create_test_user(**self.rick_data)
+        self.data = self.morty_data
+        del self.data['password']
 
-    def test_serializer_gets_expected_data(self):
+    def test_serializer_returns_expected_data(self):
         serializer = self.serializer_class(instance=self.user)
         for field in self.data.keys():
             self.assertEqual(serializer.data[field], getattr(self.user, field))
