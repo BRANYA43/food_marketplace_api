@@ -33,6 +33,17 @@ class UserProfileUpdateSerializerTest(APITestCase):
         self.assertEqual(self.user.phone, self.data['phone'])
         self.assertTrue(self.user.check_password(self.data['password']))
 
+    def test_serializer_doesnt_update_user_with_invalid_data(self):
+        invalid_data = dict(
+            email='email.com',
+        )
+        self.assertNotEqual(self.user.email, invalid_data['email'])
+
+        serializer = self.serializer_class(instance=self.user, data=invalid_data, partial=True)
+        self.assertFalse(serializer.is_valid())
+
+        self.assertNotEqual(self.user.email, invalid_data['email'])
+
     def test_serializer_returns_expected_data(self):
         del self.data['password']
         expected_data = self.data
