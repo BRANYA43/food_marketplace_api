@@ -20,14 +20,13 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
     disable_me=extend_schema(
         operation_id='user_disable_me',
         summary=_('Disable account of current user.'),
-        description=_('Update profile of current user.'),
         responses={
             status.HTTP_204_NO_CONTENT: OpenApiResponse(
                 description='User account was disabled successfully.',
                 response=None,
             ),
             status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
-                description=_('User not auth.'),
+                description=_('User is unauthenticated or token is invalid or expired.'),
                 response=openapi_serializers.ErrorResponse401Serializer,
             ),
         },
