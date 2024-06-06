@@ -60,7 +60,7 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
                 response=serializers.UserProfileSerializer,
             ),
             status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
-                description=_('User not auth.'),
+                description=_('User is unauthenticated or token is invalid or expired.'),
                 response=openapi_serializers.ErrorResponse401Serializer,
             ),
         },

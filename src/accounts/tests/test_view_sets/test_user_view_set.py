@@ -148,15 +148,31 @@ class RetrieveMeViewTest(APITestCase):
         self.assert_not_allowed_methods(['post', 'put', 'patch', 'delete'], self.url)
 
     def test_view_isnt_accessed_for_unauthenticated_user(self):
-        self.logout_user_by_token(self.user, clear_auth_header=True)
+        self.logout_user_by_token(self.user)
         response: Response = self.client.get(self.url)
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assert_response_client_error(
+            response,
+            code='not_authenticated',
+            detail='Authentication credentials were not provided.',
+        )
+
+    def test_view_isnt_accessed_for_authenticated_user_with_expired_access_token(self):
+        self.login_user_by_token(self.user, use_expired_token=True)
+        response = self.client.get(self.url)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assert_response_client_error(
+            response,
+            code='token_not_valid',
+            detail='Given token not valid for any token type',
+        )
 
     def test_view_is_accessed_for_authenticated_user_who_own_current_account(self):
         expected_data = serializers.UserProfileSerializer(instance=self.user).data
         response = self.client.get(self.url)
-        self.assert_response_status(response, status.HTTP_200_OK)
 
+        self.assert_response_status(response, status.HTTP_200_OK)
         self.assertDictEqual(response.data, expected_data)
 
 
