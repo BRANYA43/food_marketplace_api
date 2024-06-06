@@ -1,8 +1,10 @@
-from django.conf import settings
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APITestCase as RFAPITestCase, APIRequestFactory
+from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
 
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -13,8 +15,6 @@ class APITestCase(RFAPITestCase):
     TEST_USER_MODEL = get_user_model()
     TEST_EMAIL = 'test@test.com'
     TEST_PASSWORD = 'qwr123!@#'
-    AUTH_HEADER_NAME = settings.SIMPLE_JWT['AUTH_HEADER_NAME']
-    AUTH_HEADER_TYPES = settings.SIMPLE_JWT['AUTH_HEADER_TYPES']
 
     @property
     def rick_data(self) -> dict:
@@ -34,8 +34,13 @@ class APITestCase(RFAPITestCase):
             phone='+38 (098) 765 4321',
         )
 
-    def login_user_by_token(self, user):
-        credentials = {self.AUTH_HEADER_NAME: f'{self.AUTH_HEADER_TYPES[0]} {user.access_token}'}
+    def login_user_by_token(self, user, use_expired_token=False):
+        token = user.access_token
+
+        if use_expired_token:
+            token.set_exp(from_time=datetime.now() - jwt_api_settings.ACCESS_TOKEN_LIFETIME)
+
+        credentials = {jwt_api_settings.AUTH_HEADER_NAME: f'{jwt_api_settings.AUTH_HEADER_TYPES[0]} {token}'}
         self.client.credentials(**credentials)
 
     def logout_user_by_token(self, user, clear_auth_header=True):
