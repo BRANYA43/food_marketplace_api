@@ -41,11 +41,11 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
                 response=serializers.UserProfileUpdateSerializer,
             ),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
-                description=_('Invalid data.'),
+                description=_('Invalid update data.'),
                 response=openapi_serializers.ValidationErrorResponseSerializer,
             ),
             status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
-                description=_('User not auth.'),
+                description=_('User is unauthenticated or token is invalid or expired.'),
                 response=openapi_serializers.ErrorResponse401Serializer,
             ),
         },

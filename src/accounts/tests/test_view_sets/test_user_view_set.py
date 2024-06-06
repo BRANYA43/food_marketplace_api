@@ -64,39 +64,75 @@ class UpdateMeViewTest(APITestCase):
     def setUp(self) -> None:
         self.url = reverse('user-update-me')
         self.serializer_class = serializers.UserProfileUpdateSerializer
-        self.user = self.create_test_user()
+        self.user = self.create_test_user(**self.rick_data)
         self.login_user_by_token(self.user)
-        self.data = {
-            'full_name': 'Rick Sanchez',
-        }
+        self.data = self.morty_data
 
     def test_view_allows_only_put_and_patch_methods(self):
+        self.assert_not_allowed_methods(['get', 'post', 'delete'], self.url)
+
         response = self.client.put(self.url, self.data)
         self.assert_response_status(response, status.HTTP_200_OK)
 
         response = self.client.patch(self.url, self.data)
         self.assert_response_status(response, status.HTTP_200_OK)
 
-        self.assert_not_allowed_methods(['get', 'post', 'delete'], self.url)
-
     def test_view_isnt_accessed_for_unauthenticated_user(self):
-        self.logout_user_by_token(self.user, clear_auth_header=True)
-        response: Response = self.client.put(self.url, self.data)
+        self.logout_user_by_token(self.user)
+        response = self.client.put(self.url, self.data)
+
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assert_response_client_error(
+            response,
+            code='not_authenticated',
+            detail='Authentication credentials were not provided.',
+        )
+
+    def test_view_isnt_accessed_for_authenticated_user_but_expired_access_token(self):
+        self.login_user_by_token(self.user, use_expired_token=True)
+        response = self.client.put(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assert_response_client_error(
+            response,
+            code='token_not_valid',
+            detail='Given token not valid for any token type',
+        )
 
     def test_view_is_accessed_for_authenticated_user_who_own_current_account(self):
-        expected_data = self.serializer_class(instance=self.user).data
-        expected_data['full_name'] = self.data['full_name']
         response = self.client.put(self.url, self.data)
+        self.user.refresh_from_db()
+        expected_data = self.serializer_class(instance=self.user).data
 
         self.assert_response_status(response, status.HTTP_200_OK)
         self.assertDictEqual(response.data, expected_data)
 
-    def test_view_doesnt_update_with_invalid_data(self):
-        self.data['full_name'] = 'qw'
+    def test_view_updates_user_with_valid_data(self):
+        self.assertNotEqual(self.user.email, self.data['email'])
+        self.assertFalse(self.user.check_password(self.data['password']))
+        self.assertNotEqual(self.user.phone, self.data['phone'])
+        self.assertNotEqual(self.user.full_name, self.data['full_name'])
+
         response = self.client.put(self.url, self.data)
+        self.user.refresh_from_db()
+
+        self.assert_response_status(response, status.HTTP_200_OK)
+        self.assertEqual(self.user.email, self.data['email'])
+        self.assertTrue(self.user.check_password(self.data['password']))
+        self.assertEqual(self.user.phone, self.data['phone'])
+        self.assertEqual(self.user.full_name, self.data['full_name'])
+
+    def test_view_doesnt_update_with_invalid_data(self):
+        invalid_data = {
+            'full_name': 'qw',
+        }
+
+        self.assertNotEqual(self.user, invalid_data['full_name'])
+
+        response = self.client.put(self.url, invalid_data)
 
         self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
+        self.assertNotEqual(self.user, invalid_data['full_name'])
 
 
 class RetrieveMeViewTest(APITestCase):
