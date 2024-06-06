@@ -11,10 +11,28 @@ from rest_framework_simplejwt.tokens import RefreshToken
 class APITestCase(RFAPITestCase):
     request_factory = APIRequestFactory()
     TEST_USER_MODEL = get_user_model()
-    TEST_EMAIL = 'rick.sanchez@test.com'
+    TEST_EMAIL = 'test@test.com'
     TEST_PASSWORD = 'qwr123!@#'
     AUTH_HEADER_NAME = settings.SIMPLE_JWT['AUTH_HEADER_NAME']
     AUTH_HEADER_TYPES = settings.SIMPLE_JWT['AUTH_HEADER_TYPES']
+
+    @property
+    def rick_data(self) -> dict:
+        return dict(
+            email='rick.sanchez@test.com',
+            password='rick123!@#',
+            full_name='Rick Sanchez',
+            phone='+38 (012) 345 6789',
+        )
+
+    @property
+    def morty_data(self) -> dict:
+        return dict(
+            email='morty@test.com',
+            password='morty123!@#',
+            full_name='Morty',
+            phone='+38 (098) 765 4321',
+        )
 
     def login_user_by_token(self, user):
         credentials = {self.AUTH_HEADER_NAME: f'{self.AUTH_HEADER_TYPES[0]} {user.access_token}'}
