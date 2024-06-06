@@ -65,6 +65,6 @@ class APITestCase(RFAPITestCase):
     def assert_response_client_error(self, response: Response, code: str, detail: str = None):
         errors = response.data.get('errors')
         self.assertIsNotNone(errors)
-        self.assertEqual(errors['code'], code)
+        self.assertEqual(errors[0]['code'], code)
         if detail:
-            self.assertEqual(errors['detail'], detail)
+            self.assertEqual(errors[0]['detail'], detail)
