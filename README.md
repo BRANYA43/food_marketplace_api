@@ -97,3 +97,12 @@ If you installed docker compose as application to your OS that command must star
 
 #### API
 - http://localhost/api/schema/redoc/
+
+***
+
+### Example of access token header
+
+| Header        | Value                 |
+|---------------|-----------------------|
+| Authorization | Bearer <access_token> |
+
