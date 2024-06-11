@@ -3,7 +3,7 @@ version: "3.9"
 services:
   api:
     build: .
-    image: branya/food_marketplace_api:1.2.0
+    image: branya/food_marketplace_api:1.3.0
     container_name: api
     volumes:
       - static_volume:/opt/src/static
