@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 from utils.tests import APITestCase
 
@@ -17,7 +18,7 @@ User = get_user_model()
 class DisableMeViewTest(APITestCase):
     def setUp(self) -> None:
         self.url = reverse('user-disable-me')
-        self.user = self.create_test_user()
+        self.user = self.create_test_user(**self.rick_data)
         self.login_user_by_token(self.user)
 
     def test_view_allows_only_delete_method(self):
@@ -48,17 +49,65 @@ class DisableMeViewTest(APITestCase):
             detail='Given token not valid for any token type',
         )
 
-    def test_view_is_accessed_for_authenticated_user_who_own_current_account(self):
+    def test_view_is_accessed_for_authenticated_user(self):
         response = self.client.delete(self.url)
         self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
         self.assertIsNone(response.data)
 
-    def test_view_disabled_account_of_current_user(self):
+    def test_view_disables_current_user(self):
         response = self.client.delete(self.url)
         self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
 
         self.user.refresh_from_db()
         self.assertFalse(self.user.is_active)
+
+    def test_view_blacklists_tokens_of_current_user(self):
+        _ = [self.user.refresh_token for _ in range(3)]
+
+        response = self.client.delete(self.url)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+        tokens = OutstandingToken.objects.filter(user=self.user)
+        for token in tokens:
+            self.assertTrue(
+                BlacklistedToken.objects.filter(token=token).exists(),
+                msg=f'Not blacklisted token: {token}',
+            )
+
+    def test_view_doesnt_disable_current_superuser_account(self):
+        superuser = self.create_test_user(is_superuser=True)
+        self.login_user_by_token(superuser)
+
+        response = self.client.delete(self.url)
+
+        self.assert_response_status(response, status.HTTP_403_FORBIDDEN)
+        self.assert_response_client_error(
+            response,
+            code='permission_denied',
+            detail='Superuser cannot be disabled.',
+        )
+
+    def test_view_doesnt_disable_tokens_of_current_superuser(self):
+        superuser = self.create_test_user(is_superuser=True)
+        self.login_user_by_token(superuser)
+
+        response = self.client.delete(self.url)
+
+        self.assert_response_status(response, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(BlacklistedToken.objects.count(), 0)
+
+    def test_view_doesnt_disable_disabled_current_user(self):
+        disabled_user = self.create_test_user(is_active=False)
+        self.login_user_by_token(disabled_user)
+
+        response = self.client.delete(self.url)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assert_response_client_error(
+            response,
+            code='authentication_failed',
+            detail='User is inactive',
+        )
 
 
 class UpdateMeViewTest(APITestCase):

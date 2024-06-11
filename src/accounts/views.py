@@ -8,9 +8,12 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import viewsets, status
+from rest_framework.exceptions import PermissionDenied
 
 from rest_framework_simplejwt import views as jwt_views
 from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts import serializers
 from accounts.permissions import IsUnauthenticated, IsCurrentUser
@@ -21,6 +24,9 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
     disable_me=extend_schema(
         operation_id='user_disable_me',
         summary=_('Disable account of current user.'),
+        description=_(
+            'Disable account of current user and all associated tokens with this user will be added to black list.'
+        ),
         responses={
             status.HTTP_204_NO_CONTENT: OpenApiResponse(
                 description='User account was disabled successfully.',
@@ -29,6 +35,10 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
             status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
                 description=_('User is unauthenticated or token is invalid or expired.'),
                 response=openapi_serializers.ErrorResponse401Serializer,
+            ),
+            status.HTTP_403_FORBIDDEN: OpenApiResponse(
+                description=_('User is already disabled or user is superuser and he try to disable his account.'),
+                response=openapi_serializers.ErrorResponse403Serializer,
             ),
         },
     ),
@@ -163,9 +173,16 @@ class UserViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['delete'], permission_classes=[IsCurrentUser])
     def disable_me(self, request):
+        if request.user.is_superuser:
+            raise PermissionDenied(detail='Superuser cannot be disabled.')
         user = request.user
         user.is_active = False
         user.save()
+
+        tokens = OutstandingToken.objects.filter(user=user)
+        for token in tokens:
+            RefreshToken(token.token).blacklist()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['put', 'patch'], permission_classes=[IsCurrentUser])
