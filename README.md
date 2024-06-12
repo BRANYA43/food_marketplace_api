@@ -96,4 +96,4 @@ If you installed docker compose as application to your OS that command must star
 - http://localhost/api/schema/redoc/
 
 #### API
-- http://localhost/api/schema/redoc/
+- http://localhost/api/
