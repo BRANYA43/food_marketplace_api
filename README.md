@@ -86,6 +86,9 @@ If you installed docker compose as application to your OS that command must star
 ***
 
 ### Links
+#### Base
+- http://localhost/
+
 #### Admin Site
 - http://localhost/admin/
 
