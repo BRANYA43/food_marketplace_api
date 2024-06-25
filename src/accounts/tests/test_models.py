@@ -36,10 +36,6 @@ class UserModelTest(APITestCase):
         user = self.model_class(**self.data, full_name=None)
         user.full_clean()  # not raise
 
-    def test_type_field_is_customer_by_default(self):
-        user = self.model_class(**self.data)
-        self.assertEqual(user.type, self.model_class.Type.CUSTOMER)
-
     def test_phone_field_is_optional(self):
         user = self.model_class(**self.data, phone=None)
         user.full_clean()

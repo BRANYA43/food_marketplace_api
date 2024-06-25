@@ -14,19 +14,9 @@ def foo():
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    class Type(models.TextChoices):
-        CUSTOMER = 'customer', _('Customer')
-        PRODUCER = 'producer', _('Producer')
-
     email = models.EmailField(
         verbose_name=_('email'),
         unique=True,
-    )
-    type = models.CharField(
-        verbose_name=_('type'),
-        max_length=20,
-        choices=Type.choices,
-        default=Type.CUSTOMER,
     )
     full_name = models.CharField(
         verbose_name=_('full name'),

@@ -6,9 +6,9 @@ User = get_user_model()
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('email', 'type', 'is_active', 'is_staff', 'is_superuser', 'joined_at')
+    list_display = ('email', 'is_active', 'is_staff', 'is_superuser', 'joined_at')
     fieldsets = (
-        ('Info', {'fields': ('email', 'type', 'full_name', 'phone')}),
+        ('Info', {'fields': ('email', 'full_name', 'phone')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Dates', {'fields': ('last_login', 'updated_at', 'joined_at')}),
     )
