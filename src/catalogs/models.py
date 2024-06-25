@@ -2,7 +2,21 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 
-class Category(models.Model):
+class CreatedUpdatedMixin(models.Model):
+    updated_at = models.DateTimeField(
+        verbose_name=_('last update'),
+        auto_now=True,
+    )
+    created_at = models.DateTimeField(
+        verbose_name=_('created'),
+        auto_now_add=True,
+    )
+
+    class Meta:
+        abstract = True
+
+
+class Category(CreatedUpdatedMixin):
     name = models.CharField(
         verbose_name=_('name'),
         max_length=100,
@@ -20,14 +34,6 @@ class Category(models.Model):
     is_displayed = models.BooleanField(
         verbose_name=_('displayed'),
         default=True,
-    )
-    updated_at = models.DateTimeField(
-        verbose_name=_('last update'),
-        auto_now=True,
-    )
-    created_at = models.DateTimeField(
-        verbose_name=_('created'),
-        auto_now_add=True,
     )
 
     class Meta:

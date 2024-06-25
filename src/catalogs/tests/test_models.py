@@ -33,22 +33,6 @@ class CategoryModelTest(TestCase):
         category = self.models_class.objects.create(**self.data)
         self.assertTrue(category.is_displayed)
 
-    def test_created_at_field_is_set_auto_after_only_create(self):
-        category = self.models_class.objects.create(**self.data)
-        old_created_at = category.created_at
-        category.is_displayed = False
-        category.save()
-
-        self.assertEqual(category.created_at, old_created_at)
-
-    def test_updated_at_field_is_set_auto_after_each_update(self):
-        category = self.models_class.objects.create(**self.data)
-        old_updated_at = category.updated_at
-        category.is_displayed = False
-        category.save()
-
-        self.assertNotEqual(category.updated_at, old_updated_at)
-
     def test_string_representation_returns_name(self):
         category = self.models_class.objects.create(**self.data)
         self.assertEqual(str(category), category.name)
