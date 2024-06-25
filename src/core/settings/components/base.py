@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'django_filters',
     'mail_templated',
     'accounts',
+    'catalogs',
     'utils',
 ]
 
