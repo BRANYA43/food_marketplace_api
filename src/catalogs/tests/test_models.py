@@ -1,9 +1,10 @@
 import shutil
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.utils.timezone import timedelta, now
+from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TransactionTestCase, TestCase, override_settings
