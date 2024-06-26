@@ -3,11 +3,69 @@ import shutil
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db.models import QuerySet
 from django.test import TransactionTestCase, override_settings
 
 from catalogs import models
 
 temp_media = settings.BASE_DIR / 'temp_media/'
+
+
+@override_settings(MEDIA_ROOT=temp_media)
+class ReorderImageOrderSignalTest(TransactionTestCase):
+    def setUp(self) -> None:
+        self.model_class = models.AdvertImage
+        self.user = get_user_model().objects.create_user(email='test@test.com', password='qwe123!@#')
+        self.category = models.Category.objects.create(name='vegetables')
+        self.advert = models.Advert.objects.create(
+            user=self.user,
+            category=self.category,
+            title='Potato',
+            price='100.00',
+            address='potato street',
+        )
+        self.data = dict(
+            advert=self.advert,
+            origin=SimpleUploadedFile(name='test_image.jpg', content=b'', content_type='image/jpeg'),
+        )
+
+        self.model_class.objects.bulk_create(
+            [self.model_class(**self.data, order_num=i) for i in range(5)],
+        )
+
+        self.images = self.model_class.objects.all().order_by('order_num')
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        shutil.rmtree(temp_media)
+
+    def assert_image_order(self, images: QuerySet):
+        for i, image in enumerate(images):
+            self.assertEqual(image.order_num, i)
+
+    def test_signal_reorders_image_order_correctly_for_deleted_first_image(self):
+        self.images.first().delete()
+        self.assert_image_order(self.images)
+
+    def test_signal_reorders_image_order_correctly_for_deleted_last_image(self):
+        self.images.last().delete()
+        self.assert_image_order(self.images)
+
+    def test_signal_reorders_image_order_correctly_for_deleted_middle_image(self):
+        self.images.filter(order_num=3).delete()
+        self.assert_image_order(self.images)
+
+    def test_signal_reorders_image_order_correctly_for_several_deleted_images_from_start(self):
+        self.images.filter(order_num__in=[0, 1]).delete()
+        self.assert_image_order(self.images)
+
+    def test_signal_reorders_image_order_correctly_for_several_deleted_images_from_end(self):
+        self.images.filter(order_num__in=[3, 4]).delete()
+        self.assert_image_order(self.images)
+
+    def test_signal_reorders_image_order_correctly_for_several_deleted_images_from_middle(self):
+        self.images.filter(order_num__in=[2, 3]).delete()
+        self.assert_image_order(self.images)
 
 
 @override_settings(MEDIA_ROOT=temp_media)

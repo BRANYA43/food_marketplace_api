@@ -7,3 +7,4 @@ class CatalogsConfig(AppConfig):
 
     def ready(self):
         from catalogs.signals import set_image_order  # noqa
+        from catalogs.signals import reorder_after_delete  # noqa
