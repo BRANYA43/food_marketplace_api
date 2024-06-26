@@ -138,4 +138,4 @@ class AdvertImage(CreatedUpdatedMixin):
         )
 
     def __str__(self):
-        return self.advert.title
+        return f'Image[{self.order_num}] of {self.advert.title}'

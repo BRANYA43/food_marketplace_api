@@ -72,6 +72,12 @@ class AdvertImageModelTest(TransactionTestCase):
         self.data['advert'] = another_advert
         self.model_class.objects.create(**self.data)  # not raise
 
+    def test_string_representation_is_correct_format(self):
+        expected_value = f'Image[0] of {self.advert.title}'
+        img = self.model_class.objects.create(**self.data)
+
+        self.assertEqual(str(img), expected_value)
+
 
 class AdvertModelTest(TestCase):
     def setUp(self) -> None:
