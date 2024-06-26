@@ -110,3 +110,8 @@ class SetImageOrderSignalTest(TransactionTestCase):
 
         img.origin = new_origin
         img.save()
+
+    def test_signal_do_nothing_if_order_num_isnt_none(self):
+        expected_value = 1
+        img = models.AdvertImage.objects.create(**self.data, order_num=expected_value)
+        self.assertEqual(img.order_num, expected_value)

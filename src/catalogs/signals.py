@@ -15,7 +15,7 @@ def reorder_after_delete(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=models.AdvertImage)
 def set_image_order(sender, instance, **kwargs):
-    if instance.pk is None:
+    if instance.pk is None and instance.order_num is None:
         images = models.AdvertImage.objects.filter(advert=instance.advert).order_by('order_num')
         if instance.order_num is None and not images.exists():
             instance.order_num = 0
