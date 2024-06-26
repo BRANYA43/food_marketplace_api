@@ -35,7 +35,7 @@ class AdvertImageModelTest(TransactionTestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        shutil.rmtree(temp_media)
+        shutil.rmtree(temp_media, ignore_errors=True)
 
     def test_advert_field_is_required(self):
         del self.data['advert']
