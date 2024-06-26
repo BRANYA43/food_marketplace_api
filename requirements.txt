@@ -13,3 +13,4 @@ psycopg2==2.9.9
 djangorestframework-simplejwt==5.3.1
 drf-standardized-errors==0.13.0
 django-mail-templated==2.6.5
+django-cleanup==8.1.0

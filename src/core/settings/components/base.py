@@ -18,10 +18,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_filters',
-    'mail_templated',
     'accounts',
     'catalogs',
     'utils',
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
