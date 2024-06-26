@@ -108,3 +108,34 @@ class Advert(CreatedUpdatedMixin):
     def grade(self) -> int | float:
         totals = [int(grade) * count for grade, count in self.grades.items()]
         return round(sum(totals) / 5)
+
+
+class AdvertImage(CreatedUpdatedMixin):
+    advert = models.ForeignKey(
+        verbose_name=_('advert'),
+        to=Advert,
+        on_delete=models.CASCADE,
+        related_name='image_set',
+    )
+    origin = models.ImageField(
+        verbose_name=_('origin'),
+        upload_to='images/adverts/',
+    )
+    order_num = models.PositiveIntegerField(
+        verbose_name=_('order'),
+        help_text=_('Image with order value as 0 will be cover image. Other images will be extra images.'),
+    )
+
+    class Meta:
+        verbose_name = _('advert image')
+        verbose_name_plural = _('advert images')
+        ordering = ('advert', 'order_num')
+        constraints = (
+            models.UniqueConstraint(
+                fields=('advert', 'order_num'),
+                name='unique_advert_and_order_num',
+            ),
+        )
+
+    def __str__(self):
+        return self.advert.title

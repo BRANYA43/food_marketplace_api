@@ -1,10 +1,76 @@
+import shutil
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.timezone import timedelta, now
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from django.test import TestCase
+from django.test import TransactionTestCase, TestCase, override_settings
 
 from catalogs import models
+
+
+temp_media = settings.BASE_DIR / 'temp_media/'
+
+
+@override_settings(MEDIA_ROOT=temp_media)
+class AdvertImageModelTest(TransactionTestCase):
+    def setUp(self) -> None:
+        self.model_class = models.AdvertImage
+        self.user = get_user_model().objects.create_user(email='test@test.com', password='qwe123!@#')
+        self.category = models.Category.objects.create(name='vegetables')
+        self.advert = models.Advert.objects.create(
+            user=self.user,
+            category=self.category,
+            title='Potato',
+            price='100.00',
+            address='potato street',
+        )
+        self.data = dict(
+            advert=self.advert,
+            origin=SimpleUploadedFile(name='test_image.jpg', content=b'', content_type='image/jpeg'),
+            order_num=0,
+        )
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        shutil.rmtree(temp_media)
+
+    def test_advert_field_is_required(self):
+        del self.data['advert']
+        with self.assertRaisesRegex(IntegrityError, r'NOT NULL'):
+            self.model_class.objects.create(**self.data)
+
+    def test_origin_field_is_required(self):
+        del self.data['origin']
+        with self.assertRaisesRegex(ValidationError, r'This field cannot be blank'):
+            img = self.model_class.objects.create(**self.data)
+            img.full_clean()
+
+    def test_order_num_field_is_required(self):
+        img = self.model_class.objects.create(**self.data)
+        with self.assertRaisesRegex(IntegrityError, r'NOT NULL'):
+            img.order_num = None
+            img.save()
+
+    def test_order_num_field_must_be_unique_for_one_advert(self):
+        self.model_class.objects.create(**self.data)
+        with self.assertRaisesRegex(IntegrityError, r'UNIQUE'):
+            self.model_class.objects.create(**self.data)
+
+    def test_order_num_field_must_not_be_unique_for_different_advert(self):
+        another_advert = models.Advert.objects.create(
+            user=self.user,
+            category=self.category,
+            title='carrot',
+            price='100.00',
+            address='carrot street',
+        )
+        self.model_class.objects.create(**self.data)
+
+        self.data['advert'] = another_advert
+        self.model_class.objects.create(**self.data)  # not raise
 
 
 class AdvertModelTest(TestCase):
