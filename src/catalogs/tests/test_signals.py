@@ -88,7 +88,7 @@ class SetImageOrderSignalTest(TransactionTestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        shutil.rmtree(temp_media)
+        shutil.rmtree(temp_media, ignore_errors=True)
 
     def test_signal_sets_order_num_as_0_for_first_image(self):
         img = models.AdvertImage.objects.create(**self.data)
