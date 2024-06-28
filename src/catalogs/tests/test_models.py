@@ -11,7 +11,6 @@ from django.test import TransactionTestCase, TestCase, override_settings
 
 from catalogs import models
 
-
 temp_media = settings.BASE_DIR / 'temp_media/'
 
 
@@ -172,6 +171,7 @@ class CategoryModelTest(TestCase):
         self.models_class = models.Category
         self.data = dict(
             name='books',
+            slug='books',
         )
 
     def test_name_field_is_required(self):
@@ -184,6 +184,12 @@ class CategoryModelTest(TestCase):
         self.models_class.objects.create(**self.data)
         with self.assertRaisesRegex(IntegrityError, r'UNIQUE'):
             self.models_class.objects.create(**self.data)
+
+    def test_slug_field_is_required(self):
+        del self.data['slug']
+        with self.assertRaisesRegex(ValidationError, r'This field cannot be blank.'):
+            category = self.models_class.objects.create(**self.data)
+            category.full_clean()
 
     def test_parent_field_is_option(self):
         category = self.models_class.objects.create(**self.data)
