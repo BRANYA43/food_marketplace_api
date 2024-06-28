@@ -22,3 +22,12 @@ class CategoryListSerializer(serializers.ModelSerializer):
         model = models.Category
         fields = ('slug', 'name', 'children')
         list_serializer_class = _FilterListSerializer
+
+
+class CategoryRetrieveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Category
+        fields = (
+            'slug',
+            'name',
+        )

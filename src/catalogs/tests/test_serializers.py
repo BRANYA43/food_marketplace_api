@@ -4,6 +4,21 @@ from rest_framework.serializers import ModelSerializer
 from catalogs import serializers, models
 
 
+class CategoryRetrieveSerializerTest(TestCase):
+    def setUp(self) -> None:
+        self.serializer_class = serializers.CategoryRetrieveSerializer
+        self.category = models.Category.objects.create(slug='plants', name='Plants')
+
+    def test_serializer_inherits_model_serializer(self):
+        self.assertTrue(issubclass(self.serializer_class, ModelSerializer))
+
+    def test_serializer_returns_expected_data(self):
+        expected_data = {'slug': self.category.slug, 'name': self.category.name}
+        serializer = self.serializer_class(self.category)
+
+        self.assertEqual(serializer.data, expected_data)
+
+
 class CategoryListSerializerTest(TestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.CategoryListSerializer
