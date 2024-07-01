@@ -15,6 +15,65 @@ from accounts import services, serializers
 User = get_user_model()
 
 
+class SetPasswordMeViewTest(APITestCase):
+    def setUp(self) -> None:
+        self.url = reverse('user-set-password-me')
+        self.user = self.create_test_user()
+        self.login_user_by_token(self.user)
+
+        self.data = dict(
+            password=self.TEST_PASSWORD,
+            new_password='new_password123!@#',
+        )
+
+    def test_view_allows_only_put_method(self):
+        self.assert_not_allowed_methods(['get', 'post', 'patch', 'delete'], self.url)
+
+        response = self.client.put(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+    def test_view_isnt_accessed_for_unauthenticated_user(self):
+        self.logout_user_by_token(self.user)
+        response = self.client.put(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assert_response_client_error(
+            response,
+            code='not_authenticated',
+            detail='Authentication credentials were not provided.',
+        )
+
+    def test_view_isnt_accessed_for_authenticated_user_but_expired_access_token(self):
+        self.login_user_by_token(self.user, use_expired_token=True)
+        response = self.client.put(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assert_response_client_error(
+            response,
+            code='token_not_valid',
+            detail='Given token not valid for any token type',
+        )
+
+    def test_view_is_accessed_for_authenticated_user(self):
+        response = self.client.put(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+    def test_view_updates_user_password(self):
+        response = self.client.put(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+        self.user.refresh_from_db()
+
+        self.assertTrue(self.user.check_password(self.data['new_password']))
+
+    def test_view_doesnt_returns_data(self):
+        response = self.client.put(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+        self.assertFalse(response.data)
+
+
 class DisableMeViewTest(APITestCase):
     def setUp(self) -> None:
         self.url = reverse('user-disable-me')

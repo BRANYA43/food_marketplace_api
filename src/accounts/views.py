@@ -153,6 +153,7 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
 )
 class UserViewSet(viewsets.ViewSet):
     serializer_classes = {
+        'set_password_me': serializers.UserPasswordSetSerializer,
         'update_me': serializers.UserProfileUpdateSerializer,
         'retrieve_me': serializers.UserProfileSerializer,
         'register': serializers.UserRegisterSerializer,
@@ -170,6 +171,13 @@ class UserViewSet(viewsets.ViewSet):
     def get_serializer(self, *args, **kwargs):
         serializer = self.get_serializer_class()
         return serializer(*args, **kwargs)
+
+    @action(methods=['put'], detail=False, permission_classes=[IsCurrentUser])
+    def set_password_me(self, request):
+        serializer = self.get_serializer(instance=request.user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['delete'], permission_classes=[IsCurrentUser])
     def disable_me(self, request):
