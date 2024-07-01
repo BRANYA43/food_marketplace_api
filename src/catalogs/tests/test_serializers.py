@@ -55,7 +55,6 @@ class CategoryListSerializerTest(TestCase):
                 ],
             }
         ]
-        qs = models.Category.objects.all()
+        qs = models.Category.objects.filter(parent=None)
         serializer = self.serializer_class(qs, many=True)
-
         self.assertEqual(serializer.data, expected_data)
