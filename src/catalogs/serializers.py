@@ -14,13 +14,13 @@ class CategoryListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Category
-        fields = ('slug', 'name', 'children')
+        fields = ('id', 'name', 'children')
 
 
 class CategoryRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Category
         fields = (
-            'slug',
+            'id',
             'name',
         )

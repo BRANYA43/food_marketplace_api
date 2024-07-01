@@ -13,7 +13,7 @@ class CategoryRetrieveSerializerTest(TestCase):
         self.assertTrue(issubclass(self.serializer_class, ModelSerializer))
 
     def test_serializer_returns_expected_data(self):
-        expected_data = {'slug': self.category.slug, 'name': self.category.name}
+        expected_data = {'id': self.category.id, 'name': self.category.name}
         serializer = self.serializer_class(self.category)
 
         self.assertEqual(serializer.data, expected_data)
@@ -29,7 +29,7 @@ class CategoryListSerializerTest(TestCase):
         self.assertTrue(issubclass(self.serializer_class, ModelSerializer))
 
     def test_serializer_returns_expected_data(self):
-        expected_data = [{'slug': self.parent_category.slug, 'name': self.parent_category.name, 'children': []}]
+        expected_data = [{'id': self.parent_category.id, 'name': self.parent_category.name, 'children': []}]
         qs = models.Category.objects.all()
         serializer = self.serializer_class(qs, many=True)
 
@@ -42,15 +42,13 @@ class CategoryListSerializerTest(TestCase):
         sub_child_category = models.Category.objects.create(slug='tomato', name='Tomato', parent=child_category)
         expected_data = [
             {
-                'slug': self.parent_category.slug,
+                'id': self.parent_category.id,
                 'name': self.parent_category.name,
                 'children': [
                     {
-                        'slug': child_category.slug,
+                        'id': child_category.id,
                         'name': child_category.name,
-                        'children': [
-                            {'slug': sub_child_category.slug, 'name': sub_child_category.name, 'children': []}
-                        ],
+                        'children': [{'id': sub_child_category.id, 'name': sub_child_category.name, 'children': []}],
                     }
                 ],
             }
