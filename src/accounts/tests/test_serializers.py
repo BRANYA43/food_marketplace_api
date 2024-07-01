@@ -1,10 +1,55 @@
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError
+from rest_framework.serializers import ModelSerializer
+
 from utils.tests import APITestCase
 
 from accounts import serializers, services
 
 User = get_user_model()
+
+
+class UserPasswordSetSerializer(APITestCase):
+    def setUp(self) -> None:
+        self.serializer_class = serializers.UserPasswordSetSerializer
+        self.user = self.create_test_user()
+        self.request = self.request_factory.get('/')
+        self.request.user = self.user
+        self.data = dict(
+            password=self.TEST_PASSWORD,
+            new_password='new_password123!@#',
+        )
+
+    def test_serializer_inherits_model_serializer(self):
+        self.assertTrue(issubclass(self.serializer_class, ModelSerializer))
+
+    def test_serializer_updates_user_password_correctly(self):
+        serializer = self.serializer_class(self.user, self.data)
+        self.assertTrue(serializer.is_valid())
+        serializer.save()
+
+        self.assertTrue(self.user.check_password(self.data['new_password']))
+
+    def test_serializer_doesnt_update_user_for_invalid_password(self):
+        self.data['password'] = 'invalid_password'
+        serializer = self.serializer_class(self.user, self.data)
+        with self.assertRaisesRegex(ValidationError, r"Entered password isn't user password."):
+            serializer.is_valid(raise_exception=True)
+
+    def test_serializer_doesnt_update_user_for_invalid_new_password(self):
+        self.data['new_password'] = '1'
+        serializer = self.serializer_class(self.user, self.data)
+        with self.assertRaisesRegex(
+            ValidationError, r'.+password_too_short.+password_too_common.+password_entirely_numeric'
+        ):
+            serializer.is_valid(raise_exception=True)
+
+    def test_serializer_returns_empty_data(self):
+        serializer = self.serializer_class(self.user, self.data)
+        self.assertTrue(serializer.is_valid())
+        serializer.save()
+
+        self.assertEqual(serializer.data, {})
 
 
 class UserProfileUpdateSerializerTest(APITestCase):

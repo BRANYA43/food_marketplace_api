@@ -1,7 +1,10 @@
 from copy import deepcopy
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.utils.translation import gettext as _
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from accounts import validators, services
 
@@ -54,3 +57,32 @@ class UserRegisterSerializer(BaseUserSerializer):
 
     def create(self, validated_data: dict):
         return User.objects.create_user(**validated_data)
+
+
+class UserPasswordSetSerializer(serializers.ModelSerializer):
+    new_password = serializers.CharField(required=True, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('password', 'new_password')
+        extra_kwargs = {
+            'password': {'min_length': 8, 'write_only': True},
+        }
+
+    def validate_password(self, password):
+        if not self.instance.check_password(password):
+            raise ValidationError(
+                _("Entered password isn't user password."),
+                'invalid_password',
+            )
+        return password
+
+    def validate_new_password(self, password):
+        validate_password(password, self.instance)
+        return password
+
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['new_password'])
+        instance.full_clean()
+        instance.save()
+        return instance
