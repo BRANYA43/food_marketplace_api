@@ -34,6 +34,13 @@ class CategoryRetrieveViewTest(APITestCase):
 
         self.assertEqual(response.data, expected_data)
 
+    def test_view_returns_404_for_non_existent_category(self):
+        self.category.delete()
+
+        response = self.client.get(self.url)
+
+        self.assert_response_status(response, status.HTTP_404_NOT_FOUND)
+
 
 class CategoryListViewTest(APITestCase):
     def setUp(self) -> None:
