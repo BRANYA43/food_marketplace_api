@@ -36,6 +36,11 @@ class UserModelTest(APITestCase):
         user = self.model_class(**self.data, full_name=None)
         user.full_clean()  # not raise
 
+    def test_full_name_field_has_2_min_length(self):
+        user = self.model_class(**self.data, full_name='l')
+        with self.assertRaisesRegex(ValidationError, 'Ensure this value has at least 2 characters'):
+            user.full_clean()
+
     def test_phone_field_is_optional(self):
         user = self.model_class(**self.data, phone=None)
         user.full_clean()

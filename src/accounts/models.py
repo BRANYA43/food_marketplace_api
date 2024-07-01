@@ -2,6 +2,7 @@ from datetime import timedelta, datetime
 
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
+from django.core.validators import MinLengthValidator
 from django.db import models
 from django.utils.translation import gettext as _
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -19,10 +20,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         unique=True,
     )
     full_name = models.CharField(
-        verbose_name=_('full name'),
-        max_length=100,
-        null=True,
-        blank=True,
+        verbose_name=_('full name'), max_length=100, null=True, blank=True, validators=[MinLengthValidator(2)]
     )
     phone = models.CharField(
         verbose_name=_('Phone Number'),
