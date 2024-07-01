@@ -25,14 +25,10 @@ class BaseUserSerializer(serializers.ModelSerializer):
 
 class UserProfileUpdateSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
-        fields = ['email', 'password', 'full_name', 'phone']
+        fields = ['email', 'full_name', 'phone']
         extra_kwargs = deepcopy(BaseUserSerializer.Meta.extra_kwargs)
 
     def update(self, instance, validated_data):
-        if 'password' in validated_data:
-            password = validated_data.pop('password')
-            instance.set_password(password)
-
         for field, value in validated_data.items():
             setattr(instance, field, value)
 

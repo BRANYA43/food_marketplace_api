@@ -159,7 +159,6 @@ class UpdateMeViewTest(APITestCase):
 
     def test_view_updates_user_with_valid_data(self):
         self.assertNotEqual(self.user.email, self.data['email'])
-        self.assertFalse(self.user.check_password(self.data['password']))
         self.assertNotEqual(self.user.phone, self.data['phone'])
         self.assertNotEqual(self.user.full_name, self.data['full_name'])
 
@@ -168,7 +167,6 @@ class UpdateMeViewTest(APITestCase):
 
         self.assert_response_status(response, status.HTTP_200_OK)
         self.assertEqual(self.user.email, self.data['email'])
-        self.assertTrue(self.user.check_password(self.data['password']))
         self.assertEqual(self.user.phone, self.data['phone'])
         self.assertEqual(self.user.full_name, self.data['full_name'])
 

@@ -12,6 +12,7 @@ class UserProfileUpdateSerializerTest(APITestCase):
         self.serializer_class = serializers.UserProfileUpdateSerializer
         self.user = self.create_test_user(**self.rick_data)
         self.data = self.morty_data
+        del self.data['password']
 
     def test_serializer_inherits_base_user_serializer(self):
         self.assertTrue(issubclass(self.serializer_class, serializers.BaseUserSerializer))
@@ -20,7 +21,6 @@ class UserProfileUpdateSerializerTest(APITestCase):
         self.assertNotEqual(self.user.email, self.data['email'])
         self.assertNotEqual(self.user.full_name, self.data['full_name'])
         self.assertNotEqual(self.user.phone, self.data['phone'])
-        self.assertFalse(self.user.check_password(self.data['password']))
 
         serializer = self.serializer_class(instance=self.user, data=self.data, partial=True)
 
@@ -31,7 +31,6 @@ class UserProfileUpdateSerializerTest(APITestCase):
         self.assertEqual(self.user.email, self.data['email'])
         self.assertEqual(self.user.full_name, self.data['full_name'])
         self.assertEqual(self.user.phone, self.data['phone'])
-        self.assertTrue(self.user.check_password(self.data['password']))
 
     def test_serializer_doesnt_update_user_with_invalid_data(self):
         invalid_data = dict(
@@ -45,7 +44,6 @@ class UserProfileUpdateSerializerTest(APITestCase):
         self.assertNotEqual(self.user.email, invalid_data['email'])
 
     def test_serializer_returns_expected_data(self):
-        del self.data['password']
         expected_data = self.data
         serializer = self.serializer_class(instance=self.user, data=self.data, partial=True)
 
