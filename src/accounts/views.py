@@ -21,6 +21,25 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
 
 @extend_schema(tags=['Accounts'])
 @extend_schema_view(
+    set_password_me=extend_schema(
+        operation_id='user_set_password_me',
+        summary=_('Set new password for current user.'),
+        description=_('Set new password for current user.'),
+        responses={
+            status.HTTP_204_NO_CONTENT: OpenApiResponse(
+                description=_('New password is set successfully.'),
+                response=None,
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description=_('Password or new password are invalid.'),
+                response=openapi_serializers.ValidationErrorResponseSerializer,
+            ),
+            status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description=_('User is unauthenticated or token is invalid or expired.'),
+                response=openapi_serializers.ErrorResponse401Serializer,
+            ),
+        },
+    ),
     disable_me=extend_schema(
         operation_id='user_disable_me',
         summary=_('Disable account of current user.'),
