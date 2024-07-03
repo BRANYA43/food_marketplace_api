@@ -46,13 +46,16 @@ services:
 
   nginx:
     build: ./docker/nginx
-    image: branya/food_marketplace_nginx:1.0.0
+    image: branya/food_marketplace_nginx:2.0.0
     container_name: nginx
     volumes:
       - static_volume:/opt/src/static
       - media_volume:/opt/src/media
     ports:
       - "80:80"
+      - "443:443"
+    env_file:
+      - ./.env
     depends_on:
       api:
         condition: service_healthy
