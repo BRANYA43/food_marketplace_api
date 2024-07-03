@@ -57,6 +57,24 @@ POSTGRES_HOST=<host>
 - Password: 123
 
 ***
+### Makefile Commands
+- `make install` - install docker and docker compose to server
+- `make up` - run containers
+- `make down` - stop and remove containers
+- `make reup` - rerun containers
+- `make start` - run stopped containers
+- `make stop` - stop containers
+- `make restart` - restart containers
+- `make shell-api` - open shell in the api container
+- `make shell-nginx` - open shell in the nginx container
+- `make shell-db` - open shell in the db container
+- `make rmi` - remove all images
+- `make down-volume` - stop and remove containers and their volumes
+- `make up-build` - build images and run containers
+- `make imgs` - show all images
+- `make ps` - show all containers
+
+***
 ### Docker commands
 #### Run steck of containers
 ```commandline
