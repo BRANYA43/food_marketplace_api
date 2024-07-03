@@ -104,17 +104,20 @@ If you installed docker compose as application to your OS that command must star
 ***
 
 ### Links
-#### Admin Site
+###### Base
+- http://localhost/
+
+###### Admin Site
 - http://localhost/admin/
 
-#### Swagger
+###### Swagger
 - http://localhost/api/schema/swagger-ui/
 
-#### Redoc
+###### Redoc
 - http://localhost/api/schema/redoc/
 
-#### API
-- http://localhost/api/schema/redoc/
+###### API
+- http://localhost/api/
 
 ***
 
