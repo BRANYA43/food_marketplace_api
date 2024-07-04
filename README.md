@@ -57,50 +57,51 @@ POSTGRES_HOST=<host>
 - Password: 123
 
 ***
-### Docker commands
-#### Run steck of containers
-```commandline
-docker compose up
-```
-
-#### Stop steck of container
-```
-ctrl + C
-```
-OR
-```commandline
-docker compose stop
-```
-#### Delete steck of containers
-```commandline
-docker compose down
-```
-with volumes
-```commandline
-docker compose down -v
-```
-
-If you installed docker compose as application to your OS that command must start with 
-`docker-compose` instead `docker compose`.
-
+### Makefile commands
+- `up` - create and run containers. To use any flags to use `fs` variable.
+- `up-d` - create and run containers with background mode.
+- `donw` - stop and remove containers. To use any flags to use `fs` variable.
+- `reup` - stop and remove old containers, then create and run new containers. To use any flags to use `up_fs` and 
+  `down_fs` for start and stop command. 
+- `start` - run containers. To use any flags to use `fs` variable.
+- `stop` - stop containers. To use any flags to use `fs` variable.
+- `restart` - restart containers. To use any flags to use `start_fs` and `stop_fs` for start and stop command.
+- `images` - show full image list. To use any flags to use `fs` variable.
+- `ps` - show full container list. To use any flags to use `fs` variable.
+- `image-prune` - remove images.
+- `push` - build and push docker containers.
+- `shell-api` - run shell into the `api` container.
+- `shell-db` - run shell into the `db` container.
+- `shell-nginx` - run shell into the `nginx` container. Using /bin/sh by default. To change shell to use `shell`
+  variable.
+- `logs-api` - show logs of api container.
+- `logs-db` - show logs of db container.
+- `logs-nginx` - show logs of nginx container.
 ***
-
+### Run container stack
+1. Enter to folder where docker-compose.yml is.
+2. Rename template.env to .env, then to fill environment variables in the .env.
+3. Run container stack.
+```commandline
+make up
+```
+or next command to run container stack in the background mode
+```commandline
+make up-d
+```
+For stop container stack in the interactive mode use `ctrl+C`.
+***
 ### Links
 ###### Base
 - http://localhost/
-
 ###### Admin Site
 - http://localhost/admin/
-
 ###### Swagger
 - http://localhost/api/schema/swagger-ui/
-
 ###### Redoc
 - http://localhost/api/schema/redoc/
-
 ###### API
 - http://localhost/api/
-
 ***
 
 ### Example of access token header
