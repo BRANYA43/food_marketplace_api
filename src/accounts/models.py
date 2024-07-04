@@ -1,5 +1,3 @@
-from datetime import timedelta, datetime
-
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.core.validators import MinLengthValidator
@@ -8,10 +6,6 @@ from django.utils.translation import gettext as _
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts import managers
-
-
-def foo():
-    return datetime.now() - timedelta(days=365 * 18)
 
 
 class User(AbstractBaseUser, PermissionsMixin):

@@ -3,23 +3,11 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext as _
 
+from utils.models import CreatedUpdatedMixin
+
 
 def _get_default_grades() -> dict:
     return {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0}
-
-
-class CreatedUpdatedMixin(models.Model):
-    updated_at = models.DateTimeField(
-        verbose_name=_('last update'),
-        auto_now=True,
-    )
-    created_at = models.DateTimeField(
-        verbose_name=_('created'),
-        auto_now_add=True,
-    )
-
-    class Meta:
-        abstract = True
 
 
 class Category(CreatedUpdatedMixin):
