@@ -152,53 +152,6 @@ class UserPasswordSetSerializerTest(APITestCase):
         self.assertEqual(serializer.data, {})
 
 
-class UserProfileUpdateSerializerTest(APITestCase):
-    def setUp(self) -> None:
-        self.serializer_class = serializers.UserProfileUpdateSerializer
-        self.user = self.create_test_user(**self.rick_data)
-        self.data = self.morty_data
-        del self.data['password']
-
-    def test_serializer_inherits_base_user_serializer(self):
-        self.assertTrue(issubclass(self.serializer_class, serializers.BaseUserSerializer))
-
-    def test_serializer_updates_user_correctly(self):
-        self.assertNotEqual(self.user.email, self.data['email'])
-        self.assertNotEqual(self.user.full_name, self.data['full_name'])
-        self.assertNotEqual(self.user.phone, self.data['phone'])
-
-        serializer = self.serializer_class(instance=self.user, data=self.data, partial=True)
-
-        self.assertTrue(serializer.is_valid())
-
-        serializer.save()
-
-        self.assertEqual(self.user.email, self.data['email'])
-        self.assertEqual(self.user.full_name, self.data['full_name'])
-        self.assertEqual(self.user.phone, self.data['phone'])
-
-    def test_serializer_doesnt_update_user_with_invalid_data(self):
-        invalid_data = dict(
-            email='email.com',
-        )
-        self.assertNotEqual(self.user.email, invalid_data['email'])
-
-        serializer = self.serializer_class(instance=self.user, data=invalid_data, partial=True)
-        self.assertFalse(serializer.is_valid())
-
-        self.assertNotEqual(self.user.email, invalid_data['email'])
-
-    def test_serializer_returns_expected_data(self):
-        expected_data = self.data
-        serializer = self.serializer_class(instance=self.user, data=self.data, partial=True)
-
-        self.assertTrue(serializer.is_valid())
-
-        serializer.save()
-
-        self.assertDictEqual(serializer.data, expected_data)
-
-
 class UserProfileSerializerTest(APITestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.UserProfileSerializer

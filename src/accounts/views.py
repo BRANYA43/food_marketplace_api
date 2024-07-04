@@ -68,7 +68,7 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description=_('User profile was updated successfully.'),
-                response=serializers.UserProfileUpdateSerializer,
+                response=serializers.UserProfileSerializer,
             ),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
                 description=_('Invalid update data.'),
@@ -173,7 +173,7 @@ from accounts.permissions import IsUnauthenticated, IsCurrentUser
 class UserViewSet(viewsets.ViewSet):
     serializer_classes = {
         'set_password_me': serializers.UserPasswordSetSerializer,
-        'update_me': serializers.UserProfileUpdateSerializer,
+        'update_me': serializers.UserProfileSerializer,
         'retrieve_me': serializers.UserProfileSerializer,
         'register': serializers.UserRegisterSerializer,
         'login': import_string(settings.SIMPLE_JWT['TOKEN_OBTAIN_SERIALIZER']),

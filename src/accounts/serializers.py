@@ -46,21 +46,6 @@ class BaseUserSerializer(serializers.ModelSerializer):
         return phone
 
 
-class UserProfileUpdateSerializer(BaseUserSerializer):
-    class Meta(BaseUserSerializer.Meta):
-        fields = ['email', 'full_name', 'phone']
-        extra_kwargs = deepcopy(BaseUserSerializer.Meta.extra_kwargs)
-
-    def update(self, instance, validated_data):
-        for field, value in validated_data.items():
-            setattr(instance, field, value)
-
-        instance.full_clean()
-        instance.save()
-
-        return instance
-
-
 class UserProfileSerializer(BaseUserSerializer):
     address = UserAddressSerializer(required=False)
 

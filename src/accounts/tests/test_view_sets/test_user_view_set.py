@@ -172,7 +172,7 @@ class DisableMeViewTest(APITestCase):
 class UpdateMeViewTest(APITestCase):
     def setUp(self) -> None:
         self.url = reverse('user-update-me')
-        self.serializer_class = serializers.UserProfileUpdateSerializer
+        self.serializer_class = serializers.UserProfileSerializer
         self.user = self.create_test_user(**self.rick_data)
         self.login_user_by_token(self.user)
         self.data = self.morty_data
@@ -231,7 +231,7 @@ class UpdateMeViewTest(APITestCase):
 
     def test_view_doesnt_update_with_invalid_data(self):
         invalid_data = {
-            'full_name': 'qw',
+            'full_name': 'q',
         }
 
         self.assertNotEqual(self.user, invalid_data['full_name'])
