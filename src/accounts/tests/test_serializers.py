@@ -9,7 +9,7 @@ from accounts import serializers, services
 User = get_user_model()
 
 
-class UserPasswordSetSerializer(APITestCase):
+class UserPasswordSetSerializerTest(APITestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.UserPasswordSetSerializer
         self.user = self.create_test_user()
