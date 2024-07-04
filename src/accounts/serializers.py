@@ -6,9 +6,29 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from accounts import validators, services
+from accounts import validators, services, models
 
 User = get_user_model()
+
+
+class UserAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.UserAddress
+        fields = ('user', 'region', 'city', 'village', 'street', 'number')
+        extra_kwargs = dict(user=dict(required=False, write_only=True))
+
+    def update(self, instance, validated_data):
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+        instance.full_clean()
+        instance.save()
+        return instance
+
+    def create(self, validated_data):
+        instance = models.UserAddress(**validated_data)
+        instance.full_clean()
+        instance.save()
+        return instance
 
 
 class BaseUserSerializer(serializers.ModelSerializer):

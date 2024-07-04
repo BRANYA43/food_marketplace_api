@@ -4,9 +4,109 @@ from rest_framework.serializers import ModelSerializer
 
 from utils.tests import APITestCase
 
-from accounts import serializers, services
+from accounts import serializers, services, models
 
 User = get_user_model()
+
+
+class UserAddressSerializerTest(APITestCase):
+    def setUp(self) -> None:
+        self.serializer_class = serializers.UserAddressSerializer
+        self.address_model_class = models.UserAddress
+        self.data = dict(
+            region='region',
+            city='city',
+            street='street',
+            number='0',
+        )
+
+    def test_serializer_inherit_model_serializer(self):
+        self.assertTrue(issubclass(self.serializer_class, ModelSerializer))
+
+    def test_user_field_is_optional(self):
+        serializer = self.serializer_class(data=self.data)
+        self.assertTrue(serializer.is_valid())
+
+    def test_user_field_is_write_only(self):
+        self.data['user'] = self.create_test_user().pk
+        serializer = self.serializer_class(data=self.data)
+        self.assertTrue(serializer.is_valid())
+
+        self.assertIsNone(serializer.data.get('user'))
+
+    def test_region_field_is_required(self):
+        del self.data['region']
+        serializer = self.serializer_class(data=self.data)
+        with self.assertRaisesRegex(ValidationError, r"code='required'"):
+            serializer.is_valid(raise_exception=True)
+
+    def test_city_field_is_required(self):
+        del self.data['city']
+        serializer = self.serializer_class(data=self.data)
+        with self.assertRaisesRegex(ValidationError, r"code='required'"):
+            serializer.is_valid(raise_exception=True)
+
+    def test_street_field_is_required(self):
+        del self.data['street']
+        serializer = self.serializer_class(data=self.data)
+        with self.assertRaisesRegex(ValidationError, r"code='required'"):
+            serializer.is_valid(raise_exception=True)
+
+    def test_number_field_is_required(self):
+        del self.data['number']
+        serializer = self.serializer_class(data=self.data)
+        with self.assertRaisesRegex(ValidationError, r"code='required'"):
+            serializer.is_valid(raise_exception=True)
+
+    def test_village_field_is_optional(self):
+        serializer = self.serializer_class(data=self.data)
+        self.assertTrue(serializer.is_valid())
+
+    def test_serializer_creates_address(self):
+        self.assertEqual(self.address_model_class.objects.count(), 0)
+
+        user = self.create_test_user()
+        self.data['user'] = user.pk
+        serializer = self.serializer_class(data=self.data)
+        self.assertTrue(serializer.is_valid())
+        serializer.save()
+
+        address = self.address_model_class.objects.get(user=user)
+        del self.data['user']
+        for field, value in self.data.items():
+            self.assertEqual(getattr(address, field, value), self.data[field])
+
+    def test_serializer_updates_address(self):
+        user = self.create_test_user()
+        self.data['user'] = user
+        address = self.address_model_class.objects.create(**self.data)
+
+        update_data = dict(region='new region')
+        serializer = self.serializer_class(address, update_data, partial=True)
+        self.assertTrue(serializer.is_valid(raise_exception=True))
+        serializer.save()
+
+        db_address = self.address_model_class.objects.get(user=user)
+
+        self.assertEqual(db_address.region, update_data['region'])
+
+    def test_serializer_returns_expected_data(self):
+        user = self.create_test_user()
+        self.data['user'] = user.pk
+
+        expected_data = dict(
+            region=self.data['region'],
+            city=self.data['city'],
+            village=None,
+            street=self.data['street'],
+            number=self.data['number'],
+        )
+
+        serializer = self.serializer_class(data=self.data)
+        self.assertTrue(serializer.is_valid(raise_exception=True))
+        serializer.save()
+
+        self.assertDictEqual(serializer.data, expected_data)
 
 
 class UserPasswordSetSerializerTest(APITestCase):
