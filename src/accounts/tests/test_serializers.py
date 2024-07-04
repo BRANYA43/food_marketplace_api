@@ -202,22 +202,126 @@ class UserProfileUpdateSerializerTest(APITestCase):
 class UserProfileSerializerTest(APITestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.UserProfileSerializer
+        self.address_model_class = models.UserAddress
         self.user = self.create_test_user(**self.rick_data)
         self.data = self.morty_data
         del self.data['password']
 
-    def test_serializer_returns_expected_data(self):
-        serializer = self.serializer_class(instance=self.user)
-        for field in self.data.keys():
-            self.assertEqual(serializer.data[field], getattr(self.user, field))
+    def test_serializer_inherits_base_user_serializer(self):
+        self.assertTrue(issubclass(self.serializer_class, serializers.BaseUserSerializer))
 
-    def test_all_fields_is_read_only_fields(self):
-        serializer = self.serializer_class(instance=self.user, data=self.data)
-        serializer.is_valid()
+    def test_address_field_is_optional(self):
+        serializer = self.serializer_class(self.user, self.data)
+        self.assertTrue(serializer.is_valid(raise_exception=True))
+        self.assertIsNone(serializer.data.get('address'))
+
+    def test_serializer_updates_user(self):
+        for field, value in self.data.items():
+            self.assertNotEqual(getattr(self.user, field), value)
+
+        serializer = self.serializer_class(self.user, self.data)
+        self.assertTrue(serializer.is_valid(raise_exception=True))
         serializer.save()
 
-        for field in self.data.keys():
-            self.assertEqual(serializer.data[field], getattr(self.user, field))
+        for field, value in self.data.items():
+            self.assertEqual(getattr(self.user, field), value)
+
+    def test_serializer_updates_user_and_create_address(self):
+        # assert user
+        for field, value in self.data.items():
+            self.assertNotEqual(getattr(self.user, field), value)
+        self.assertIsNone(getattr(self.user, 'address', None))
+
+        self.data['address'] = dict(
+            region='region',
+            city='city',
+            street='street',
+            number='0',
+        )
+
+        serializer = self.serializer_class(self.user, self.data)
+        self.assertTrue(serializer.is_valid(raise_exception=True))
+        serializer.save()
+
+        # assert address
+        address_data = self.data.pop('address')
+        address = self.user.address
+        for field, value in address_data.items():
+            self.assertEqual(getattr(address, field), value)
+        self.assertIsNone(address.village)
+
+        # assert user
+        for field, value in self.data.items():
+            self.assertEqual(getattr(self.user, field), value)
+
+    def test_serializer_updates_user_and_address(self):
+        address = self.address_model_class.objects.create(
+            user=self.user,
+            region='region',
+            city='city',
+            street='street',
+            number='0',
+        )
+
+        self.data['address'] = dict(
+            region='new region',
+            city='new city',
+            street='new street',
+            number='1',
+        )
+
+        # assert user
+        for field, value in self.data.items():
+            self.assertNotEqual(getattr(self.user, field), value)
+
+        # assert address
+        for field, value in self.data['address'].items():
+            self.assertNotEqual(getattr(address, field), value)
+
+        serializer = self.serializer_class(self.user, self.data)
+        self.assertTrue(serializer.is_valid(raise_exception=True))
+        serializer.save()
+
+        # assert address
+        address_data = self.data.pop('address')
+        address.refresh_from_db()
+        for field, value in address_data.items():
+            self.assertEqual(getattr(address, field), value)
+        self.assertIsNone(address.village)
+
+        # assert user
+        for field, value in self.data.items():
+            self.assertEqual(getattr(self.user, field), value)
+
+    def test_serializer_return_expected_data_without_address(self):
+        expected_data = dict(
+            **self.data,
+            address=None,
+        )
+
+        serializer = self.serializer_class(self.user, self.data)
+        self.assertTrue(serializer.is_valid(raise_exception=True))
+        serializer.save()
+
+        self.assertEqual(serializer.data, expected_data)
+
+    def test_serializer_return_expected_data_with_address(self):
+        self.data['address'] = dict(
+            region='region',
+            city='city',
+            village=None,
+            street='street',
+            number='0',
+        )
+        expected_data = dict(
+            **self.data,
+        )
+
+        serializer = self.serializer_class(self.user, self.data)
+        self.assertTrue(serializer.is_valid(raise_exception=True))
+        serializer.save()
+
+        self.assertEqual(serializer.data, expected_data)
 
 
 class UserRegisterSerializerTest(APITestCase):

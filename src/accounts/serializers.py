@@ -61,11 +61,37 @@ class UserProfileUpdateSerializer(BaseUserSerializer):
         return instance
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class UserProfileSerializer(BaseUserSerializer):
+    address = UserAddressSerializer(required=False)
+
     class Meta:
         model = User
-        fields = ['email', 'full_name', 'phone']
-        read_only_fields = fields
+        fields = ('email', 'full_name', 'phone', 'address')
+
+    def update(self, instance, validated_data: dict):
+        if 'address' in validated_data:
+            address_data = validated_data.pop('address')
+            self._update_address(instance, address_data)
+            instance.refresh_from_db(fields=['address'])
+
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+
+        instance.full_clean()
+        instance.save()
+
+        return instance
+
+    def _update_address(self, user, data):
+        if data is not None:
+            if (address := getattr(user, 'address', None)) is not None:
+                serializer = UserAddressSerializer(address, data, partial=True)
+            else:
+                data['user'] = user.pk
+                serializer = UserAddressSerializer(data=data)
+
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
 
 class UserRegisterSerializer(BaseUserSerializer):
