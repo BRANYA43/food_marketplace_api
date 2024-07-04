@@ -6,6 +6,23 @@ from django.utils.translation import gettext as _
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts import managers
+from utils.models import Address
+
+
+class UserAddress(Address):
+    user = models.OneToOneField(
+        verbose_name=_('user'),
+        to='User',
+        on_delete=models.CASCADE,
+        related_name='address',
+    )
+
+    class Meta:
+        verbose_name = _('user_address')
+        verbose_name_plural = (_('user_addresses'),)
+
+    def __str__(self):
+        return str(self.user)
 
 
 class User(AbstractBaseUser, PermissionsMixin):

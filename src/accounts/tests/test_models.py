@@ -3,10 +3,37 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import PermissionsMixin, AbstractBaseUser
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from rest_framework_simplejwt.tokens import Token
 
 from accounts import models, managers
+from utils.models import Address
 from utils.tests import APITestCase
+
+
+class UserAddressTest(APITestCase):
+    def setUp(self) -> None:
+        self.model_class = models.UserAddress
+        self.user = self.create_test_user()
+        self.data = dict(
+            user=self.user,
+            region='region',
+            city='city',
+            street='street',
+            number='0',
+        )
+
+    def test_model_inherits_address_model(self):
+        self.assertTrue(issubclass(self.model_class, Address))
+
+    def test_user_field_is_required(self):
+        del self.data['user']
+        with self.assertRaisesRegex(IntegrityError, r'NOT NULL'):
+            self.model_class.objects.create(**self.data)
+
+    def test_string_representation_returns_user(self):
+        address = self.model_class.objects.create(**self.data)
+        self.assertEqual(str(address), str(self.user))
 
 
 class UserModelTest(APITestCase):
