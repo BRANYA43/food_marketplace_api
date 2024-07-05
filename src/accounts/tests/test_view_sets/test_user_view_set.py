@@ -10,7 +10,7 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 
 from utils.tests import APITestCase
 
-from accounts import services, serializers
+from accounts import services, serializers, models
 
 User = get_user_model()
 
@@ -113,12 +113,37 @@ class DisableMeViewTest(APITestCase):
         self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
         self.assertIsNone(response.data)
 
-    def test_view_disables_current_user(self):
+    def test_view_disables_current_user_without_address(self):
         response = self.client.delete(self.url)
         self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
 
         self.user.refresh_from_db()
         self.assertFalse(self.user.is_active)
+        self.assertEqual(self.user.email, f'disabled.user.{self.user.id}@email.com')
+        self.assertIsNone(self.user.full_name)
+        self.assertIsNone(self.user.phone)
+        self.assertIsNone(getattr(self.user, 'address', None))
+
+    def test_view_disables_current_user_with_address(self):
+        models.UserAddress.objects.create(
+            user=self.user,
+            region='region',
+            city='city',
+            street='street',
+            number='0',
+        )
+        self.user.refresh_from_db()
+
+        response = self.client.delete(self.url)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_active)
+        self.assertEqual(self.user.email, f'disabled.user.{self.user.id}@email.com')
+        self.assertIsNone(self.user.full_name)
+        self.assertIsNone(self.user.phone)
+        self.assertEqual(self.user.address.street, '-')
+        self.assertEqual(self.user.address.number, '-')
 
     def test_view_blacklists_tokens_of_current_user(self):
         _ = [self.user.refresh_token for _ in range(3)]

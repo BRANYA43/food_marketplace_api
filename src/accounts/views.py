@@ -203,7 +203,16 @@ class UserViewSet(viewsets.ViewSet):
         if request.user.is_superuser:
             raise PermissionDenied(detail='Superuser cannot be disabled.')
         user = request.user
+        if (address := getattr(user, 'address', None)) is not None:
+            address.street = '-'
+            address.number = '-'
+            address.full_clean()
+            address.save()
+        user.email = f'disabled.user.{user.pk}@email.com'
         user.is_active = False
+        user.full_name = None
+        user.phone = None
+        user.full_clean()
         user.save()
 
         tokens = OutstandingToken.objects.filter(user=user)
