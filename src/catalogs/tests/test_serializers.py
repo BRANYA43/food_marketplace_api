@@ -7,7 +7,7 @@ from catalogs import serializers, models
 class CategoryRetrieveSerializerTest(TestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.CategoryRetrieveSerializer
-        self.category = models.Category.objects.create(slug='plants', name='Plants')
+        self.category = models.Category.objects.create(name='Plants')
 
     def test_serializer_inherits_model_serializer(self):
         self.assertTrue(issubclass(self.serializer_class, ModelSerializer))
@@ -23,7 +23,7 @@ class CategoryListSerializerTest(TestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.CategoryListSerializer
 
-        self.parent_category = models.Category.objects.create(slug='plants', name='Plants')
+        self.parent_category = models.Category.objects.create(name='Plants')
 
     def test_serializer_inherits_model_serializer(self):
         self.assertTrue(issubclass(self.serializer_class, ModelSerializer))
@@ -36,10 +36,8 @@ class CategoryListSerializerTest(TestCase):
         self.assertEqual(serializer.data, expected_data)
 
     def test_serializer_returns_expected_data_with_nested_categories(self):
-        child_category = models.Category.objects.create(
-            slug='vegetables', name='Vegetables', parent=self.parent_category
-        )
-        sub_child_category = models.Category.objects.create(slug='tomato', name='Tomato', parent=child_category)
+        child_category = models.Category.objects.create(name='Vegetables', parent=self.parent_category)
+        sub_child_category = models.Category.objects.create(name='Tomato', parent=child_category)
         expected_data = [
             {
                 'id': self.parent_category.id,

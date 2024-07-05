@@ -17,10 +17,6 @@ class Category(CreatedUpdatedMixin):
         unique=True,
         db_index=True,
     )
-    slug = models.CharField(
-        verbose_name=_('slug'),
-        max_length=50,
-    )
     parent = models.ForeignKey(
         verbose_name=_('parent category'),
         to='self',
@@ -29,10 +25,6 @@ class Category(CreatedUpdatedMixin):
         null=True,
         blank=True,
     )
-    is_displayed = models.BooleanField(
-        verbose_name=_('displayed'),
-        default=True,
-    )
 
     class Meta:
         verbose_name = _('category')
@@ -40,7 +32,7 @@ class Category(CreatedUpdatedMixin):
         ordering = ('parent__name', 'name')
 
     def __str__(self):
-        return str(self.slug)
+        return str(self.name)
 
 
 class Advert(CreatedUpdatedMixin):

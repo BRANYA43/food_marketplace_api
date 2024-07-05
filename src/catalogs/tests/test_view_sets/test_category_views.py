@@ -9,7 +9,7 @@ class CategoryRetrieveViewTest(APITestCase):
     def setUp(self) -> None:
         self.serializer_class = serializers.CategoryRetrieveSerializer
         self.model_class = models.Category
-        self.category = self.model_class.objects.create(slug='plants', name='Plants')
+        self.category = self.model_class.objects.create(name='Plants')
         self.url = reverse('category-detail', args=[self.category.pk])
 
     def test_view_is_accessed_only_through_get_method(self):
@@ -64,8 +64,8 @@ class CategoryListViewTest(APITestCase):
         self.assert_response_status(response, status.HTTP_200_OK)
 
     def test_view_returns_expected_data(self):
-        parent_category = self.model_class.objects.create(slug='plants', name='Plants')
-        self.model_class.objects.create(slug='vegetables', name='Vegetables', parent=parent_category)
+        parent_category = self.model_class.objects.create(name='Plants')
+        self.model_class.objects.create(name='Vegetables', parent=parent_category)
 
         qs = self.model_class.objects.filter(parent=None)
         expected_data = self.serializer_class(qs, many=True).data
