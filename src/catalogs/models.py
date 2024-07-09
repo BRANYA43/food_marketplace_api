@@ -126,6 +126,7 @@ class AdvertAddress(Address):
         verbose_name=_('advert'),
         to=Advert,
         on_delete=models.CASCADE,
+        related_name='address',
     )
 
     class Meta:
