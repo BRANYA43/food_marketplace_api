@@ -23,7 +23,6 @@ class AdvertAddressModelTest(APITestCase):
             category=self.category,
             title='Potato',
             price='100.00',
-            address='potato street',
         )
         self.data = dict(
             advert=self.advert,
@@ -57,7 +56,6 @@ class AdvertImageModelTest(TransactionTestCase):
             category=self.category,
             title='Potato',
             price='100.00',
-            address='potato street',
         )
         self.data = dict(
             advert=self.advert,
@@ -97,7 +95,6 @@ class AdvertImageModelTest(TransactionTestCase):
             category=self.category,
             title='carrot',
             price='100.00',
-            address='carrot street',
         )
         self.model_class.objects.create(**self.data)
 
@@ -121,7 +118,6 @@ class AdvertModelTest(TestCase):
             category=self.category,
             title='Potato',
             price='100.00',
-            address='potato street',
         )
 
     def test_user_is_required(self):
@@ -165,12 +161,6 @@ class AdvertModelTest(TestCase):
         self.data['price'] = 0
         advert = self.model_class.objects.create(**self.data)
         advert.full_clean()  # not raise
-
-    def test_address_field_is_required(self):
-        del self.data['address']
-        advert = self.model_class.objects.create(**self.data)
-        with self.assertRaisesRegex(ValidationError, r'This field cannot be blank'):
-            advert.full_clean()
 
     def test_descr_field_is_optional(self):
         advert = self.model_class.objects.create(**self.data)

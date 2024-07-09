@@ -61,15 +61,10 @@ class Advert(CreatedUpdatedMixin):
         blank=True,
         null=True,
     )
-    address = models.CharField(
-        verbose_name=_('address'),
-        max_length=256,
-    )
     grades = models.JSONField(
         verbose_name=_('grades'),
         default=_get_default_grades,
     )
-
     is_displayed = models.BooleanField(
         verbose_name=_('displayed'),
         default=True,

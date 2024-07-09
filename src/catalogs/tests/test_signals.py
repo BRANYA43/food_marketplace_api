@@ -22,7 +22,6 @@ class ReorderImageOrderSignalTest(TransactionTestCase):
             category=self.category,
             title='Potato',
             price='100.00',
-            address='potato street',
         )
         self.data = dict(
             advert=self.advert,
@@ -79,7 +78,6 @@ class SetImageOrderSignalTest(TransactionTestCase):
             category=self.category,
             title='Potato',
             price='100.00',
-            address='potato street',
         )
         self.data = dict(
             advert=self.advert,
