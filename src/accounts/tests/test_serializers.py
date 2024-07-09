@@ -336,6 +336,14 @@ class UserRegisterSerializerTest(APITestCase):
             raise_exception=True,
         )
 
+    def test_serializer_doesnt_register_user_for_invalid_password(self):
+        self.data['password'] = '123'
+        serializer = self.serializer_class(data=self.data)
+        with self.assertRaisesRegex(
+            ValidationError, r'.+password_too_short.+password_too_common.+password_entirely_numeric'
+        ):
+            serializer.is_valid(raise_exception=True)
+
 
 class BaseUserSerializerTest(APITestCase):
     def setUp(self) -> None:

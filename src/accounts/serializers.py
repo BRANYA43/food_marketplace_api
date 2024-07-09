@@ -36,7 +36,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
         model = User
         fields: list[str] | str = '__all__'
         extra_kwargs = {
-            'password': {'min_length': 8, 'write_only': True},
+            'password': {'write_only': True},
             'full_name': {'min_length': 3},
         }
 
@@ -82,9 +82,13 @@ class UserProfileSerializer(BaseUserSerializer):
 class UserRegisterSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
         fields = ['email', 'password', 'full_name', 'phone']
-        extra_kwargs = deepcopy(BaseUserSerializer.Meta.extra_kwargs)
+        extra_kwargs: dict = deepcopy(BaseUserSerializer.Meta.extra_kwargs)
         extra_kwargs['full_name']['required'] = True
         extra_kwargs['phone'] = {'required': True}
+
+    def validate_password(self, password):
+        validate_password(password)
+        return password
 
     def create(self, validated_data: dict):
         return User.objects.create_user(**validated_data)
