@@ -3,6 +3,20 @@ from django.contrib import admin
 from catalogs import models
 
 
+@admin.register(models.Advert)
+class AdvertAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'price', 'grade', 'is_displayed', 'updated_at', 'created_at')
+    readonly_fields = ('grade', 'updated_at', 'created_at')
+    fieldsets = (
+        (None, dict(fields=('is_displayed',))),
+        ('Information', dict(fields=('category', 'title', 'price', 'descr'))),
+        ('Delivery', dict(fields=('use_pickup', 'use_nova_post', 'use_courier'))),
+        ('Dates', dict(fields=('updated_at', 'created_at'))),
+    )
+    search_fields = ('title', 'category__name')
+    ordering = ('-created_at',)
+
+
 class CategoryInline(admin.TabularInline):
     model = models.Category
     fields = ('name',)
