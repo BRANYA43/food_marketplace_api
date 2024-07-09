@@ -1,7 +1,6 @@
 from copy import deepcopy
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -86,9 +85,9 @@ class UserRegisterSerializer(BaseUserSerializer):
         extra_kwargs['full_name']['required'] = True
         extra_kwargs['phone'] = {'required': True}
 
-    def validate_password(self, password):
-        validate_password(password)
-        return password
+    # def validate_password(self, password):
+    #     validate_password(password)
+    #     return password
 
     def create(self, validated_data: dict):
         return User.objects.create_user(**validated_data)
@@ -112,9 +111,9 @@ class UserPasswordSetSerializer(serializers.ModelSerializer):
             )
         return password
 
-    def validate_new_password(self, password):
-        validate_password(password, self.instance)
-        return password
+    # def validate_new_password(self, password):
+    #     validate_password(password, self.instance)
+    #     return password
 
     def update(self, instance, validated_data):
         instance.set_password(validated_data['new_password'])

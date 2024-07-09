@@ -136,13 +136,13 @@ class UserPasswordSetSerializerTest(APITestCase):
         with self.assertRaisesRegex(ValidationError, r"Entered password isn't user password."):
             serializer.is_valid(raise_exception=True)
 
-    def test_serializer_doesnt_update_user_for_invalid_new_password(self):
-        self.data['new_password'] = '1'
-        serializer = self.serializer_class(self.user, self.data)
-        with self.assertRaisesRegex(
-            ValidationError, r'.+password_too_short.+password_too_common.+password_entirely_numeric'
-        ):
-            serializer.is_valid(raise_exception=True)
+    # def test_serializer_doesnt_update_user_for_invalid_new_password(self):
+    #     self.data['new_password'] = '1'
+    #     serializer = self.serializer_class(self.user, self.data)
+    #     with self.assertRaisesRegex(
+    #         ValidationError, r'.+password_too_short.+password_too_common.+password_entirely_numeric'
+    #     ):
+    #         serializer.is_valid(raise_exception=True)
 
     def test_serializer_returns_empty_data(self):
         serializer = self.serializer_class(self.user, self.data)
@@ -336,13 +336,13 @@ class UserRegisterSerializerTest(APITestCase):
             raise_exception=True,
         )
 
-    def test_serializer_doesnt_register_user_for_invalid_password(self):
-        self.data['password'] = '123'
-        serializer = self.serializer_class(data=self.data)
-        with self.assertRaisesRegex(
-            ValidationError, r'.+password_too_short.+password_too_common.+password_entirely_numeric'
-        ):
-            serializer.is_valid(raise_exception=True)
+    # def test_serializer_doesnt_register_user_for_invalid_password(self):
+    #     self.data['password'] = '123'
+    #     serializer = self.serializer_class(data=self.data)
+    #     with self.assertRaisesRegex(
+    #         ValidationError, r'.+password_too_short.+password_too_common.+password_entirely_numeric'
+    #     ):
+    #         serializer.is_valid(raise_exception=True)
 
 
 class BaseUserSerializerTest(APITestCase):
