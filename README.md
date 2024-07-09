@@ -91,6 +91,19 @@ make up-d
 ```
 For stop container stack in the interactive mode use `ctrl+C`.
 ***
+### Run container stack through Docker command
+1. Enter to folder where docker-compose.yml is.
+2. Rename template.env to .env, then to fill environment variables in the .env.
+3. Run container stack.
+```commandline
+docker compose up
+```
+or
+```commandline
+docker-compose up
+```
+For stop container stack in the interactive mode use `ctrl+C`.
+***
 ### Links
 ###### Base
 - http://localhost/
