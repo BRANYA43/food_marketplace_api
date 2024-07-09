@@ -100,11 +100,11 @@ class Advert(CreatedUpdatedMixin):
                 _('One of next field must be true: use_pickup, use_nova_post, use_courier.'),
                 'invalid_use_fields',
             )
-        if self.use_pickup and getattr(self, 'address', None) is None:
-            raise ValidationError(
-                _('Address must be specified if use_pickup field is true.'),
-                'empty_address',
-            )
+        # if self.use_pickup and getattr(self, 'address', None) is None:
+        #     raise ValidationError(
+        #         _('Address must be specified if use_pickup field is true.'),
+        #         'empty_address',
+        #     )
 
     def __str__(self):
         return self.title

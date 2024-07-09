@@ -194,11 +194,11 @@ class AdvertModelTest(TestCase):
         ):
             advert.full_clean()
 
-    def test_address_field_cannot_be_empty_if_use_pickup_is_true(self):
-        self.data.update(dict(use_pickup=True, use_nova_post=False, use_courier=False))
-        advert = self.model_class.objects.create(**self.data)
-        with self.assertRaisesRegex(ValidationError, r'Address must be specified if use_pickup field is true.'):
-            advert.full_clean()
+    # def test_address_field_cannot_be_empty_if_use_pickup_is_true(self):
+    #     self.data.update(dict(use_pickup=True, use_nova_post=False, use_courier=False))
+    #     advert = self.model_class.objects.create(**self.data)
+    #     with self.assertRaisesRegex(ValidationError, r'Address must be specified if use_pickup field is true.'):
+    #         advert.full_clean()
 
     def test_is_disabled_field_is_true_by_default(self):
         advert = self.model_class.objects.create(**self.data)
