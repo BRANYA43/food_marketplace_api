@@ -111,6 +111,7 @@ class AdvertImageModelTest(TransactionTestCase):
 class AdvertModelTest(TestCase):
     def setUp(self) -> None:
         self.model_class = models.Advert
+        self.address_model_class = models.AdvertAddress
         self.user = get_user_model().objects.create_user(email='test@test.com', password='qwe123!@#')
         self.category = models.Category.objects.create(name='vegetables')
         self.data = dict(
@@ -172,6 +173,32 @@ class AdvertModelTest(TestCase):
         advert = self.model_class.objects.create(**self.data)
 
         self.assertDictEqual(advert.grades, expected_dict)
+
+    def test_use_pickup_field_is_false_by_default(self):
+        advert = self.model_class.objects.create(**self.data)
+        self.assertFalse(advert.use_pickup)
+
+    def test_use_nova_post_field_is_false_by_default(self):
+        advert = self.model_class.objects.create(**self.data)
+        self.assertFalse(advert.use_nova_post)
+
+    def test_use_courier_field_is_true_by_default(self):
+        advert = self.model_class.objects.create(**self.data)
+        self.assertTrue(advert.use_courier)
+
+    def test_model_cannot_have_false_for_all_use_fields(self):
+        self.data.update(dict(use_pickup=False, use_nova_post=False, use_courier=False))
+        advert = self.model_class.objects.create(**self.data)
+        with self.assertRaisesRegex(
+            ValidationError, r'One of next field must be true: use_pickup, use_nova_post, use_courier.'
+        ):
+            advert.full_clean()
+
+    def test_address_field_cannot_be_empty_if_use_pickup_is_true(self):
+        self.data.update(dict(use_pickup=True, use_nova_post=False, use_courier=False))
+        advert = self.model_class.objects.create(**self.data)
+        with self.assertRaisesRegex(ValidationError, r'Address must be specified if use_pickup field is true.'):
+            advert.full_clean()
 
     def test_is_disabled_field_is_true_by_default(self):
         advert = self.model_class.objects.create(**self.data)

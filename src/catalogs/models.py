@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext as _
@@ -65,6 +66,18 @@ class Advert(CreatedUpdatedMixin):
         verbose_name=_('grades'),
         default=_get_default_grades,
     )
+    use_pickup = models.BooleanField(
+        verbose_name=_('pickup'),
+        default=False,
+    )
+    use_nova_post = models.BooleanField(
+        verbose_name=_('nova post'),
+        default=False,
+    )
+    use_courier = models.BooleanField(
+        verbose_name=_('courier'),
+        default=True,
+    )
     is_displayed = models.BooleanField(
         verbose_name=_('displayed'),
         default=True,
@@ -80,6 +93,18 @@ class Advert(CreatedUpdatedMixin):
                 check=Q(price__gte=0),
             ),
         )
+
+    def clean(self):
+        if not any([self.use_pickup, self.use_nova_post, self.use_courier]):
+            raise ValidationError(
+                _('One of next field must be true: use_pickup, use_nova_post, use_courier.'),
+                'invalid_use_fields',
+            )
+        if self.use_pickup and getattr(self, 'address', None) is None:
+            raise ValidationError(
+                _('Address must be specified if use_pickup field is true.'),
+                'empty_address',
+            )
 
     def __str__(self):
         return self.title
