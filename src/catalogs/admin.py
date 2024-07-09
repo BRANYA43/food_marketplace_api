@@ -3,6 +3,12 @@ from django.contrib import admin
 from catalogs import models
 
 
+class AdvertAddressInline(admin.StackedInline):
+    model = models.AdvertAddress
+    fields = ('region', 'city', 'village', 'street', 'number')
+    extra = 1
+
+
 @admin.register(models.Advert)
 class AdvertAdmin(admin.ModelAdmin):
     list_display = ('title', 'category', 'price', 'grade', 'is_displayed', 'updated_at', 'created_at')
@@ -15,6 +21,7 @@ class AdvertAdmin(admin.ModelAdmin):
     )
     search_fields = ('title', 'category__name')
     ordering = ('-created_at',)
+    inlines = (AdvertAddressInline,)
 
 
 class CategoryInline(admin.TabularInline):
