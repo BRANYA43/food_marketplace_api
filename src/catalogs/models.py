@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext as _
 
-from utils.models import CreatedUpdatedMixin
+from utils.models import CreatedUpdatedMixin, Address
 
 
 def _get_default_grades() -> dict:
@@ -69,6 +69,7 @@ class Advert(CreatedUpdatedMixin):
         verbose_name=_('grades'),
         default=_get_default_grades,
     )
+
     is_displayed = models.BooleanField(
         verbose_name=_('displayed'),
         default=True,
@@ -123,3 +124,19 @@ class AdvertImage(CreatedUpdatedMixin):
 
     def __str__(self):
         return f'Image[{self.order_num}] of {self.advert.title}'
+
+
+class AdvertAddress(Address):
+    advert = models.OneToOneField(
+        verbose_name=_('advert'),
+        to=Advert,
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        verbose_name = _('advert address')
+        verbose_name_plural = _('advert addresses')
+        ordering = ('advert',)
+
+    def __str__(self):
+        return str(self.advert)

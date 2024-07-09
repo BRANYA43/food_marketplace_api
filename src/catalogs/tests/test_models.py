@@ -10,6 +10,38 @@ from django.db import IntegrityError
 from django.test import TransactionTestCase, TestCase, override_settings
 
 from catalogs import models
+from utils.tests import APITestCase
+
+
+class AdvertAddressModelTest(APITestCase):
+    def setUp(self):
+        self.model_class = models.AdvertAddress
+        self.user = self.create_test_user()
+        self.category = models.Category.objects.create(name='vegetables')
+        self.advert = models.Advert.objects.create(
+            user=self.user,
+            category=self.category,
+            title='Potato',
+            price='100.00',
+            address='potato street',
+        )
+        self.data = dict(
+            advert=self.advert,
+            region='region',
+            city='city',
+            street='street',
+            number='0',
+        )
+
+    def test_advert_field_is_required(self):
+        del self.data['advert']
+        with self.assertRaisesRegex(IntegrityError, r'NOT NULL'):
+            self.model_class.objects.create(**self.data)
+
+    def test_string_representation_returns_user(self):
+        address = self.model_class.objects.create(**self.data)
+        self.assertEqual(str(address), str(self.advert))
+
 
 temp_media = settings.BASE_DIR / 'temp_media/'
 
