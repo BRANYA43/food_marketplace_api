@@ -11,8 +11,8 @@ class AdvertAddressInline(admin.StackedInline):
 
 @admin.register(models.Advert)
 class AdvertAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'price', 'grade', 'is_displayed', 'updated_at', 'created_at')
-    readonly_fields = ('grade', 'updated_at', 'created_at')
+    list_display = ('title', 'category', 'price', 'is_displayed', 'updated_at', 'created_at')
+    readonly_fields = ('updated_at', 'created_at')
     fieldsets = (
         (None, dict(fields=('is_displayed',))),
         ('Information', dict(fields=('category', 'title', 'price', 'descr'))),

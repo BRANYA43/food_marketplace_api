@@ -50,7 +50,6 @@ class Advert(CreatedUpdatedMixin):
     title = models.CharField(
         verbose_name=_('title'),
         max_length=100,
-        unique_for_date='created_at',
     )
     price = models.DecimalField(
         verbose_name=_('price'),
@@ -61,10 +60,6 @@ class Advert(CreatedUpdatedMixin):
         verbose_name=_('description'),
         blank=True,
         null=True,
-    )
-    grades = models.JSONField(
-        verbose_name=_('grades'),
-        default=_get_default_grades,
     )
     use_pickup = models.BooleanField(
         verbose_name=_('pickup'),
@@ -108,11 +103,6 @@ class Advert(CreatedUpdatedMixin):
 
     def __str__(self):
         return self.title
-
-    @property
-    def grade(self) -> int | float:
-        totals = [int(grade) * count for grade, count in self.grades.items()]
-        return round(sum(totals) / 5)
 
 
 class AdvertImage(CreatedUpdatedMixin):

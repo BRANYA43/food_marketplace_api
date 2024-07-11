@@ -1,10 +1,8 @@
 import shutil
-from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TransactionTestCase, TestCase, override_settings
@@ -137,17 +135,6 @@ class AdvertModelTest(TestCase):
         with self.assertRaisesRegex(ValidationError, r'This field cannot be blank.'):
             advert.full_clean()
 
-    def test_title_field_is_unique_for_date(self):
-        advert = self.model_class.objects.create(**self.data)
-        with self.assertRaisesRegex(ValidationError, r'Title must be unique for Created date.'):
-            advert_ = self.model_class.objects.create(**self.data)
-            advert_.full_clean()
-
-        advert.created_at = now() - timedelta(days=1)
-        advert.save()
-
-        self.model_class.objects.create(**self.data)  # not raise
-
     def test_price_field_is_required(self):
         del self.data['price']
         with self.assertRaisesRegex(IntegrityError, r'NOT NULL'):
@@ -167,12 +154,6 @@ class AdvertModelTest(TestCase):
         advert = self.model_class.objects.create(**self.data)
         advert.full_clean()  # not raise
         self.assertIsNone(advert.descr)
-
-    def test_grades_field_is_expected_dict_by_default(self):
-        expected_dict = {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0}
-        advert = self.model_class.objects.create(**self.data)
-
-        self.assertDictEqual(advert.grades, expected_dict)
 
     def test_use_pickup_field_is_false_by_default(self):
         advert = self.model_class.objects.create(**self.data)
@@ -207,12 +188,6 @@ class AdvertModelTest(TestCase):
     def test_string_representation_is_title(self):
         advert = self.model_class.objects.create(**self.data)
         self.assertEqual(str(advert), advert.title)
-
-    def test_grade_property_returns_correct_grade(self):
-        grades = {'1': 1, '2': 1, '3': 1, '4': 1, '5': 1}
-        advert = self.model_class.objects.create(**self.data, grades=grades)
-
-        self.assertEqual(advert.grade, 3)
 
 
 class CategoryModelTest(TestCase):
