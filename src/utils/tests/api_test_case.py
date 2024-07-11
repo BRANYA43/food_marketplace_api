@@ -1,7 +1,8 @@
 from datetime import datetime
+from typing import Literal, Sequence
 
 from django.contrib.auth import get_user_model
-from rest_framework import status
+from rest_framework import status as status_
 from rest_framework.response import Response
 from rest_framework.test import APITestCase as RFAPITestCase, APIRequestFactory
 from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
@@ -53,10 +54,16 @@ class APITestCase(RFAPITestCase):
         if clear_auth_header:
             self.client.credentials()
 
-    def assert_not_allowed_methods(self, methods: list[str], url: str):
+    def assert_allowed_method(
+        self, url, method: Literal['get', 'post', 'put', 'patch', 'delete'], status: int, data=None
+    ):
+        response = getattr(self.client, method)(url, data)
+        self.assert_response_status(response, status)
+
+    def assert_not_allowed_methods(self, methods: Sequence[str], url: str):
         for method in methods:
             response = getattr(self.client, method)(url)
-            self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+            self.assertEqual(response.status_code, status_.HTTP_405_METHOD_NOT_ALLOWED)
 
     def assert_response_status(self, response: Response, status: int):
         self.assertEqual(response.status_code, status)
