@@ -9,6 +9,8 @@ from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from catalogs import models as catalog_models
+
 
 class APITestCase(RFAPITestCase):
     request_factory = APIRequestFactory()
@@ -51,9 +53,6 @@ class APITestCase(RFAPITestCase):
         if clear_auth_header:
             self.client.credentials()
 
-    def create_test_user(self, email=TEST_EMAIL, password=TEST_PASSWORD, user_model=TEST_USER_MODEL, **extra_fields):
-        return user_model.objects.create_user(email, password, **extra_fields)
-
     def assert_not_allowed_methods(self, methods: list[str], url: str):
         for method in methods:
             response = getattr(self.client, method)(url)
@@ -68,3 +67,33 @@ class APITestCase(RFAPITestCase):
         self.assertEqual(errors[0]['code'], code)
         if detail:
             self.assertEqual(errors[0]['detail'], detail)
+
+    @staticmethod
+    def create_test_user(email=TEST_EMAIL, password=TEST_PASSWORD, user_model=TEST_USER_MODEL, **extra_fields):
+        return user_model.objects.create_user(email, password, **extra_fields)
+
+    @staticmethod
+    def create_test_user_address(
+        user, region='Test Region', city='Test City', street='Test Street', number='0', **extra_fields
+    ):
+        return catalog_models.AdvertAddress.objects.create(
+            user=user, region=region, city=city, street=street, number=number, **extra_fields
+        )
+
+    @staticmethod
+    def create_test_category(name='Test Catalog', **extra_fields):
+        return catalog_models.Category.objects.create(name=name, **extra_fields)
+
+    @staticmethod
+    def create_test_advert(user, catalog, title='Test Advert', price='1000', **extra_fields):
+        return catalog_models.Advert.objects.create(
+            user=user, catalog=catalog, title=title, price=price, **extra_fields
+        )
+
+    @staticmethod
+    def create_test_advert_address(
+        advert, region='Test Region', city='Test City', street='Test Street', number='0', **extra_fields
+    ):
+        return catalog_models.AdvertAddress.objects.create(
+            advert=advert, region=region, city=city, street=street, number=number, **extra_fields
+        )
