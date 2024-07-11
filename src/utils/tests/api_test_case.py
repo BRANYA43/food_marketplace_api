@@ -75,6 +75,9 @@ class APITestCase(RFAPITestCase):
         if detail:
             self.assertEqual(errors[0]['detail'], detail)
 
+    def assert_is_subclass(self, __cls, __class_or_tuple):
+        self.assertTrue(issubclass(__cls, __class_or_tuple), msg=f'{__cls} is not subclass of {__class_or_tuple}.')
+
     @staticmethod
     def create_test_user(email=TEST_EMAIL, password=TEST_PASSWORD, user_model=TEST_USER_MODEL, **extra_fields):
         return user_model.objects.create_user(email, password, **extra_fields)
