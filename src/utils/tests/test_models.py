@@ -9,6 +9,9 @@ class AddressModelTest(ApiTestCase):
         self.content_obj = self.create_test_user()
         self.data = dict(region='region', city='city', street='street', number='0', content_obj=self.content_obj)
 
+    def test_models_inherit_created_updated_mixin(self):
+        self.assert_is_subclass(self.model, models.CreatedUpdatedMixin)
+
     def test_region_field_is_required(self):
         self.assert_required_model_field(self.model, 'region', self.data, 'region.+This field cannot be blank.')
 
