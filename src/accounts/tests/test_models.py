@@ -26,12 +26,10 @@ class UserModelTest(ApiTestCase):
         self.assert_is_subclass(self.model, AbstractBaseUser)
 
     def test_email_field_is_required(self):
-        self.assert_required_model_field(
-            self.model,
-            'email',
-            self.data,
-            'This field cannot be blank',
-        )
+        self.assert_required_model_field(self.model, 'email', self.data, 'email.+This field cannot be blank')
+
+    def test_password_field_is_required(self):
+        self.assert_required_model_field(self.model, 'password', self.data, 'password.+This field cannot be blank')
 
     def test_email_field_is_username_field(self):
         self.assertEqual(self.model.USERNAME_FIELD, 'email')
