@@ -7,6 +7,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.managers import UserManager
 
+from django.contrib.contenttypes.fields import GenericRelation
+
+from utils.models import Address
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
@@ -25,6 +29,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=20,
         null=True,
         blank=True,
+    )
+    address = GenericRelation(
+        verbose_name=_('address'),
+        to=Address,
     )
     is_staff = models.BooleanField(
         verbose_name=_('is staff'),

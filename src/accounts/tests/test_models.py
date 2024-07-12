@@ -72,6 +72,10 @@ class UserModelTest(ApiTestCase):
                 r'The phone number must be in the following format: \+38 \(012\) 345 6789',
             )
 
+    def test_address_field_is_optinal(self):
+        user = self.model.objects.create(**self.data)
+        self.assertIsNone(user.address.first())
+
     def test_is_staff_field_is_false_by_default(self):
         self.assert_model_field_default_value(self.model, 'is_staff', self.data, False)
 
