@@ -1,3 +1,5 @@
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import gettext as _
 
@@ -14,3 +16,38 @@ class CreatedUpdatedMixin(models.Model):
 
     class Meta:
         abstract = True
+
+
+class Address(CreatedUpdatedMixin):
+    region = models.CharField(
+        verbose_name=_('region'),
+        max_length=100,
+    )
+    city = models.CharField(
+        verbose_name=_('city'),
+        max_length=100,
+    )
+    village = models.CharField(
+        verbose_name=_('village'),
+        max_length=100,
+        null=True,
+        blank=True,
+    )
+    street = models.CharField(
+        verbose_name=_('street'),
+        max_length=100,
+    )
+    number = models.CharField(
+        verbose_name=_('number'),
+        max_length=10,
+    )
+    content_type = models.ForeignKey(
+        to=ContentType,
+        on_delete=models.CASCADE,
+    )
+    object_id = models.PositiveIntegerField()
+    content_obj = GenericForeignKey()
+
+    class Meta:
+        verbose_name = _('address')
+        verbose_name_plural = _('addresses')
