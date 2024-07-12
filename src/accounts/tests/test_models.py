@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from rest_framework_simplejwt.tokens import Token
@@ -108,3 +109,6 @@ class UserModelTest(ApiTestCase):
     def test_refresh_token_and_access_token_dont_match(self):
         user = self.model.objects.create(**self.data)
         self.assertNotEqual(user.access_token, user.refresh_token)
+
+    def test_user_is_specified_in_the_auth_user_model_setting(self):
+        self.assertIs(self.model, get_user_model())
