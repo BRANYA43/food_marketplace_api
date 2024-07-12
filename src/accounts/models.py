@@ -5,6 +5,8 @@ from django.db import models
 from django.utils.translation import gettext as _
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from accounts.managers import UserManager
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
@@ -44,6 +46,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
 
     USERNAME_FIELD = 'email'
+
+    objects = UserManager()
 
     class Meta:
         verbose_name = _('user')

@@ -6,6 +6,7 @@ from django.contrib.auth.models import PermissionsMixin
 from rest_framework_simplejwt.tokens import Token
 
 from accounts import models
+from accounts.managers import UserManager
 from utils.tests import ApiTestCase
 
 
@@ -112,3 +113,6 @@ class UserModelTest(ApiTestCase):
 
     def test_user_is_specified_in_the_auth_user_model_setting(self):
         self.assertIs(self.model, get_user_model())
+
+    def test_model_has_expected_manager(self):
+        self.assertIsInstance(self.model.objects, UserManager)
