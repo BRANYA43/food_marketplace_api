@@ -6,6 +6,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APITestCase, APIRequestFactory
 
+from accounts.models import User
+
 
 class ApiTestCase(APITestCase):
     request_factory = APIRequestFactory()
@@ -81,3 +83,7 @@ class ApiTestCase(APITestCase):
         with self.assertRaisesRegex(ValidationError, regex):
             instance = model(**data)
             instance.full_clean()
+
+    @staticmethod
+    def create_test_user(email=TEST_EMAIL, password=TEST_PASSWORD, **extra_fields) -> User:
+        return User.objects.create_user(email, password, **extra_fields)
