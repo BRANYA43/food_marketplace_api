@@ -7,7 +7,7 @@ from rest_framework.exceptions import ValidationError
 
 class UkrainianPhoneNumberValidator:
     def __init__(self):
-        self.country_code_pattern = re.compile(r'^+38')
+        self.country_code_pattern = re.compile(r'^\+38')
         self.all_digit_pattern = re.compile(r'\d+')
 
     def __call__(self, phone: str, *args, **kwargs):
@@ -15,8 +15,8 @@ class UkrainianPhoneNumberValidator:
         self.validate_digit_count(phone)
 
     def validate_digit_count(self, phone):
-        digit_count = len(self.all_digit_pattern.findall(phone))
-        if digit_count not in (12, 10):
+        phone = ''.join(self.all_digit_pattern.findall(phone))
+        if len(phone) not in (12, 10):
             raise ValidationError(
                 _('Phone number must have 10 digits or 12 digits if number with country code.'),
                 'invalid_digit_count',
