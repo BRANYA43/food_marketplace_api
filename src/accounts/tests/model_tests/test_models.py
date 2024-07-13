@@ -6,7 +6,7 @@ from django.contrib.auth.models import PermissionsMixin
 from rest_framework_simplejwt.tokens import Token
 
 from accounts import models
-from accounts.managers import UserManager
+from accounts.models.managers import UserManager
 from utils.tests import ApiTestCase
 
 

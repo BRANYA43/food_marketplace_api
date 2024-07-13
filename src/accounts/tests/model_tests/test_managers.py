@@ -1,4 +1,4 @@
-from accounts import managers
+from accounts.models import managers
 from accounts import models
 
 from utils.tests import ApiTestCase

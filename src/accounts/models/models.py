@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.managers import UserManager
+from accounts.models.managers import UserManager
 
 from django.contrib.contenttypes.fields import GenericRelation
 
