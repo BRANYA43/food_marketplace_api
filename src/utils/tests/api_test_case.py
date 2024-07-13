@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.test import APITestCase, APIRequestFactory
 
 from accounts.models import User
+from utils.models import Address
 
 
 class ApiTestCase(APITestCase):
@@ -87,3 +88,9 @@ class ApiTestCase(APITestCase):
     @staticmethod
     def create_test_user(email=TEST_EMAIL, password=TEST_PASSWORD, **extra_fields) -> User:
         return User.objects.create_user(email, password, **extra_fields)
+
+    @staticmethod
+    def create_test_address(content_obj, region='region', city='city', street='street', number='0', **extra_fields):
+        return Address.objects.create(
+            content_obj, region=region, city=city, street=street, number=number, **extra_fields
+        )
