@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError as rest_ValidationError
 from django.core.exceptions import ValidationError as django_ValidationError
 
-from accounts import mixins
+from accounts.serializers import mixins
 from utils.tests import ApiTestCase
 
 User = get_user_model()
