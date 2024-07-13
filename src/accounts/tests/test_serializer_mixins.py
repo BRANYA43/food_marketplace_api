@@ -2,14 +2,14 @@ from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError as rest_ValidationError
 from django.core.exceptions import ValidationError as django_ValidationError
 
-from accounts import serializers
+from accounts import mixins
 from utils.tests import ApiTestCase
 
 User = get_user_model()
 
 
 class PhoneNumberMixinTest(ApiTestCase):
-    mixin = serializers.PhoneNumberValidationMixin
+    mixin = mixins.PhoneNumberValidationMixin
 
     def test_validate_phone_method_doesnt_raise_and_return_valid_phone(self):
         valid_phone = '+38(012)3456789'
@@ -28,7 +28,7 @@ class PhoneNumberMixinTest(ApiTestCase):
 
 
 class PasswordValidationMixinTest(ApiTestCase):
-    mixin = serializers.PasswordValidationMixin
+    mixin = mixins.PasswordValidationMixin
     mixin.instance = None  # type: ignore
 
     def test_validate_password_method_doesnt_raise_and_return_valid_password(self):
