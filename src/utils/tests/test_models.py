@@ -12,20 +12,19 @@ class AddressModelTest(ApiTestCase):
     def test_models_inherit_created_updated_mixin(self):
         self.assert_is_subclass(self.model, models.CreatedUpdatedMixin)
 
-    def test_region_field_is_required(self):
-        self.assert_required_model_field(self.model, 'region', self.data, 'region.+This field cannot be blank.')
+    def test_expected_fields_are_required(self):
+        self.assert_required_model_fields(
+            self.model,
+            self.data,
+            ['region', 'city', 'street', 'number'],
+        )
 
-    def test_city_field_is_required(self):
-        self.assert_required_model_field(self.model, 'city', self.data, 'city.+This field cannot be blank.')
-
-    def test_street_field_is_required(self):
-        self.assert_required_model_field(self.model, 'street', self.data, 'street.+This field cannot be blank.')
-
-    def test_number_field_is_required(self):
-        self.assert_required_model_field(self.model, 'number', self.data, 'number.+This field cannot be blank.')
-
-    def test_village_field_is_optional(self):
-        self.assert_optional_model_field(self.model, 'village', self.data)
+    def test_expected_fields_are_optional(self):
+        self.assert_optional_model_fields(
+            self.model,
+            self.data,
+            ['village'],
+        )
 
     def test_model_is_polymorphic(self):
         address1 = self.model.objects.create(**self.data)
