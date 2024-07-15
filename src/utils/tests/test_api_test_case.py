@@ -2,8 +2,20 @@ from unittest.mock import MagicMock, patch
 
 from django.core.validators import MinLengthValidator
 from django.db import models
+from rest_framework import serializers
 
 from utils.tests import ApiTestCase
+
+
+class TestSerializer(serializers.Serializer):
+    write_only_field = serializers.CharField(write_only=True, required=False)
+    optional_field = serializers.CharField(required=False)
+    default_field = serializers.CharField(default='default')
+    required_field = serializers.CharField()
+    read_only_field = serializers.ReadOnlyField()
+
+    class Meta:
+        fields = '__all__'
 
 
 class TestModel(models.Model):
@@ -154,4 +166,30 @@ class ApiTestCaseTest(ApiTestCase):
                 TestModel,
                 dict(required_field='test'),
                 dict(default_field='2'),
+            )
+
+    def test_assert_write_only_serializer_fields(self):
+        self.assert_write_only_serializer_fields(
+            TestSerializer,
+            dict(write_only_field='write', required_field='required'),
+            ['write_only_field'],
+        )  # not raise
+
+        with self.assertRaisesRegex(AssertionError, r'This field "required_field" is not write only.'):
+            self.assert_write_only_serializer_fields(
+                TestSerializer,
+                dict(required_field='required'),
+                ['required_field'],
+            )
+
+    def test_assert_required_serializer_fields(self):
+        self.assert_required_serializer_fields(
+            TestSerializer, dict(required_field='required'), ['required_field']
+        )  # not raise
+
+        with self.assertRaisesRegex(AssertionError, r'This field "optional_field" is not required.'):
+            self.assert_required_serializer_fields(
+                TestSerializer,
+                dict(required_field='required', optional_field='optional'),
+                ['optional_field'],
             )

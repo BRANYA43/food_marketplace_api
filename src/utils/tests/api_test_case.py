@@ -1,6 +1,7 @@
 from typing import Literal, Sequence
 
 from django.core.exceptions import ValidationError as django_ValidationError
+from rest_framework.exceptions import ValidationError as rest_ValidationError
 from django.db import IntegrityError
 from rest_framework import status
 from rest_framework.response import Response
@@ -102,3 +103,20 @@ class ApiTestCase(APITestCase):
                     value,
                     f'This field "{field}" is not set by default as "{value}". (There set {got_value}.)',
                 )
+
+    def assert_write_only_serializer_fields(self, serializer_class, data: dict, fields: Sequence[str]):
+        serializer = serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        for field in fields:
+            self.assertIsNone(serializer.data.get(field), f'This field "{field}" is not write only.')
+
+    def assert_required_serializer_fields(self, serializer_class, data: dict, fields: Sequence[str]):
+        for field in fields:
+            data = data.copy()
+            del data[field]
+            serializer = serializer_class(data=data)
+            with self.assertRaisesRegex(
+                rest_ValidationError, rf'{field}.+required', msg=f'This field "{field}" is not required.'
+            ):
+                serializer.is_valid(raise_exception=True)
