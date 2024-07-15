@@ -3,7 +3,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResp
 from drf_standardized_errors import openapi_serializers
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt import views as jwt_views
 from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
@@ -46,16 +46,35 @@ User = get_user_model()
             ),
         },
     ),
+    logout=extend_schema(
+        operation_id='user-logout',
+        summary='Log a user out.',
+        responses={
+            status.HTTP_204_NO_CONTENT: OpenApiResponse(
+                description='User is logged out successfully',
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description='Invalid credentials.',
+                response=openapi_serializers.ValidationErrorResponseSerializer,
+            ),
+            status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description='User is unauthenticated or token is invalid/expired/blacklisted.',
+                response=openapi_serializers.ErrorResponse401Serializer,
+            ),
+        },
+    ),
 )
 class UserViewSet(viewsets.GenericViewSet):
     queryset = User.objects.filter(is_active=True)
     serializers_classes = dict(
         register=serializers.UserRegisterSerializer,
         login=jwt_api_settings.TOKEN_OBTAIN_SERIALIZER,
+        logout=jwt_api_settings.TOKEN_BLACKLIST_SERIALIZER,
     )
     permission_classes = dict(
         register=(AllowAny,),
         login=(AllowAny,),
+        logout=(IsAuthenticated,),
     )
 
     def get_serializer_class(self):
@@ -76,3 +95,11 @@ class UserViewSet(viewsets.GenericViewSet):
     @action(methods=['post'], detail=False)
     def login(self, request):
         return jwt_views.token_obtain_pair(request._request)
+
+    @action(methods=['post'], detail=False)
+    def logout(self, request):
+        response = jwt_views.token_blacklist(request._request)
+        if response.status_code == status.HTTP_200_OK:
+            response.status_code = status.HTTP_204_NO_CONTENT
+            response.data = None
+        return response

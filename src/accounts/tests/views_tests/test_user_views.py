@@ -102,3 +102,45 @@ class UserLoginViewTest(ApiTestCase):
 
         self.assertIn('access', response.data)
         self.assertIn('refresh', response.data)
+
+
+class UserLogoutViewTest(ApiTestCase):
+    url = reverse('user-logout')
+
+    def setUp(self) -> None:
+        self.user = self.create_test_user()
+        self.data = dict(
+            refresh=str(self.user.refresh_token),
+        )
+
+        self.login_user_by_token(self.user)
+
+    def test_view_allows_only_post_method(self):
+        self.assert_allowed_method(self.url, 'post', status.HTTP_204_NO_CONTENT, self.data)
+        self.assert_not_allowed_methods(self.url, ['get', 'put', 'patch', 'delete'])
+
+    def test_view_isnt_accessed_for_unauthenticated_user(self):
+        self.logout_user_by_token(self.user)
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertRegex(str(response.data), r'not_authenticated')
+
+    def test_view_logs_user_out_with_expired_refresh_token(self):
+        self.data['refresh'] = str(self.get_expired_token(self.user.refresh_token))
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertRegex(str(response.data), r'token_not_valid')
+        self.assertRegex(str(response.data), r'Token is invalid or expired')
+
+    def test_view_logs_user_out_by_same_refresh_token_twice(self):
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertRegex(str(response.data), r'token_not_valid')
+        self.assertRegex(str(response.data), r'Token is blacklisted')
