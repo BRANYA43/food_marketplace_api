@@ -63,6 +63,25 @@ User = get_user_model()
             ),
         },
     ),
+    refresh=extend_schema(
+        operation_id='user-refresh',
+        summary='Refresh access and refresh tokens.',
+        description='Get a new access token and refresh the refresh token.',
+        responses={
+            status.HTTP_200_OK: OpenApiResponse(
+                description='Tokens is refresh successfully',
+                response=jwt_api_settings.TOKEN_REFRESH_SERIALIZER,
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description='Invalid data',
+                response=openapi_serializers.ValidationErrorResponseSerializer,
+            ),
+            status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description='User is unauthenticated or token is invalid/expired/blacklisted.',
+                response=openapi_serializers.ErrorResponse401Serializer,
+            ),
+        },
+    ),
 )
 class UserViewSet(viewsets.GenericViewSet):
     queryset = User.objects.filter(is_active=True)
@@ -70,11 +89,13 @@ class UserViewSet(viewsets.GenericViewSet):
         register=serializers.UserRegisterSerializer,
         login=jwt_api_settings.TOKEN_OBTAIN_SERIALIZER,
         logout=jwt_api_settings.TOKEN_BLACKLIST_SERIALIZER,
+        refresh=jwt_api_settings.TOKEN_REFRESH_SERIALIZER,
     )
     permission_classes = dict(
         register=(AllowAny,),
         login=(AllowAny,),
         logout=(IsAuthenticated,),
+        refresh=(AllowAny,),
     )
 
     def get_serializer_class(self):
@@ -103,3 +124,7 @@ class UserViewSet(viewsets.GenericViewSet):
             response.status_code = status.HTTP_204_NO_CONTENT
             response.data = None
         return response
+
+    @action(methods=['post'], detail=False)
+    def refresh(self, request):
+        return jwt_views.token_refresh(request._request)

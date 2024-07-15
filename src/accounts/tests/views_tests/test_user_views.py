@@ -144,3 +144,45 @@ class UserLogoutViewTest(ApiTestCase):
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
         self.assertRegex(str(response.data), r'token_not_valid')
         self.assertRegex(str(response.data), r'Token is blacklisted')
+
+
+class UserRefreshViewTest(ApiTestCase):
+    url = reverse('user-refresh')
+
+    def setUp(self) -> None:
+        self.user = self.create_test_user()
+        self.data = dict(
+            refresh=str(self.user.refresh_token),
+        )
+
+    def test_view_allows_only_post_method(self):
+        self.assert_allowed_method(self.url, 'post', status.HTTP_200_OK, self.data)
+        self.assert_not_allowed_methods(self.url, ['get', 'put', 'patch', 'delete'])
+
+    def test_view_is_accessed_for_user_with_expire_access_token(self):
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+    def test_view_is_accessed_for_authenticated_user(self):
+        self.login_user_by_token(self.user)
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+    def test_view_doesnt_refresh_tokens_for_expired_refresh_token(self):
+        self.data['refresh'] = str(self.get_expired_token(self.user.refresh_token))
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertRegex(str(response.data), r'token_not_valid')
+        self.assertRegex(str(response.data), r'Token is invalid or expired')
+
+    def test_view_doesnt_refresh_token_for_blacklisted_refresh_token(self):
+        self.login_user_by_token(self.user)
+        self.logout_user_by_token(self.user)
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertRegex(str(response.data), r'token_not_valid')
+        self.assertRegex(str(response.data), r'Token is blacklisted')
