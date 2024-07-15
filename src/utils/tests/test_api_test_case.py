@@ -131,3 +131,69 @@ class ApiTestCaseTest(ApiTestCase):
                 dict(required_field='test'),
                 detail='Ensure this value has at least 2 characters',
             )
+
+    def test_assert_required_model_fields(self):
+        self.assert_required_model_fields(TestModel, dict(required_field='test'), ['required_field'])  # not raise
+        with self.assertRaisesRegex(AssertionError, r'This field "optional_field" is not required.'):
+            self.assert_required_model_fields(
+                TestModel,
+                dict(required_field='test', optional_field='test'),
+                ['optional_field'],
+            )
+
+    def test_assert_optional_model_fields(self):
+        self.assert_optional_model_fields(
+            TestModel,
+            dict(required_field='test'),
+            ['optional_field'],
+        )  # not raise
+        self.assert_optional_model_fields(
+            TestModel,
+            dict(required_field='test', optional_field='test'),
+            ['optional_field'],
+        )  # not raise
+
+        with self.assertRaisesRegex(AssertionError, r'This field "required_field" is not optional. It is required.'):
+            self.assert_optional_model_fields(
+                TestModel,
+                dict(required_field='test', optional_field='test'),
+                ['required_field'],
+            )
+
+        with self.assertRaisesRegex(
+            AssertionError, r'This field "default_field" is not optional. It is set by default.'
+        ):
+            self.assert_optional_model_fields(
+                TestModel,
+                dict(required_field='test'),
+                ['default_field'],
+            )
+
+    def test_assert_set_model_fields_by_default(self):
+        self.assert_set_model_fields_by_default(
+            TestModel,
+            dict(required_field='test'),
+            dict(default_field='1'),
+        )  # not raise
+
+        self.assert_set_model_fields_by_default(
+            TestModel,
+            dict(required_field='test', default_field='2'),
+            dict(default_field='1'),
+        )  # not raise
+
+        with self.assertRaisesRegex(AssertionError, r'This field "required_field" have no a default value.'):
+            self.assert_set_model_fields_by_default(
+                TestModel,
+                dict(required_field='test'),
+                dict(required_field='test'),
+            )
+
+        with self.assertRaisesRegex(
+            AssertionError, r'This field "default_field" is not set by default as "2". \(There set 1.\)'
+        ):
+            self.assert_set_model_fields_by_default(
+                TestModel,
+                dict(required_field='test'),
+                dict(default_field='2'),
+            )
