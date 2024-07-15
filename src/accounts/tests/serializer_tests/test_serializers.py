@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from rest_framework.exceptions import ValidationError
 
 from accounts.serializers import serializers, mixins
 from utils.tests import ApiTestCase
@@ -41,20 +40,9 @@ class UserRegisterSerializerTest(ApiTestCase):
         self.assertEqual(user.phone, self.data['phone'])
 
     def test_expected_fields_is_write_only(self):
-        expected_fields = ['password']
-        serializer = self.serializer_class(data=self.data)
-        self.assertTrue(serializer.is_valid(raise_exception=True))
-        serializer.save()
-
-        for field in expected_fields:
-            self.assertIsNone(serializer.data.get(field))
+        self.assert_write_only_serializer_fields(self.serializer_class, self.data, ['password'])
 
     def test_expected_field_is_required(self):
-        expected_fields = ['email', 'password', 'full_name', 'phone']
-
-        for field in expected_fields:
-            data = self.data.copy()
-            del data[field]
-            serializer = self.serializer_class(data=data)
-            with self.assertRaisesRegex(ValidationError, rf'{field}.+required'):
-                self.assertTrue(serializer.is_valid(raise_exception=True))
+        self.assert_required_serializer_fields(
+            self.serializer_class, self.data, ['email', 'password', 'full_name', 'phone']
+        )
