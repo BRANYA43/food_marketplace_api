@@ -66,3 +66,39 @@ class UserRegisterViewTest(ApiTestCase):
     def test_view_doesnt_return_data(self):
         response = self.client.post(self.url, self.data)
         self.assertIsNone(response.data)
+
+
+class UserLoginViewTest(ApiTestCase):
+    url = reverse('user-login')
+
+    def setUp(self) -> None:
+        self.user = self.create_test_user()
+        self.data = dict(
+            email=self.TEST_EMAIL,
+            password=self.TEST_PASSWORD,
+        )
+
+    def test_view_allows_only_post_method(self):
+        self.assert_allowed_method(self.url, 'post', status.HTTP_200_OK, self.data)
+        self.assert_not_allowed_methods(self.url, ['get', 'put', 'patch', 'delete'])
+
+    def test_view_doesnt_logs_user_in_with_invalid_password(self):
+        self.data['password'] = 'invalid_password'
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertRegex(str(response.data), r'no_active_account')
+
+    def test_view_doesnt_logs_user_in_with_disabled_account(self):
+        self.user.is_active = False
+        self.user.save()
+
+        response = self.client.post(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertRegex(str(response.data), r'no_active_account')
+
+    def test_view_returns_access_and_refresh_tokens(self):
+        response = self.client.post(self.url, self.data)
+
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
