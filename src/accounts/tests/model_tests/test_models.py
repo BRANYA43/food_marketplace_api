@@ -25,24 +25,23 @@ class UserModelTest(ApiTestCase):
     def test_model_inherits_abstract_base_user(self):
         self.assert_is_subclass(self.model, AbstractBaseUser)
 
-    def test_email_field_is_required(self):
-        self.assert_required_model_field(self.model, 'email', self.data, 'email.+This field cannot be blank')
+    def test_expected_field_are_required(self):
+        self.assert_required_model_fields(self.model, self.data, ['email', 'password'])
 
-    def test_password_field_is_required(self):
-        self.assert_required_model_field(self.model, 'password', self.data, 'password.+This field cannot be blank')
+    def test_expected_fields_are_optional(self):
+        self.assert_optional_model_fields(self.model, self.data, ['full_name', 'phone'])
+
+    def test_expected_fields_are_set_by_default(self):
+        self.assert_set_model_fields_by_default(
+            self.model, self.data, dict(is_staff=False, is_superuser=False, is_active=True)
+        )
 
     def test_email_field_is_username_field(self):
         self.assertEqual(self.model.USERNAME_FIELD, 'email')
 
-    def test_full_name_field_is_optional(self):
-        self.assert_optional_model_field(self.model, 'full_name', self.data)
-
     def test_full_name_field_has_2_min_length(self):
         self.data['full_name'] = 'a'
         self.assert_validation_model_field(self.model, self.data, 'Ensure this value has at least 2 characters')
-
-    def test_phone_field_is_optional(self):
-        self.assert_optional_model_field(self.model, 'phone', self.data)
 
     def test_phone_field_must_be_at_correct_format(self):
         # Check valid phones
@@ -71,17 +70,6 @@ class UserModelTest(ApiTestCase):
                 self.data,
                 r'The phone number must be in the following format: \+38 \(012\) 345 6789',
             )
-
-    def test_address_field_is_optinal(self):
-        user = self.model.objects.create(**self.data)
-        self.assertIsNone(user.address.first())
-
-    def test_is_staff_field_is_false_by_default(self):
-        self.assert_model_field_default_value(self.model, 'is_staff', self.data, False)
-
-    # TODO Must be False by default. Only after confirmation of email it is True
-    def test_is_active_field_is_true_by_default(self):
-        self.assert_model_field_default_value(self.model, 'is_active', self.data, True)
 
     def test_updated_at_field_is_set_auto_after_every_save(self):
         user = self.model.objects.create(**self.data)
