@@ -1,11 +1,15 @@
 from typing import Literal, Sequence
 
 from django.core.exceptions import ValidationError as django_ValidationError
+from django.utils.timezone import now
 from rest_framework.exceptions import ValidationError as rest_ValidationError
 from django.db import IntegrityError
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APITestCase, APIRequestFactory
+from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import User
 from utils.models import Address
@@ -17,6 +21,26 @@ class ApiTestCase(APITestCase):
     TEST_PASSWORD = 'rick123!@#'
     TEST_PHONE = '+38 (012) 345 6789'
     TEST_FULL_NAME = 'Rick Sanchez'
+
+    def get_expired_token(self, token):
+        return token.set_exp(from_time=now() - jwt_api_settings.REFRESH_TOKEN_LIFETIME)
+
+    def login_user_by_token(self, user, use_expired_token=False):
+        token = user.access_token
+
+        if use_expired_token:
+            token = self.get_expired_token(token)
+
+        credentials = {jwt_api_settings.AUTH_HEADER_NAME: f'{jwt_api_settings.AUTH_HEADER_TYPES[0]} {token}'}
+        self.client.credentials(**credentials)
+
+    def logout_user_by_token(self, user, clear_auth_header=True):
+        tokens = OutstandingToken.objects.filter(user=user)
+        for token in tokens:
+            RefreshToken(token.token).blacklist()
+
+        if clear_auth_header:
+            self.client.credentials()
 
     def assert_is_subclass(self, __cls, __class_or_tuple):
         self.assertTrue(issubclass(__cls, __class_or_tuple), msg=f'{__cls} is not subclass of {__class_or_tuple}.')
