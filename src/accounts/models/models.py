@@ -33,6 +33,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     address = GenericRelation(
         verbose_name=_('address'),
         to=Address,
+        related_name='address',
     )
     is_staff = models.BooleanField(
         verbose_name=_('is staff'),
