@@ -144,3 +144,12 @@ class ApiTestCase(APITestCase):
                 rest_ValidationError, rf'{field}.+required', msg=f'This field "{field}" is not required.'
             ):
                 serializer.is_valid(raise_exception=True)
+
+    def assert_optional_serializer_fields(self, serializer_class, fields: Sequence[str]):
+        serializer = serializer_class(data={})
+        serializer.is_valid()
+        for field in fields:
+            self.assertIsNone(
+                serializer.errors.get(field),
+                f'This field "{field}" is not optional. It is required.',
+            )

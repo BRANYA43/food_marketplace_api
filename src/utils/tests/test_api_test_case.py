@@ -193,3 +193,12 @@ class ApiTestCaseTest(ApiTestCase):
                 dict(required_field='required', optional_field='optional'),
                 ['optional_field'],
             )
+
+    def test_assert_optional_serializer_fields(self):
+        self.assert_optional_serializer_fields(TestSerializer, ['optional_field'])  # not raise
+
+        with self.assertRaisesRegex(
+            AssertionError,
+            r'This field "required_field" is not optional. It is required.',
+        ):
+            self.assert_optional_serializer_fields(TestSerializer, ['required_field'])
