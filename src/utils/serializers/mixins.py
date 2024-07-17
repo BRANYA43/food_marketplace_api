@@ -2,7 +2,7 @@ from utils import models
 from utils.serializers.serializers import AddressFieldSerializer
 
 
-class AddressMixin:
+class AddressCreateUpdateMixin:
     """Serializer mixin to update or create address for models that have only one address."""
 
     address = AddressFieldSerializer(required=False)

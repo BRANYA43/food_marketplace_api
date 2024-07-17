@@ -12,7 +12,7 @@ class AddressMixinTest(ApiTestCase):
     user_model = User
     address_model = models.Address
 
-    class TestSerializer(mixins.AddressMixin, serializers.ModelSerializer):
+    class TestSerializer(mixins.AddressCreateUpdateMixin, serializers.ModelSerializer):
         class Meta:
             model = User
             fields = ('email', 'password', 'address')
