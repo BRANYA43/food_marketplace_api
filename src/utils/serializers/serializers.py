@@ -19,6 +19,5 @@ class AddressFieldSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         if isinstance(instance, Manager):
             if (instance := instance.first()) is None:
-                return None
-            else:
-                return super().to_representation(instance)
+                return {}
+        return super().to_representation(instance)
