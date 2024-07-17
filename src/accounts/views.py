@@ -15,6 +15,24 @@ User = get_user_model()
 
 @extend_schema(tags=['Accounts'])
 @extend_schema_view(
+    update_me=extend_schema(
+        operation_id='user-update-me',
+        summary='Update user profile data.',
+        responses={
+            status.HTTP_200_OK: OpenApiResponse(
+                description='User profile data are update successfully.',
+                response=None,
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description='Invalid data.',
+                response=openapi_serializers.ValidationErrorResponseSerializer,
+            ),
+            status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description='User is unauthenticated.',
+                response=openapi_serializers.Error403Serializer,
+            ),
+        },
+    ),
     register=extend_schema(
         operation_id='user-register',
         summary='Register a user.',
@@ -86,12 +104,14 @@ User = get_user_model()
 class UserViewSet(viewsets.GenericViewSet):
     queryset = User.objects.filter(is_active=True)
     serializers_classes = dict(
+        update_me=serializers.UserUpdateSerializer,
         register=serializers.UserRegisterSerializer,
         login=jwt_api_settings.TOKEN_OBTAIN_SERIALIZER,
         logout=jwt_api_settings.TOKEN_BLACKLIST_SERIALIZER,
         refresh=jwt_api_settings.TOKEN_REFRESH_SERIALIZER,
     )
     permission_classes = dict(
+        update_me=(IsAuthenticated,),
         register=(AllowAny,),
         login=(AllowAny,),
         logout=(IsAuthenticated,),
@@ -101,10 +121,22 @@ class UserViewSet(viewsets.GenericViewSet):
     def get_serializer_class(self):
         return self.serializers_classes[self.action]
 
+    def get_current_user(self):
+        return self.request.user
+
     def get_permissions(self):
         if self.action is None:
             return [AllowAny()]
         return [permission() for permission in self.permission_classes[self.action]]
+
+    @action(methods=['patch'], detail=False)
+    def update_me(self, request):
+        user = self.get_current_user()
+
+        serializer = self.get_serializer(instance=user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status.HTTP_200_OK)
 
     @action(methods=['post'], detail=False)
     def register(self, request):

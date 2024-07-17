@@ -2,9 +2,111 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from accounts.serializers import UserUpdateSerializer
+from utils.models import Address
 from utils.tests import ApiTestCase
 
 User = get_user_model()
+
+
+class UserUpdateViewTest(ApiTestCase):
+    url = reverse('user-update-me')
+    serializer_class = UserUpdateSerializer
+    model = User
+    address_model = Address
+
+    def setUp(self) -> None:
+        self.user = self.create_test_user()
+        self.data: dict = dict(
+            full_name='new full name',
+        )
+        self.login_user_by_token(self.user)
+
+    def test_view_allows_only_post_method(self):
+        self.assert_allowed_method(self.url, 'patch', status.HTTP_200_OK, self.data)
+        self.assert_not_allowed_methods(self.url, ['get', 'post', 'put', 'delete'])
+
+    def test_view_isnt_accessed_for_unauthenticated_user(self):
+        self.logout_user_by_token(self.user)
+        response = self.client.patch(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+
+    def test_view_is_accessed_for_authenticated_user(self):
+        response = self.client.patch(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+    def test_view_updates_user_without_address(self):
+        self.assertEqual(self.address_model.objects.count(), 0)
+        self.assertNotEqual(self.user.full_name, self.data['full_name'])
+
+        self.client.patch(self.url, self.data)
+
+        self.assertEqual(self.address_model.objects.count(), 0)
+
+        self.user.refresh_from_db()
+
+        self.assertEqual(self.user.full_name, self.data['full_name'])
+
+    def test_view_updates_user_with_address(self):
+        self.data['address'] = dict(number='new_number')
+        address = self.create_test_address(self.user)
+
+        self.assertNotEqual(self.user.full_name, self.data['full_name'])
+        self.assertNotEqual(address.number, self.data['address']['number'])
+
+        self.client.patch(self.url, self.data, format='json')
+
+        self.user.refresh_from_db()
+        address.refresh_from_db()
+
+        self.assertEqual(self.user.full_name, self.data['full_name'])
+        self.assertEqual(address.number, self.data['address']['number'])
+
+    def test_view_updates_user_and_create_address(self):
+        self.data['address'] = dict(
+            city='city',
+            street='street',
+            number='number',
+        )
+
+        self.assertEqual(self.address_model.objects.count(), 0)
+        self.assertNotEqual(self.user.full_name, self.data['full_name'])
+
+        self.client.patch(self.url, self.data, format='json')
+
+        self.assertEqual(self.address_model.objects.count(), 1)
+
+        self.user.refresh_from_db()
+        address = self.address_model.objects.first()
+
+        self.assertEqual(self.user.full_name, self.data['full_name'])
+        self.assertEqual(address.content_obj.id, self.user.id)
+        self.assertEqual(address.city, self.data['address']['city'])
+        self.assertEqual(address.street, self.data['address']['street'])
+        self.assertEqual(address.number, self.data['address']['number'])
+
+    def test_view_returns_expected_data_without_address(self):
+        response = self.client.patch(self.url, self.data)
+
+        self.user.refresh_from_db()
+        serializer = self.serializer_class(self.user, self.data, partial=True)
+        serializer.is_valid()
+        expected_data = serializer.data
+
+        self.assertDictEqual(response.data, expected_data)
+
+    def test_view_returns_expected_data_with_address(self):
+        self.create_test_address(self.user)
+        self.user.refresh_from_db()
+
+        response = self.client.patch(self.url, self.data, format='json')
+
+        self.user.refresh_from_db()
+        serializer = self.serializer_class(self.user, self.data, partial=True)
+        serializer.is_valid()
+        expected_data = serializer.data
+
+        self.assertDictEqual(response.data, expected_data)
 
 
 class UserRegisterViewTest(ApiTestCase):
