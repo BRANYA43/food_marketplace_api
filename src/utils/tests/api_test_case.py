@@ -79,10 +79,8 @@ class ApiTestCase(APITestCase):
         return User.objects.create_user(email, password, **extra_fields)
 
     @staticmethod
-    def create_test_address(content_obj, region='region', city='city', street='street', number='0', **extra_fields):
-        return Address.objects.create(
-            content_obj=content_obj, region=region, city=city, street=street, number=number, **extra_fields
-        )
+    def create_test_address(content_obj, city='city', street='street', number='0', **extra_fields):
+        return Address.objects.create(content_obj=content_obj, city=city, street=street, number=number, **extra_fields)
 
     def assert_required_model_fields(self, model, data: dict, fields: Sequence[str]):
         for field in fields:

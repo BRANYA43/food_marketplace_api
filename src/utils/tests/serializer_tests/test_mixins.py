@@ -20,7 +20,6 @@ class AddressMixinTest(ApiTestCase):
     def setUp(self) -> None:
         self.serializer_class = self.TestSerializer
         self.create_address_data = dict(
-            region='region',
             city='city',
             street='street',
             number='number',
@@ -76,7 +75,6 @@ class AddressMixinTest(ApiTestCase):
         address = self.address_model.objects.first()
 
         self.assertEqual(address.content_obj.id, user.id)
-        self.assertEqual(address.region, self.create_address_data['region'])
         self.assertEqual(address.city, self.create_address_data['city'])
         self.assertEqual(address.street, self.create_address_data['street'])
         self.assertEqual(address.number, self.create_address_data['number'])
@@ -131,7 +129,6 @@ class AddressMixinTest(ApiTestCase):
         address = self.address_model.objects.first()
 
         self.assertEqual(address.content_obj.id, user.id)
-        self.assertEqual(address.region, self.create_address_data['region'])
         self.assertEqual(address.city, self.create_address_data['city'])
         self.assertEqual(address.street, self.create_address_data['street'])
         self.assertEqual(address.number, self.create_address_data['number'])

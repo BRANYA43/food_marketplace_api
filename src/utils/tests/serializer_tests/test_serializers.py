@@ -11,9 +11,7 @@ class AddressFieldSerializerTest(ApiTestCase):
 
     def test_serializer_returns_expected_data(self):
         expected_data = dict(
-            region=self.address.region,
             city=self.address.city,
-            village=self.address.village,
             street=self.address.street,
             number=self.address.number,
         )

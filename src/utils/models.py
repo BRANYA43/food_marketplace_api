@@ -19,19 +19,9 @@ class CreatedUpdatedMixin(models.Model):
 
 
 class Address(CreatedUpdatedMixin):
-    region = models.CharField(
-        verbose_name=_('region'),
-        max_length=100,
-    )
     city = models.CharField(
         verbose_name=_('city'),
         max_length=100,
-    )
-    village = models.CharField(
-        verbose_name=_('village'),
-        max_length=100,
-        null=True,
-        blank=True,
     )
     street = models.CharField(
         verbose_name=_('street'),

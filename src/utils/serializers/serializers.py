@@ -9,7 +9,7 @@ class AddressFieldSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Address
-        fields = ('region', 'city', 'village', 'street', 'number')
+        fields = ('city', 'street', 'number')
 
     def get_attribute(self, instance):
         if isinstance(instance, Manager):

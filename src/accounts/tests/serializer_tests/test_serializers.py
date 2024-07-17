@@ -62,7 +62,7 @@ class UserUpdateSerializerTest(ApiTestCase):
             **self.update_data,
             full_name=self.user.full_name,
             phone=self.user.phone,
-            address=None,
+            address={},
         )
 
     def test_serializer_inherits_expected_mixins(self):
@@ -80,9 +80,7 @@ class UserUpdateSerializerTest(ApiTestCase):
         address = self.create_test_address(self.user)
         self.user.refresh_from_db()
         self.expected_data['address'] = dict(
-            region=address.region,
             city=address.city,
-            village=None,
             street=address.street,
             number=address.number,
         )
