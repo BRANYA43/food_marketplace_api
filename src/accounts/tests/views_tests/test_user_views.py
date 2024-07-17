@@ -9,6 +9,53 @@ from utils.tests import ApiTestCase
 User = get_user_model()
 
 
+class UserDisableViewTest(ApiTestCase):
+    url = reverse('user-disable-me')
+    model = User
+    address_model = Address
+
+    def setUp(self) -> None:
+        self.user = self.create_test_user()
+        self.data = dict(password=self.TEST_PASSWORD)
+
+        self.login_user_by_token(self.user)
+
+    def test_view_allows_only_post_method(self):
+        self.assert_not_allowed_methods(self.url, ['get', 'post', 'put', 'patch'])
+        self.assert_allowed_method(self.url, 'delete', status.HTTP_204_NO_CONTENT, self.data)
+
+    def test_view_isnt_accessed_for_unauthenticated_user(self):
+        self.logout_user_by_token(self.user)
+        response = self.client.delete(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+
+    def test_view_is_accessed_for_authenticated_user(self):
+        response = self.client.delete(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+    def test_view_disable_user(self):
+        address = self.create_test_address(self.user)
+        self.user.refresh_from_db()
+
+        self.client.delete(self.url, self.data)
+
+        self.user.refresh_from_db()
+
+        self.assertFalse(self.user.is_active)
+        self.assertEqual(self.user.email, f'user.{self.user.pk}@disabled.com')
+        self.assertEqual(self.user.full_name, f'disabled user {self.user.pk}')
+        self.assertEqual(self.user.phone, '+38 (012) 345 6789')
+        self.assertEqual(self.user.password, '-')
+
+        address.refresh_from_db()
+
+        self.assertEqual(address.number, '-')
+
+    def test_view_returns_no_data(self):
+        response = self.client.delete(self.url, self.data)
+        self.assertIsNone(response.data)
+
+
 class UserUpdateViewTest(ApiTestCase):
     url = reverse('user-update-me')
     serializer_class = UserUpdateSerializer

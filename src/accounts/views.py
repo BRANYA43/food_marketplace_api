@@ -33,6 +33,21 @@ User = get_user_model()
             ),
         },
     ),
+    disable_me=extend_schema(
+        operation_id='user-disable-me',
+        summary='Disable a user.',
+        responses={
+            status.HTTP_204_NO_CONTENT: OpenApiResponse(description='User is disabled successfully.'),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description='Invalid data.',
+                response=openapi_serializers.ValidationErrorResponseSerializer,
+            ),
+            status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description='User is unauthenticated.',
+                response=openapi_serializers.Error403Serializer,
+            ),
+        },
+    ),
     register=extend_schema(
         operation_id='user-register',
         summary='Register a user.',
@@ -105,6 +120,7 @@ class UserViewSet(viewsets.GenericViewSet):
     queryset = User.objects.filter(is_active=True)
     serializers_classes = dict(
         update_me=serializers.UserUpdateSerializer,
+        disable_me=serializers.UserDisableSerializer,
         register=serializers.UserRegisterSerializer,
         login=jwt_api_settings.TOKEN_OBTAIN_SERIALIZER,
         logout=jwt_api_settings.TOKEN_BLACKLIST_SERIALIZER,
@@ -112,6 +128,7 @@ class UserViewSet(viewsets.GenericViewSet):
     )
     permission_classes = dict(
         update_me=(IsAuthenticated,),
+        disable_me=(IsAuthenticated,),
         register=(AllowAny,),
         login=(AllowAny,),
         logout=(IsAuthenticated,),
@@ -137,6 +154,13 @@ class UserViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status.HTTP_200_OK)
+
+    @action(methods=['delete'], detail=False)
+    def disable_me(self, request):
+        user = self.get_current_user()
+        serializer = self.get_serializer(instance=user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['post'], detail=False)
     def register(self, request):
