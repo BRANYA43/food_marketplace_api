@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 
 from accounts.serializers import serializers, mixins
+from utils.serializers.mixins import AddressCreateUpdateMixin
 from utils.tests import ApiTestCase
 
 User = get_user_model()
@@ -46,3 +47,48 @@ class UserRegisterSerializerTest(ApiTestCase):
         self.assert_required_serializer_fields(
             self.serializer_class, self.data, ['email', 'password', 'full_name', 'phone']
         )
+
+
+class UserUpdateSerializerTest(ApiTestCase):
+    serializer_class = serializers.UserUpdateSerializer
+
+    def setUp(self) -> None:
+        self.user = self.create_test_user()
+        self.update_data = dict(
+            email='new.email@test.com',
+        )
+
+        self.expected_data = dict(
+            **self.update_data,
+            full_name=self.user.full_name,
+            phone=self.user.phone,
+            address=None,
+        )
+
+    def test_serializer_inherits_expected_mixins(self):
+        expected_mixins = (mixins.PhoneNumberValidationMixin, AddressCreateUpdateMixin)
+        self.assert_is_subclass(self.serializer_class, expected_mixins)
+
+    def test_serializer_returns_expected_data_without_address(self):
+        serializer = self.serializer_class(self.user, self.update_data, partial=True)
+        self.assertTrue(serializer.is_valid(raise_exception=True))
+        serializer.save()
+
+        self.assertEqual(serializer.data, self.expected_data)
+
+    def test_serializer_returns_expected_data_with_address(self):
+        address = self.create_test_address(self.user)
+        self.user.refresh_from_db()
+        self.expected_data['address'] = dict(
+            region=address.region,
+            city=address.city,
+            village=None,
+            street=address.street,
+            number=address.number,
+        )
+
+        serializer = self.serializer_class(self.user, self.update_data, partial=True)
+        self.assertTrue(serializer.is_valid(raise_exception=True))
+        serializer.save()
+
+        self.assertEqual(serializer.data, self.expected_data)

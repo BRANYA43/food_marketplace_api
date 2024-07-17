@@ -1,8 +1,17 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from accounts.serializers import mixins
+from utils.serializers.mixins import AddressCreateUpdateMixin
 
 User = get_user_model()
+
+
+class UserUpdateSerializer(mixins.PhoneNumberValidationMixin, AddressCreateUpdateMixin, serializers.ModelSerializer):
+    """Serializer to update user data."""
+
+    class Meta:
+        model = User
+        fields = ('email', 'full_name', 'phone', 'address')
 
 
 class UserRegisterSerializer(
