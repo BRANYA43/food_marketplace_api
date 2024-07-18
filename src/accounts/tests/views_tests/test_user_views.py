@@ -9,6 +9,66 @@ from utils.tests import ApiTestCase
 User = get_user_model()
 
 
+class UserSetPasswordViewTest(ApiTestCase):
+    url = reverse('user-set-password-me')
+
+    def setUp(self) -> None:
+        self.user = self.create_test_user()
+        self.data = dict(
+            password=self.TEST_PASSWORD,
+            new_password='new_password123!@#',
+        )
+        self.login_user_by_token(self.user)
+
+    def test_view_allows_only_post_method(self):
+        self.assert_allowed_method(self.url, 'put', status.HTTP_204_NO_CONTENT, self.data)
+        self.assert_not_allowed_methods(self.url, ['get', 'post', 'patch', 'delete'])
+
+    def test_view_isnt_accessed_for_unauthenticated_user(self):
+        self.logout_user_by_token(self.user)
+        response = self.client.put(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+
+    def test_view_is_accessed_for_authenticated_user(self):
+        response = self.client.put(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+    def test_view_sets_new_password_user(self):
+        self.assertFalse(self.user.check_password(self.data['new_password']))
+
+        self.client.put(self.url, self.data)
+
+        self.user.refresh_from_db()
+
+        self.assertTrue(self.user.check_password(self.data['new_password']))
+
+    def test_view_doesnt_set_new_password_if_user_uses_not_own_password(self):
+        self.data['password'] = 'invalid_password'
+
+        self.assertFalse(self.user.check_password(self.data['new_password']))
+
+        self.client.put(self.url, self.data)
+
+        self.user.refresh_from_db()
+
+        self.assertFalse(self.user.check_password(self.data['new_password']))
+
+    def test_view_doesnt_set_new_password_if_user_enters_invalid_new_password(self):
+        self.data['new_password'] = '123'
+
+        self.assertFalse(self.user.check_password(self.data['new_password']))
+
+        self.client.put(self.url, self.data)
+
+        self.user.refresh_from_db()
+
+        self.assertFalse(self.user.check_password(self.data['new_password']))
+
+    def test_view_returns_no_data(self):
+        response = self.client.put(self.url, self.data)
+        self.assertIsNone(response.data)
+
+
 class UserDisableViewTest(ApiTestCase):
     url = reverse('user-disable-me')
     model = User

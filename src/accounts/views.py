@@ -15,6 +15,23 @@ User = get_user_model()
 
 @extend_schema(tags=['Accounts'])
 @extend_schema_view(
+    set_password_me=extend_schema(
+        operation_id='user-set-password-me',
+        summary='Set new password for a user.',
+        responses={
+            status.HTTP_204_NO_CONTENT: OpenApiResponse(
+                description='User set a new password successfully.',
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description='Invalid data.',
+                response=openapi_serializers.ValidationErrorResponseSerializer,
+            ),
+            status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description='User is unauthenticated.',
+                response=openapi_serializers.Error403Serializer,
+            ),
+        },
+    ),
     update_me=extend_schema(
         operation_id='user-update-me',
         summary='Update user profile data.',
@@ -119,6 +136,7 @@ User = get_user_model()
 class UserViewSet(viewsets.GenericViewSet):
     queryset = User.objects.filter(is_active=True)
     serializers_classes = dict(
+        set_password_me=serializers.UserSetPasswordSerializer,
         update_me=serializers.UserUpdateSerializer,
         disable_me=serializers.UserDisableSerializer,
         register=serializers.UserRegisterSerializer,
@@ -127,6 +145,7 @@ class UserViewSet(viewsets.GenericViewSet):
         refresh=jwt_api_settings.TOKEN_REFRESH_SERIALIZER,
     )
     permission_classes = dict(
+        set_password_me=(IsAuthenticated,),
         update_me=(IsAuthenticated,),
         disable_me=(IsAuthenticated,),
         register=(AllowAny,),
@@ -145,6 +164,14 @@ class UserViewSet(viewsets.GenericViewSet):
         if self.action is None:
             return [AllowAny()]
         return [permission() for permission in self.permission_classes[self.action]]
+
+    @action(methods=['put'], detail=False)
+    def set_password_me(self, request):
+        user = self.get_current_user()
+        serializer = self.get_serializer(instance=user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['patch'], detail=False)
     def update_me(self, request):
