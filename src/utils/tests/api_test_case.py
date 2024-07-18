@@ -12,6 +12,7 @@ from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import User
+from catalogs.models import Category
 from utils.models import Address
 
 
@@ -21,6 +22,18 @@ class ApiTestCase(APITestCase):
     TEST_PASSWORD = 'rick123!@#'
     TEST_PHONE = '+38 (012) 345 6789'
     TEST_FULL_NAME = 'Rick Sanchez'
+
+    @staticmethod
+    def create_test_user(email=TEST_EMAIL, password=TEST_PASSWORD, **extra_fields) -> User:
+        return User.objects.create_user(email, password, **extra_fields)
+
+    @staticmethod
+    def create_test_address(content_obj, city='city', street='street', number='0', **extra_fields) -> Address:
+        return Address.objects.create(content_obj=content_obj, city=city, street=street, number=number, **extra_fields)
+
+    @staticmethod
+    def create_test_category(name='name', **extra_fields) -> Category:
+        return Category.objects.create(name=name, **extra_fields)
 
     def get_expired_token(self, token):
         return token.set_exp(from_time=now() - jwt_api_settings.REFRESH_TOKEN_LIFETIME)
@@ -73,14 +86,6 @@ class ApiTestCase(APITestCase):
         with self.assertRaisesRegex(django_ValidationError, regex):
             instance = model(**data)
             instance.full_clean()
-
-    @staticmethod
-    def create_test_user(email=TEST_EMAIL, password=TEST_PASSWORD, **extra_fields) -> User:
-        return User.objects.create_user(email, password, **extra_fields)
-
-    @staticmethod
-    def create_test_address(content_obj, city='city', street='street', number='0', **extra_fields):
-        return Address.objects.create(content_obj=content_obj, city=city, street=street, number=number, **extra_fields)
 
     def assert_required_model_fields(self, model, data: dict, fields: Sequence[str]):
         for field in fields:
