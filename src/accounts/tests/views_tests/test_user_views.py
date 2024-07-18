@@ -361,7 +361,7 @@ class UserRefreshViewTest(ApiTestCase):
     def setUp(self) -> None:
         self.user = self.create_test_user()
         self.data = dict(
-            refresh=str(self.user.refresh_token),
+            refresh=str(self.user.access_token),
         )
 
     def test_view_allows_only_post_method(self):
@@ -395,3 +395,58 @@ class UserRefreshViewTest(ApiTestCase):
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
         self.assertRegex(str(response.data), r'token_not_valid')
         self.assertRegex(str(response.data), r'Token is blacklisted')
+
+
+class UserVerifyViewTest(ApiTestCase):
+    url = reverse('user-verify')
+
+    def setUp(self) -> None:
+        self.user = self.create_test_user()
+        self.data = dict(token=str(self.user.access_token))
+
+    def test_view_allows_only_post_method(self):
+        self.assert_allowed_method(self.url, 'post', status.HTTP_204_NO_CONTENT, self.data)
+        self.assert_not_allowed_methods(self.url, ['get', 'put', 'patch', 'delete'])
+
+    def test_view_is_accessed_for_user_with_expire_access_token(self):
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+    def test_view_is_accessed_for_authenticated_user(self):
+        self.login_user_by_token(self.user)
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+    def test_view_verifies_token(self):
+        response = self.client.post(self.url, self.data)
+        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
+
+    def test_view_doesnt_verifies_expired_token(self):
+        self.data['token'] = str(self.get_expired_token(self.user.access_token))
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertRegex(response.data['errors'][0]['detail'], 'Token is invalid or expired')
+
+    def test_view_doesnt_verifies_broken_token(self):
+        self.data['token'] += 'broken'
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+        self.assertRegex(response.data['errors'][0]['detail'], 'Token is invalid or expired')
+
+    def test_view_doesnt_verifies_blacklisted_token(self):
+        token = self.user.refresh_token
+        token.blacklist()
+        self.data['token'] = str(token)
+        response = self.client.post(self.url, self.data)
+
+        self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
+        self.assertRegex(response.data['errors'][0]['detail'], 'Token is blacklisted')
+
+    def test_view_returns_no_data(self):
+        response = self.client.post(self.url, self.data)
+
+        self.assertIsNone(response.data)

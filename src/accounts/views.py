@@ -132,6 +132,23 @@ User = get_user_model()
             ),
         },
     ),
+    verify=extend_schema(
+        operation_id='user-verify',
+        summary='Verify access or refresh tokens.',
+        responses={
+            status.HTTP_204_NO_CONTENT: OpenApiResponse(
+                description='Token verifies successfully.',
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description='Token is blacklisted.',
+                response=openapi_serializers.ValidationErrorResponseSerializer,
+            ),
+            status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description='Token is invalid/expired.',
+                response=openapi_serializers.ErrorResponse401Serializer,
+            ),
+        },
+    ),
 )
 class UserViewSet(viewsets.GenericViewSet):
     queryset = User.objects.filter(is_active=True)
@@ -143,6 +160,7 @@ class UserViewSet(viewsets.GenericViewSet):
         login=jwt_api_settings.TOKEN_OBTAIN_SERIALIZER,
         logout=jwt_api_settings.TOKEN_BLACKLIST_SERIALIZER,
         refresh=jwt_api_settings.TOKEN_REFRESH_SERIALIZER,
+        verify=jwt_api_settings.TOKEN_VERIFY_SERIALIZER,
     )
     permission_classes = dict(
         set_password_me=(IsAuthenticated,),
@@ -152,6 +170,7 @@ class UserViewSet(viewsets.GenericViewSet):
         login=(AllowAny,),
         logout=(IsAuthenticated,),
         refresh=(AllowAny,),
+        verify=(AllowAny,),
     )
 
     def get_serializer_class(self):
@@ -211,3 +230,11 @@ class UserViewSet(viewsets.GenericViewSet):
     @action(methods=['post'], detail=False)
     def refresh(self, request):
         return jwt_views.token_refresh(request._request)
+
+    @action(methods=['post'], detail=False)
+    def verify(self, request):
+        response = jwt_views.token_verify(request._request)
+        if response.status_code == status.HTTP_200_OK:
+            response.status_code = status.HTTP_204_NO_CONTENT
+            response.data = None
+        return response
