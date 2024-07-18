@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
@@ -8,6 +9,33 @@ from accounts.serializers import mixins
 from utils.serializers.mixins import AddressCreateUpdateMixin
 
 User = get_user_model()
+
+
+class UserSetPasswordSerializer(serializers.ModelSerializer):
+    new_password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('password', 'new_password')
+        extra_kwargs = dict(password=dict(write_only=True))
+
+    def validate_password(self, password: str):
+        if not self.instance.check_password(password):
+            raise ValidationError(
+                'Entered password is not user password.',
+                'invalid_password',
+            )
+        return password
+
+    def validate_new_password(self, password: str):
+        validate_password(password, self.instance)
+        return password
+
+    def update(self, instance, validated_data):
+        self.instance.set_password(validated_data['new_password'])
+        self.instance.full_clean()
+        self.instance.save()
+        return self.instance
 
 
 class UserDisableSerializer(serializers.ModelSerializer):

@@ -11,6 +11,45 @@ from utils.tests import ApiTestCase
 User = get_user_model()
 
 
+class UserSetPasswordSerializerTest(ApiTestCase):
+    serializer_class = serializers.UserSetPasswordSerializer
+
+    def setUp(self) -> None:
+        self.user = self.create_test_user()
+        self.data = dict(
+            password=self.TEST_PASSWORD,
+            new_password='new_password123!@#',
+        )
+
+    def test_expected_field_are_required(self):
+        self.assert_required_serializer_fields(self.serializer_class, self.data, ['password', 'new_password'])
+
+    def test_serializer_updates_user_password(self):
+        self.assertFalse(self.user.check_password(self.data['new_password']))
+
+        serializer = self.serializer_class(self.user, self.data)
+        self.assertTrue(serializer.is_valid(raise_exception=True))
+        serializer.save()
+
+        self.user.refresh_from_db()
+
+        self.assertTrue(self.user.check_password(self.data['new_password']))
+
+    def test_serializer_doesnt_update_user_password_with_not_user_password(self):
+        self.data['password'] = 'invalid_password'
+
+        serializer = self.serializer_class(self.user, self.data)
+        with self.assertRaisesRegex(ValidationError, r'password.+invalid_password.'):
+            serializer.is_valid(raise_exception=True)
+
+    def test_serializer_doesnt_update_user_password_with_invalid_new_password(self):
+        self.data['new_password'] = '123'
+
+        serializer = self.serializer_class(self.user, self.data)
+        with self.assertRaisesRegex(ValidationError, r'password_too_short.+password_entirely_numeric'):
+            serializer.is_valid(raise_exception=True)
+
+
 class UserRegisterSerializerTest(ApiTestCase):
     serializer_class = serializers.UserRegisterSerializer
     model = User
