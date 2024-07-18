@@ -83,10 +83,10 @@ class UserRegisterSerializerTest(ApiTestCase):
         self.assertEqual(user.full_name, self.data['full_name'])
         self.assertEqual(user.phone, self.data['phone'])
 
-    def test_expected_fields_is_write_only(self):
+    def test_expected_fields_are_write_only(self):
         self.assert_write_only_serializer_fields(self.serializer_class, self.data, ['password'])
 
-    def test_expected_field_is_required(self):
+    def test_expected_fields_are_required(self):
         self.assert_required_serializer_fields(
             self.serializer_class, self.data, ['email', 'password', 'full_name', 'phone']
         )
@@ -171,7 +171,7 @@ class UserDisableSerializerTest(ApiTestCase):
         with self.assertRaisesRegex(ValidationError, r'disable_staff'):
             serializer.is_valid(raise_exception=True)
 
-    def test_serializer_replace_user_data(self):
+    def test_serializer_replaces_user_data(self):
         serializer = self.serializer_class(self.user, self.data)
         self.assertTrue(serializer.is_valid(raise_exception=True))
 
@@ -183,7 +183,7 @@ class UserDisableSerializerTest(ApiTestCase):
         self.assertEqual(self.user.phone, '+38 (012) 345 6789')
         self.assertEqual(self.user.password, '-')
 
-    def test_serializer_replace_user_address_data(self):
+    def test_serializer_replaces_user_address_data(self):
         address = self.create_test_address(self.user)
         self.user.refresh_from_db()
 

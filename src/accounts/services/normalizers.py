@@ -2,6 +2,8 @@ import re
 
 
 class UkrainianPhoneNumberNormalizer:
+    """Normalizer ukrainian phone number to one format: +38 (012) 345 6789"""
+
     def __init__(self):
         self.pattern = re.compile(r'^(38)?(\d{3})(\d{3})(\d{4})$')
 

@@ -12,6 +12,8 @@ User = get_user_model()
 
 
 class UserSetPasswordSerializer(serializers.ModelSerializer):
+    """Serializer to set new password for user."""
+
     new_password = serializers.CharField(write_only=True)
 
     class Meta:
@@ -39,6 +41,8 @@ class UserSetPasswordSerializer(serializers.ModelSerializer):
 
 
 class UserDisableSerializer(serializers.ModelSerializer):
+    """Serializer to disable user and replace his real data to fake data."""
+
     token_class = RefreshToken
 
     class Meta:
@@ -94,6 +98,8 @@ class UserUpdateSerializer(mixins.PhoneNumberValidationMixin, AddressCreateUpdat
 class UserRegisterSerializer(
     serializers.ModelSerializer, mixins.PasswordValidationMixin, mixins.PhoneNumberValidationMixin
 ):
+    """Serializer to create a new user by credentials."""
+
     class Meta:
         model = User
         fields = ('email', 'password', 'full_name', 'phone')

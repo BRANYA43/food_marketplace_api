@@ -33,7 +33,7 @@ class UserSetPasswordViewTest(ApiTestCase):
         response = self.client.put(self.url, self.data)
         self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
 
-    def test_view_sets_new_password_user(self):
+    def test_view_sets_new_password(self):
         self.assertFalse(self.user.check_password(self.data['new_password']))
 
         self.client.put(self.url, self.data)
@@ -169,7 +169,7 @@ class UserUpdateViewTest(ApiTestCase):
         self.assertEqual(self.user.full_name, self.data['full_name'])
         self.assertEqual(address.number, self.data['address']['number'])
 
-    def test_view_updates_user_and_create_address(self):
+    def test_view_updates_user_and_creates_address(self):
         self.data['address'] = dict(
             city='city',
             street='street',
@@ -261,7 +261,7 @@ class UserRegisterViewTest(ApiTestCase):
         self.assert_response_status(response, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.model.objects.count(), 1)
 
-    def test_view_doesnt_create_user_by_invalid_credentials(self):
+    def test_view_doesnt_create_user_with_invalid_credentials(self):
         self.data['email'] = 'invalid_email'
 
         self.assertEqual(self.model.objects.count(), 0)
@@ -343,7 +343,7 @@ class UserLogoutViewTest(ApiTestCase):
         self.assertRegex(str(response.data), r'token_not_valid')
         self.assertRegex(str(response.data), r'Token is invalid or expired')
 
-    def test_view_logs_user_out_by_same_refresh_token_twice(self):
+    def test_view_logs_user_out_with_same_refresh_token_twice(self):
         response = self.client.post(self.url, self.data)
 
         self.assert_response_status(response, status.HTTP_204_NO_CONTENT)

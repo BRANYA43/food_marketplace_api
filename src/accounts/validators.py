@@ -6,6 +6,8 @@ from rest_framework.exceptions import ValidationError
 
 
 class UkrainianPhoneNumberValidator:
+    """Validator for check ukrainian phone by digit quantity(10 or 12) and country code(+38)."""
+
     def __init__(self):
         self.country_code_pattern = re.compile(r'^\+38')
         self.all_digit_pattern = re.compile(r'\d+')
