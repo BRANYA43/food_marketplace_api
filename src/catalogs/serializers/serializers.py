@@ -3,6 +3,12 @@ from rest_framework import serializers
 from catalogs.models import Category
 
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ('id', 'name')
+
+
 class CategoryListSerializer(serializers.ModelSerializer):
     sub_categories = serializers.SerializerMethodField('get_children')
 

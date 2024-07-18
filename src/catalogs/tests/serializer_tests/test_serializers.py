@@ -1,6 +1,31 @@
 from catalogs.models import Category
 from catalogs.serializers import CategoryListSerializer
+from catalogs.serializers.serializers import CategorySerializer
 from utils.tests import ApiTestCase
+
+
+class CategorySerializerTest(ApiTestCase):
+    serializer_class = CategorySerializer
+    model = Category
+
+    def test_serializer_returns_expected_data_for_some_category(self):
+        self.create_test_category(name='Category 1')
+        self.create_test_category(name='Category 2')
+
+        expected_data = [dict(id=category.id, name=category.name) for category in self.model.objects.all()]
+
+        serializer = self.serializer_class(self.model.objects.filter(children=None), many=True)
+
+        self.assertSequenceEqual(serializer.data, expected_data)
+
+    def test_serializer_returns_expected_data_for_category(self):
+        category = self.create_test_category(name='Category 1')
+
+        expected_data = dict(id=category.id, name=category.name)
+
+        serializer = self.serializer_class(category)
+
+        self.assertSequenceEqual(serializer.data, expected_data)
 
 
 class CategoryListSerializerTest(ApiTestCase):
