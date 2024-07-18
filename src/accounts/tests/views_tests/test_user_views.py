@@ -361,7 +361,7 @@ class UserRefreshViewTest(ApiTestCase):
     def setUp(self) -> None:
         self.user = self.create_test_user()
         self.data = dict(
-            refresh=str(self.user.access_token),
+            refresh=str(self.user.refresh_token),
         )
 
     def test_view_allows_only_post_method(self):
