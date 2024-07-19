@@ -14,6 +14,7 @@ class CategoryAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('is_parent', 'is_child', 'updated_at', 'created_at')
     ordering = ('parent__name', 'name')
+    search_fields = ('parent__name', 'name')
     inlines = (SubCategoryInline,)
 
     @admin.display(boolean=True, ordering=('is_parent',), description=_('Is Parent'))
