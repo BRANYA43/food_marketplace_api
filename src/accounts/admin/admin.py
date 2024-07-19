@@ -3,6 +3,9 @@ from typing import Any
 from django.contrib import admin
 from django.forms import Form
 
+from accounts.forms import StaffCreationForm
+from accounts.models.proxy import StaffProxy
+
 
 class BaseUserAdmin(admin.ModelAdmin):
     list_display = ('email', 'full_name', 'phone', 'is_active', 'last_login', 'updated_at', 'joined_at')
@@ -13,7 +16,7 @@ class BaseUserAdmin(admin.ModelAdmin):
 
     queryset_filter_params: dict[str, Any] | None = None
     add_form: Form = None
-    add_fieldsets = None
+    add_fieldsets: Any = None
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -30,3 +33,24 @@ class BaseUserAdmin(admin.ModelAdmin):
         if not obj and self.add_form:
             kwargs['form'] = self.add_form
         return super().get_form(request, obj, change, **kwargs)
+
+
+@admin.register(StaffProxy)
+class StaffAdmin(BaseUserAdmin):
+    fieldsets = (
+        (None, dict(fields=('is_active',))),
+        ('Personal info', dict(fields=('email', 'full_name', 'phone'))),
+        ('Permissions', dict(fields=('is_staff', 'groups', 'user_permissions'))),
+        ('Dates', dict(fields=('last_login', 'updated_at', 'joined_at'))),
+    )
+    filter_horizontal = ('groups', 'user_permissions')
+
+    queryset_filter_params = dict(is_staff=True)
+    add_form = StaffCreationForm
+    add_fieldsets = (('Registration', dict(fields=('email', 'password', 'confirming_password'))),)
+    extra_search_fields = ('groups',)
+
+    def get_search_fields(self, request):
+        self.search_fields += self.extra_search_fields
+        print(self.search_fields)
+        return self.search_fields
