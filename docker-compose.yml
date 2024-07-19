@@ -2,7 +2,9 @@ version: "3.9"
 
 services:
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: ./docker/django/Dockerfile
     image: branya/food_marketplace_api:2.0.0
     container_name: api
     volumes:
