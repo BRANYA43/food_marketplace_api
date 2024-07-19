@@ -3,6 +3,7 @@ from typing import Any
 from django.contrib import admin
 from django.forms import Form
 
+from utils.admin.inlines import AddressInline
 from accounts.forms import StaffCreationForm, CustomerCreationForm
 from accounts.models.proxy import StaffProxy, CustomerProxy
 
@@ -63,6 +64,7 @@ class CustomerAdmin(BaseUserAdmin):
         ('Personal info', dict(fields=('email', 'full_name', 'phone'))),
         ('Dates', dict(fields=('last_login', 'updated_at', 'joined_at'))),
     )
+    inlines = (AddressInline,)
 
     queryset_filter_params = dict(is_staff=False)
     add_form = CustomerCreationForm
