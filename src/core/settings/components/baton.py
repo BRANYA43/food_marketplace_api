@@ -29,9 +29,11 @@ BATON = {
     'LOGIN_SPLASH': '/static/core/img/login-splash.png',
     'FORCE_THEME': None,
     'MENU': (
-        {'type': 'title', 'label': _('Authentication and Authorization')},
-        {'type': 'model', 'label': _('Users'), 'name': 'user', 'app': 'accounts'},
+        {'type': 'title', 'label': _('For Administration')},
+        {'type': 'model', 'label': _('Staffs'), 'name': 'customerproxy', 'app': 'accounts'},
         {'type': 'model', 'label': _('Groups'), 'name': 'group', 'app': 'auth'},
+        {'type': 'title', 'label': _('Marketplace')},
+        {'type': 'model', 'label': _('Customers'), 'name': 'staffproxy', 'app': 'accounts'},
         {'type': 'title', 'label': _('Tokens')},
         {'type': 'model', 'label': _('Token Black List'), 'name': 'blacklistedtoken', 'app': 'token_blacklist'},
         {'type': 'model', 'label': _('Outstanding Tokens'), 'name': 'outstandingtoken', 'app': 'token_blacklist'},
