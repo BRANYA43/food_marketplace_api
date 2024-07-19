@@ -34,6 +34,7 @@ BATON = {
         {'type': 'model', 'label': _('Groups'), 'name': 'group', 'app': 'auth'},
         {'type': 'title', 'label': _('Marketplace')},
         {'type': 'model', 'label': _('Customers'), 'name': 'staffproxy', 'app': 'accounts'},
+        {'type': 'model', 'label': _('Categories'), 'name': 'category', 'app': 'catalogs'},
         {'type': 'title', 'label': _('Tokens')},
         {'type': 'model', 'label': _('Token Black List'), 'name': 'blacklistedtoken', 'app': 'token_blacklist'},
         {'type': 'model', 'label': _('Outstanding Tokens'), 'name': 'outstandingtoken', 'app': 'token_blacklist'},
