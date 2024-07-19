@@ -3,8 +3,8 @@ from typing import Any
 from django.contrib import admin
 from django.forms import Form
 
-from accounts.forms import StaffCreationForm
-from accounts.models.proxy import StaffProxy
+from accounts.forms import StaffCreationForm, CustomerCreationForm
+from accounts.models.proxy import StaffProxy, CustomerProxy
 
 
 class BaseUserAdmin(admin.ModelAdmin):
@@ -54,3 +54,16 @@ class StaffAdmin(BaseUserAdmin):
         self.search_fields += self.extra_search_fields
         print(self.search_fields)
         return self.search_fields
+
+
+@admin.register(CustomerProxy)
+class CustomerAdmin(BaseUserAdmin):
+    fieldsets = (
+        (None, dict(fields=('is_active',))),
+        ('Personal info', dict(fields=('email', 'full_name', 'phone'))),
+        ('Dates', dict(fields=('last_login', 'updated_at', 'joined_at'))),
+    )
+
+    queryset_filter_params = dict(is_staff=False)
+    add_form = CustomerCreationForm
+    add_fieldsets = (('Registration', dict(fields=('email', 'full_name', 'phone', 'password', 'confirming_password'))),)

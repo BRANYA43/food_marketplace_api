@@ -1,3 +1,3 @@
-from .admin import StaffAdmin
+from .admin import StaffAdmin, CustomerAdmin
 
-__all__ = ['StaffAdmin']
+__all__ = ['StaffAdmin', 'CustomerAdmin']
