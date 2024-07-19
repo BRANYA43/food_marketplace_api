@@ -37,13 +37,13 @@ push:
 	sudo docker compose build; sudo docker compose push;
 
 shell-api:
-	sudo docker exec api -it $(shell)
+	sudo docker exec -it api $(shell)
 
 shell-db:
-	sudo docker exec db -it $(shell)
+	sudo docker exec -it db $(shell)
 
 shell-nginx:
-	sudo docker exec nginx -it $(shell)
+	sudo docker exec -it nginx $(shell)
 
 logs-api:
 	sudo docker logs api $(fs)
@@ -53,3 +53,4 @@ logs-db:
 
 logs-nginx:
 	sudo docker logs nginx $(fs)
+
