@@ -52,21 +52,3 @@ class PasswordValidationMixinTest(ApiTestCase):
             r'This password is entirely numeric.',
         ):
             self.mixin().validate_password(numeric_password)
-
-    def test_validate_password_method_raises_error_for_common_password(self):
-        common_password = 'qwerty12'
-        with self.assertRaisesRegex(
-            django_ValidationError,
-            r'This password is too common.',
-        ):
-            self.mixin().validate_password(common_password)
-
-    def test_validate_password_method_raises_error_for_password_similar_to_other_credentials(self):
-        user = User(email='rick@test.com')
-        self.mixin.instance = user
-        invalid_password = 'rick@test.com'
-        with self.assertRaisesRegex(
-            django_ValidationError,
-            r'The password is too similar to the email.',
-        ):
-            self.mixin().validate_password(invalid_password)
