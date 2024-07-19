@@ -2,6 +2,9 @@ version: "3.9"
 
 services:
   api:
+    build:
+      context: .
+      dockerfile: ./docker/django/Dockerfile
     image: branya/food_marketplace_api:latest
     container_name: api
     volumes:
@@ -13,6 +16,7 @@ services:
       python manage.py migrate;
       python manage.py createsuperuser --no-input; 
       python manage.py collectstatic --no-input;
+      python manage.py loaddata dumps/category_dump.json;
       gunicorn core.wsgi:application --workers 4 --bind 0.0.0.0:8000"
     env_file:
       - ./.env
@@ -27,6 +31,7 @@ services:
     restart: always
 
   db:
+    build: ./docker/postgres
     image: branya/food_marketplace_db:latest
     container_name: db
     volumes:
@@ -41,6 +46,7 @@ services:
     restart: always
 
   nginx:
+    build: ./docker/nginx
     image: branya/food_marketplace_nginx:latest
     container_name: nginx
     volumes:
@@ -49,8 +55,6 @@ services:
     ports:
       - "80:80"
     depends_on:
-      db:
-        condition: service_healthy
       api:
         condition: service_healthy
     healthcheck:
