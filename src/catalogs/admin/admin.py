@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import gettext as _
 
+from catalogs.admin.inlines import SubCategoryInline
 from catalogs.models import Category
 
 
@@ -13,6 +14,7 @@ class CategoryAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('is_parent', 'is_child', 'updated_at', 'created_at')
     ordering = ('parent__name', 'name')
+    inlines = (SubCategoryInline,)
 
     @admin.display(boolean=True, ordering=('is_parent',), description=_('Is Parent'))
     def is_parent(self, instance: Category):
