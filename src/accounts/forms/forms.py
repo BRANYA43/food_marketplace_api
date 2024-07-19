@@ -44,3 +44,15 @@ class BaseUserCreationForm(forms.ModelForm):
             if hasattr(self, 'save_m2m'):
                 self.save_m2m()
         return user
+
+
+class StaffCreationForm(BaseUserCreationForm):
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.is_active = True
+        user.is_staff = True
+        if commit:
+            user.save()
+            if hasattr(self, 'save_m2m'):
+                self.save_m2m()
+        return user

@@ -1,9 +1,40 @@
 from django.contrib.auth import get_user_model
 
-from accounts.forms import BaseUserCreationForm
+from accounts.forms import BaseUserCreationForm, StaffCreationForm
 from utils.tests import ApiTestCase
 
 User = get_user_model()
+
+
+class StaffCreationFormTest(ApiTestCase):
+    form_class = StaffCreationForm
+    model = User
+
+    def setUp(self) -> None:
+        self.data = dict(
+            email=self.TEST_EMAIL,
+            password=self.TEST_PASSWORD,
+            confirming_password=self.TEST_PASSWORD,
+        )
+
+    def test_form_inherits_base_user_creation_form(self):
+        self.assert_is_subclass(self.form_class, BaseUserCreationForm)
+
+    def test_form_creates_user(self):
+        self.assertEqual(self.model.objects.count(), 0)
+
+        form = self.form_class(data=self.data)
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        self.assertEqual(self.model.objects.count(), 1)
+
+        user = self.model.objects.first()
+
+        self.assertEqual(user.email, self.data['email'])
+        self.assertTrue(user.check_password(self.data['password']))
+        self.assertTrue(user.is_active)
+        self.assertTrue(user.is_staff)
 
 
 class BaseUserCreationFormTest(ApiTestCase):

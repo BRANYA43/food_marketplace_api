@@ -1,3 +1,3 @@
-from .forms import BaseUserCreationForm
+from .forms import BaseUserCreationForm, StaffCreationForm
 
-__all__ = ['BaseUserCreationForm']
+__all__ = ['BaseUserCreationForm', 'StaffCreationForm']
