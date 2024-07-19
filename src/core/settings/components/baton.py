@@ -27,7 +27,7 @@ BATON = {
     'GRAVATAR_DEFAULT_IMG': 'retro',
     'GRAVATAR_ENABLED': True,
     'LOGIN_SPLASH': '/static/core/img/login-splash.png',
-    'FORCE_THEME': None,
+    'FORCE_THEME': 'dark',
     'MENU': (
         {'type': 'title', 'label': _('For Administration')},
         {'type': 'model', 'label': _('Staffs'), 'name': 'customerproxy', 'app': 'accounts'},
