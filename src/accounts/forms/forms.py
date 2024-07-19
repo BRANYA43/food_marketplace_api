@@ -4,6 +4,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
+from accounts.services.normalizers import UkrainianPhoneNumberNormalizer
+from accounts.validators import UkrainianPhoneNumberValidator
 
 User = get_user_model()
 
@@ -56,3 +58,20 @@ class StaffCreationForm(BaseUserCreationForm):
             if hasattr(self, 'save_m2m'):
                 self.save_m2m()
         return user
+
+
+class CustomerCreationForm(BaseUserCreationForm):
+    class Meta:
+        model = User
+        fields = ('email', 'full_name', 'phone')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['full_name'].required = True
+        self.fields['phone'].required = True
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        UkrainianPhoneNumberValidator()(phone)
+        phone = UkrainianPhoneNumberNormalizer()(phone)
+        return phone
