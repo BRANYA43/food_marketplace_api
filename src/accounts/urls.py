@@ -1,4 +1,9 @@
-from accounts.router import router
+from rest_framework.routers import DefaultRouter
 
-urlpatterns = []
+from accounts import views
+
+router = DefaultRouter()
+router.register('user', views.UserViewSet)
+
+urlpatterns: list = []
 urlpatterns += router.urls

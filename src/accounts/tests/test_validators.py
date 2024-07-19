@@ -5,69 +5,66 @@ from rest_framework.exceptions import ValidationError
 from accounts import validators
 
 
-class UkrainianPhoneValidatorsTest(TestCase):
-    def setUp(self) -> None:
-        self.validator_fn = validators.validate_ukrainian_phone
+class UkrainianPhoneNumberValidatorTest(TestCase):
+    validator = validators.UkrainianPhoneNumberValidator()
 
-    def test_validator_doesnt_raise_error_for_valid_phones(self):
+    def test_validator_doesnt_raise_for_valid_phone(self):
         valid_phones = [
-            '+38 (123) 456 78 90',
-            '+38 (123) 456 78-90',
-            '+38 (123) 45678 90',
-            '+38 (123) 45678-90',
-            '+38 (123) 45 67 890',
-            '+38 (123) 45-67 890',
-            '+38 (123) 45 67890',
-            '+38 (123) 45-67890',
-            '+38 123 456 78 90',
-            '+38 123 456 78-90',
-            '+38 123 45678 90',
-            '+38 123 45678-90',
-            '+38 123 45 67 890',
-            '+38 123 45-67 890',
-            '+38 123 45 67890',
-            '+38 123 45-67890',
-            '(123) 456 78 90',
-            '(123) 456 78-90',
-            '(123) 45678 90',
-            '(123) 45678-90',
-            '(123) 45 67 890',
-            '(123) 45-67 890',
-            '(123) 45 67890',
-            '(123) 45-67890',
-            '123 456 78 90',
-            '123 456 78-90',
-            '123 45678 90',
-            '123 45678-90',
-            '123 45 67 890',
-            '123 45-67 890',
-            '123 45 67890',
-            '123 45-67890',
-            '1234567890',
-            '+381234567890',
-            '+38(123)4567890',
-            '(123)4567890',
+            '+38(012)3456789',
+            '+380123456789',
+            '38 012 345 6789',
+            '(012) 345 6789',
+            '(012)3456789',
+            '0123456789',
         ]
         for phone in valid_phones:
-            self.validator_fn(phone)  # not raise
+            self.validator(phone)  # not raise
 
-    def test_validator_raise_error_for_invalid_phone(self):
+    def test_validator_raises_for_less_at_10_digits(self):
         invalid_phones = [
-            '+38 1234 567 890',
-            '+38 (12) 345 67890',
-            '+38 (1234) 567 890',
-            '123 45 6789',
-            '(12) 345 67890',
-            '1234 567 890',
-            '+38 1234 56 7890',
-            '(1234) 567 890',
-            '+38 123 45 6789',
+            '(012) 345 678',
+            '012 345 678',
+            '(012)345678',
+            '012345678',
         ]
-
         for phone in invalid_phones:
-            self.assertRaisesRegex(
-                ValidationError,
-                r'Phone must be at ukrainian format\. Example \+38 XXX XXX XXXX\.',
-                self.validator_fn,
-                phone,
-            )
+            with self.assertRaisesRegex(ValidationError, r'invalid_digit_count'):
+                self.validator(phone)
+
+    def test_validator_raises_for_more_at_10_digits(self):
+        invalid_phones = [
+            '(012) 345 67890',
+            '012 345 67890',
+            '(012)34567890',
+            '01234567890',
+        ]
+        for phone in invalid_phones:
+            with self.assertRaisesRegex(ValidationError, r'invalid_digit_count'):
+                self.validator(phone)
+
+    def test_validator_raises_for_less_at_12_digits(self):
+        invalid_phones = [
+            '+38 (012) 345 678',
+            '38 012 345 678',
+            '+38(012)345678',
+            '38012345678',
+        ]
+        for phone in invalid_phones:
+            with self.assertRaisesRegex(ValidationError, r'invalid_digit_count'):
+                self.validator(phone)
+
+    def test_validator_raises_for_more_at_12_digits(self):
+        invalid_phones = [
+            '+38 (012) 345 67890',
+            '38 012 345 67890',
+            '+38(012)34567890',
+            '3801234567890',
+        ]
+        for phone in invalid_phones:
+            with self.assertRaisesRegex(ValidationError, r'invalid_digit_count'):
+                self.validator(phone)
+
+    def test_validator_raises_for_non_ukrainian_country_code(self):
+        invalid_phone = '+10 (012) 345 6789'
+        with self.assertRaisesRegex(ValidationError, r'invalid_country_code'):
+            self.validator(invalid_phone)

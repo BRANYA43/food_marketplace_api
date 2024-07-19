@@ -1,48 +1,70 @@
-from django.utils.translation import gettext as _
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse
-from drf_standardized_errors import openapi_serializers
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
-from catalogs import models, serializers
+from catalogs.models import Category
+from catalogs.serializers import CategoryListSerializer
+from catalogs.serializers.serializers import CategorySerializer
 
 
-@extend_schema(tags=['Category'])
+@extend_schema(tags=['Catalog'])
 @extend_schema_view(
     list=extend_schema(
-        operation_id='category_list',
-        summary=_('Retrieve category list.'),
-        description=_('Retrieve category list.'),
+        operation_id='category-list',
+        summary='Get category list',
         responses={
             status.HTTP_200_OK: OpenApiResponse(
-                description=_('Category list are retrieved successfully.'),
-                response=serializers.CategoryListSerializer,
+                description='Category list is got successfully.',
+            ),
+            status.HTTP_204_NO_CONTENT: OpenApiResponse(
+                description='Category list is empty.',
             ),
         },
     ),
-    retrieve=extend_schema(
-        operation_id='category_retrieve',
-        summary=_('Retrieve detail of category.'),
-        description=_('Retrieve detail of category.'),
+    select_list=extend_schema(
+        operation_id='category-select-list',
+        summary='Get category list, that have no sub category.',
         responses={
             status.HTTP_200_OK: OpenApiResponse(
-                description=_('Category is retrieved successfully.'),
-                response=serializers.CategoryRetrieveSerializer,
+                description='Category list is got successfully.',
             ),
-            status.HTTP_404_NOT_FOUND: OpenApiResponse(
-                description=_("Category isn't found."),
-                response=openapi_serializers.ErrorResponse404Serializer,
+            status.HTTP_204_NO_CONTENT: OpenApiResponse(
+                description='Category list is empty.',
             ),
         },
     ),
 )
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = models.Category.objects.filter(parent=None).order_by('name')
+class CategoryViewSet(viewsets.GenericViewSet):
+    model = Category
     serializer_classes = dict(
-        list=serializers.CategoryListSerializer,
-        retrieve=serializers.CategoryRetrieveSerializer,
+        list=CategoryListSerializer,
+        select_list=CategorySerializer,
     )
     permission_classes = (AllowAny,)
+    queryset = model.objects.filter(parent=None)
 
     def get_serializer_class(self):
         return self.serializer_classes[self.action]
+
+    def get_queryset(self):
+        querysets = dict(
+            select_list=self.model.objects.filter(children=None),
+        )
+        return querysets[self.action] if self.action in querysets else super().get_queryset()
+
+    def list(self, request):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        if serializer.data:
+            return Response(serializer.data, status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=['get'], detail=False)
+    def select_list(self, request):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        if serializer.data:
+            return Response(serializer.data, status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)
