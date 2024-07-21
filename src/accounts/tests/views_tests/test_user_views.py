@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from accounts.serializers import UserUpdateSerializer
+from accounts.serializers import UserUpdateSerializer, UserRetrieveSerializer
 from utils.models import Address
 from utils.tests import ApiTestCase
 
@@ -67,6 +67,44 @@ class UserSetPasswordViewTest(ApiTestCase):
     def test_view_returns_no_data(self):
         response = self.client.put(self.url, self.data)
         self.assertIsNone(response.data)
+
+
+class UserRetrieveViewTest(ApiTestCase):
+    url = reverse('user-retrieve-me')
+    serializer_class = UserRetrieveSerializer
+    model = User
+    address_model = Address
+
+    def setUp(self) -> None:
+        self.user = self.create_test_user(full_name=self.TEST_FULL_NAME, phone=self.TEST_PHONE)
+        self.login_user_by_token(self.user)
+
+    def test_view_allows_only_get_method(self):
+        self.assert_allowed_method(self.url, 'get', status.HTTP_200_OK)
+        self.assert_not_allowed_methods(self.url, ['post', 'put', 'patch', 'delete'])
+
+    def test_view_isnt_accessed_for_unauthenticated_user(self):
+        self.logout_user_by_token(self.user)
+        response = self.client.get(self.url)
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+
+    def test_view_is_accessed_for_authenticated_user(self):
+        response = self.client.get(self.url)
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+    def test_view_returns_expected_data_without_address(self):
+        expected_data = self.serializer_class(self.user).data
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.data, expected_data)
+
+    def test_view_returns_expected_data_with_address(self):
+        self.create_test_address(self.user)
+        self.user.refresh_from_db()
+        expected_data = self.serializer_class(self.user).data
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.data, expected_data)
 
 
 class UserDisableViewTest(ApiTestCase):

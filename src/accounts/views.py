@@ -33,6 +33,16 @@ User = get_user_model()
             ),
         },
     ),
+    retrieve_me=extend_schema(
+        operation_id='user-retrieve-me',
+        summary='Retrieve user data.',
+        responses={
+            status.HTTP_200_OK: OpenApiResponse(
+                description='User data is retrieved successfully.',
+                response=serializers.UserRetrieveSerializer,
+            ),
+        },
+    ),
     update_me=extend_schema(
         operation_id='user-update-me',
         summary='Update user profile data.',
@@ -155,6 +165,7 @@ class UserViewSet(viewsets.GenericViewSet):
     queryset = User.objects.filter(is_active=True)
     serializers_classes = dict(
         set_password_me=serializers.UserSetPasswordSerializer,
+        retrieve_me=serializers.UserRetrieveSerializer,
         update_me=serializers.UserUpdateSerializer,
         disable_me=serializers.UserDisableSerializer,
         register=serializers.UserRegisterSerializer,
@@ -165,6 +176,7 @@ class UserViewSet(viewsets.GenericViewSet):
     )
     permission_classes = dict(
         set_password_me=(IsAuthenticated,),
+        retrieve_me=(IsAuthenticated,),
         update_me=(IsAuthenticated,),
         disable_me=(IsAuthenticated,),
         register=(AllowAny,),
@@ -192,6 +204,12 @@ class UserViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=['get'], detail=False)
+    def retrieve_me(self, request):
+        user = self.get_current_user()
+        serializer = self.get_serializer(instance=user)
+        return Response(serializer.data, status.HTTP_200_OK)
 
     @action(methods=['patch'], detail=False)
     def update_me(self, request):
