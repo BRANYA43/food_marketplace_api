@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from accounts.serializers import UserUpdateSerializer
+from accounts.serializers import UserUpdateSerializer, UserRetrieveSerializer
 from utils.models import Address
 from utils.tests import ApiTestCase
 
@@ -69,6 +69,44 @@ class UserSetPasswordViewTest(ApiTestCase):
         self.assertIsNone(response.data)
 
 
+class UserRetrieveViewTest(ApiTestCase):
+    url = reverse('user-retrieve-me')
+    serializer_class = UserRetrieveSerializer
+    model = User
+    address_model = Address
+
+    def setUp(self) -> None:
+        self.user = self.create_test_user(full_name=self.TEST_FULL_NAME, phone=self.TEST_PHONE)
+        self.login_user_by_token(self.user)
+
+    def test_view_allows_only_get_method(self):
+        self.assert_allowed_method(self.url, 'get', status.HTTP_200_OK)
+        self.assert_not_allowed_methods(self.url, ['post', 'put', 'patch', 'delete'])
+
+    def test_view_isnt_accessed_for_unauthenticated_user(self):
+        self.logout_user_by_token(self.user)
+        response = self.client.get(self.url)
+        self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
+
+    def test_view_is_accessed_for_authenticated_user(self):
+        response = self.client.get(self.url)
+        self.assert_response_status(response, status.HTTP_200_OK)
+
+    def test_view_returns_expected_data_without_address(self):
+        expected_data = self.serializer_class(self.user).data
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.data, expected_data)
+
+    def test_view_returns_expected_data_with_address(self):
+        self.create_test_address(self.user)
+        self.user.refresh_from_db()
+        expected_data = self.serializer_class(self.user).data
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.data, expected_data)
+
+
 class UserDisableViewTest(ApiTestCase):
     url = reverse('user-disable-me')
     model = User
@@ -81,23 +119,23 @@ class UserDisableViewTest(ApiTestCase):
         self.login_user_by_token(self.user)
 
     def test_view_allows_only_post_method(self):
-        self.assert_not_allowed_methods(self.url, ['get', 'post', 'put', 'patch'])
-        self.assert_allowed_method(self.url, 'delete', status.HTTP_204_NO_CONTENT, self.data)
+        self.assert_not_allowed_methods(self.url, ['get', 'put', 'patch', 'delete'])
+        self.assert_allowed_method(self.url, 'post', status.HTTP_204_NO_CONTENT, self.data)
 
     def test_view_isnt_accessed_for_unauthenticated_user(self):
         self.logout_user_by_token(self.user)
-        response = self.client.delete(self.url, self.data)
+        response = self.client.post(self.url, self.data)
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
 
     def test_view_is_accessed_for_authenticated_user(self):
-        response = self.client.delete(self.url, self.data)
+        response = self.client.post(self.url, self.data)
         self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
 
     def test_view_disable_user(self):
         address = self.create_test_address(self.user)
         self.user.refresh_from_db()
 
-        self.client.delete(self.url, self.data)
+        self.client.post(self.url, self.data)
 
         self.user.refresh_from_db()
 
@@ -112,7 +150,7 @@ class UserDisableViewTest(ApiTestCase):
         self.assertEqual(address.number, '-')
 
     def test_view_returns_no_data(self):
-        response = self.client.delete(self.url, self.data)
+        response = self.client.post(self.url, self.data)
         self.assertIsNone(response.data)
 
 

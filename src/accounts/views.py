@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils.module_loading import import_string
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
 from drf_standardized_errors import openapi_serializers
 from rest_framework import viewsets, status
@@ -17,7 +18,7 @@ User = get_user_model()
 @extend_schema_view(
     set_password_me=extend_schema(
         operation_id='user-set-password-me',
-        summary='Set new password for a user.',
+        summary='Set new password for a current user.',
         responses={
             status.HTTP_204_NO_CONTENT: OpenApiResponse(
                 description='User set a new password successfully.',
@@ -32,13 +33,23 @@ User = get_user_model()
             ),
         },
     ),
+    retrieve_me=extend_schema(
+        operation_id='user-retrieve-me',
+        summary='Retrieve user data.',
+        responses={
+            status.HTTP_200_OK: OpenApiResponse(
+                description='User data is retrieved successfully.',
+                response=serializers.UserRetrieveSerializer,
+            ),
+        },
+    ),
     update_me=extend_schema(
         operation_id='user-update-me',
-        summary='Update user profile data.',
+        summary='Update a current user profile data.',
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description='User profile data are update successfully.',
-                response=None,
+                response=serializers.UserUpdateSerializer,
             ),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
                 description='Invalid data.',
@@ -52,7 +63,7 @@ User = get_user_model()
     ),
     disable_me=extend_schema(
         operation_id='user-disable-me',
-        summary='Disable a user.',
+        summary='Disable a current user.',
         responses={
             status.HTTP_204_NO_CONTENT: OpenApiResponse(description='User is disabled successfully.'),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
@@ -84,7 +95,7 @@ User = get_user_model()
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description='User is logged in successfully.',
-                response=jwt_api_settings.TOKEN_OBTAIN_SERIALIZER,
+                response=import_string(jwt_api_settings.TOKEN_OBTAIN_SERIALIZER),
             ),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
                 description='Invalid credentials.',
@@ -120,7 +131,7 @@ User = get_user_model()
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description='Tokens is refresh successfully',
-                response=jwt_api_settings.TOKEN_REFRESH_SERIALIZER,
+                response=import_string(jwt_api_settings.TOKEN_REFRESH_SERIALIZER),
             ),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
                 description='Invalid data',
@@ -154,16 +165,18 @@ class UserViewSet(viewsets.GenericViewSet):
     queryset = User.objects.filter(is_active=True)
     serializers_classes = dict(
         set_password_me=serializers.UserSetPasswordSerializer,
+        retrieve_me=serializers.UserRetrieveSerializer,
         update_me=serializers.UserUpdateSerializer,
         disable_me=serializers.UserDisableSerializer,
         register=serializers.UserRegisterSerializer,
-        login=jwt_api_settings.TOKEN_OBTAIN_SERIALIZER,
-        logout=jwt_api_settings.TOKEN_BLACKLIST_SERIALIZER,
-        refresh=jwt_api_settings.TOKEN_REFRESH_SERIALIZER,
-        verify=jwt_api_settings.TOKEN_VERIFY_SERIALIZER,
+        login=import_string(jwt_api_settings.TOKEN_OBTAIN_SERIALIZER),
+        logout=import_string(jwt_api_settings.TOKEN_BLACKLIST_SERIALIZER),
+        refresh=import_string(jwt_api_settings.TOKEN_REFRESH_SERIALIZER),
+        verify=import_string(jwt_api_settings.TOKEN_VERIFY_SERIALIZER),
     )
     permission_classes = dict(
         set_password_me=(IsAuthenticated,),
+        retrieve_me=(IsAuthenticated,),
         update_me=(IsAuthenticated,),
         disable_me=(IsAuthenticated,),
         register=(AllowAny,),
@@ -192,6 +205,12 @@ class UserViewSet(viewsets.GenericViewSet):
         serializer.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(methods=['get'], detail=False)
+    def retrieve_me(self, request):
+        user = self.get_current_user()
+        serializer = self.get_serializer(instance=user)
+        return Response(serializer.data, status.HTTP_200_OK)
+
     @action(methods=['patch'], detail=False)
     def update_me(self, request):
         user = self.get_current_user()
@@ -201,7 +220,7 @@ class UserViewSet(viewsets.GenericViewSet):
         serializer.save()
         return Response(serializer.data, status.HTTP_200_OK)
 
-    @action(methods=['delete'], detail=False)
+    @action(methods=['post'], detail=False)
     def disable_me(self, request):
         user = self.get_current_user()
         serializer = self.get_serializer(instance=user, data=request.data)

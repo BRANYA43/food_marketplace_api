@@ -41,15 +41,7 @@ class CategorySelectListViewTest(ApiTestCase):
         response = self.client.get(self.url)
 
         self.assert_response_status(response, status.HTTP_200_OK)
-        self.assertSequenceEqual(response.data, expected_data)
-
-    def test_view_returns_no_data_if_categories_doesnt_exist(self):
-        self.model.objects.all().delete()
-
-        response = self.client.get(self.url)
-
-        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
-        self.assertIsNone(response.data)
+        self.assertSequenceEqual(response.data['results'], expected_data)
 
 
 class CategoryListViewTest(ApiTestCase):
@@ -86,12 +78,4 @@ class CategoryListViewTest(ApiTestCase):
         response = self.client.get(self.url)
 
         self.assert_response_status(response, status.HTTP_200_OK)
-        self.assertSequenceEqual(response.data, expected_data)
-
-    def test_view_returns_no_data_if_categories_doesnt_exist(self):
-        self.model.objects.all().delete()
-
-        response = self.client.get(self.url)
-
-        self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
-        self.assertIsNone(response.data)
+        self.assertSequenceEqual(response.data['results'], expected_data)

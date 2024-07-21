@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse, OpenApiExample, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -17,21 +17,37 @@ from catalogs.serializers.serializers import CategorySerializer
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description='Category list is got successfully.',
-            ),
-            status.HTTP_204_NO_CONTENT: OpenApiResponse(
-                description='Category list is empty.',
+                response=CategoryListSerializer,
             ),
         },
     ),
     select_list=extend_schema(
         operation_id='category-select-list',
         summary='Get category list, that have no sub category.',
+        parameters=[
+            OpenApiParameter('limit', int, 'query', description='Number of results to return per page.'),
+            OpenApiParameter('offset', int, 'query', description='The initial index from which to return the results.'),
+        ],
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description='Category list is got successfully.',
-            ),
-            status.HTTP_204_NO_CONTENT: OpenApiResponse(
-                description='Category list is empty.',
+                response=CategorySerializer,
+                examples=[
+                    OpenApiExample(
+                        'Example',
+                        value=dict(
+                            count=123,
+                            next='http://api.example.org/accounts/?offset=400&limit=100',
+                            previous='http://api.example.org/accounts/?offset=200&limit=100',
+                            results=[
+                                dict(
+                                    id=0,
+                                    name='string',
+                                ),
+                            ],
+                        ),
+                    ),
+                ],
             ),
         },
     ),
@@ -54,17 +70,20 @@ class CategoryViewSet(viewsets.GenericViewSet):
         )
         return querysets[self.action] if self.action in querysets else super().get_queryset()
 
+    def _list(self, request):
+        queryset = self.get_queryset()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def list(self, request):
-        serializer = self.get_serializer(self.get_queryset(), many=True)
-        if serializer.data:
-            return Response(serializer.data, status.HTTP_200_OK)
-        else:
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        return self._list(request)
 
     @action(methods=['get'], detail=False)
     def select_list(self, request):
-        serializer = self.get_serializer(self.get_queryset(), many=True)
-        if serializer.data:
-            return Response(serializer.data, status.HTTP_200_OK)
-        else:
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        return self._list(request)
