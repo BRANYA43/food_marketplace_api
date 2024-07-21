@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils.module_loading import import_string
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
 from drf_standardized_errors import openapi_serializers
 from rest_framework import viewsets, status
@@ -84,7 +85,7 @@ User = get_user_model()
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description='User is logged in successfully.',
-                response=jwt_api_settings.TOKEN_OBTAIN_SERIALIZER,
+                response=import_string(jwt_api_settings.TOKEN_OBTAIN_SERIALIZER),
             ),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
                 description='Invalid credentials.',
@@ -157,7 +158,7 @@ class UserViewSet(viewsets.GenericViewSet):
         update_me=serializers.UserUpdateSerializer,
         disable_me=serializers.UserDisableSerializer,
         register=serializers.UserRegisterSerializer,
-        login=jwt_api_settings.TOKEN_OBTAIN_SERIALIZER,
+        login=import_string(jwt_api_settings.TOKEN_OBTAIN_SERIALIZER),
         logout=jwt_api_settings.TOKEN_BLACKLIST_SERIALIZER,
         refresh=jwt_api_settings.TOKEN_REFRESH_SERIALIZER,
         verify=jwt_api_settings.TOKEN_VERIFY_SERIALIZER,
