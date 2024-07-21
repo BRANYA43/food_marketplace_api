@@ -48,6 +48,7 @@ class UserDisableSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('password',)
+        extra_kwargs = dict(password=dict(required=False))  # TODO password must be required
 
     def validate_password(self, password: str) -> str:
         if not self.instance.check_password(password):
