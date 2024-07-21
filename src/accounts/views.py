@@ -121,7 +121,7 @@ User = get_user_model()
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description='Tokens is refresh successfully',
-                response=jwt_api_settings.TOKEN_REFRESH_SERIALIZER,
+                response=import_string(jwt_api_settings.TOKEN_REFRESH_SERIALIZER),
             ),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
                 description='Invalid data',
@@ -160,7 +160,7 @@ class UserViewSet(viewsets.GenericViewSet):
         register=serializers.UserRegisterSerializer,
         login=import_string(jwt_api_settings.TOKEN_OBTAIN_SERIALIZER),
         logout=import_string(jwt_api_settings.TOKEN_BLACKLIST_SERIALIZER),
-        refresh=jwt_api_settings.TOKEN_REFRESH_SERIALIZER,
+        refresh=import_string(jwt_api_settings.TOKEN_REFRESH_SERIALIZER),
         verify=jwt_api_settings.TOKEN_VERIFY_SERIALIZER,
     )
     permission_classes = dict(
