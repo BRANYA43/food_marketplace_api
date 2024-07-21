@@ -41,7 +41,7 @@ class CategorySelectListViewTest(ApiTestCase):
         response = self.client.get(self.url)
 
         self.assert_response_status(response, status.HTTP_200_OK)
-        self.assertSequenceEqual(response.data, expected_data)
+        self.assertSequenceEqual(response.data['results'], expected_data)
 
 
 class CategoryListViewTest(ApiTestCase):
@@ -78,4 +78,4 @@ class CategoryListViewTest(ApiTestCase):
         response = self.client.get(self.url)
 
         self.assert_response_status(response, status.HTTP_200_OK)
-        self.assertSequenceEqual(response.data, expected_data)
+        self.assertSequenceEqual(response.data['results'], expected_data)
