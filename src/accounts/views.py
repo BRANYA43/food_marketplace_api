@@ -18,7 +18,7 @@ User = get_user_model()
 @extend_schema_view(
     set_password_me=extend_schema(
         operation_id='user-set-password-me',
-        summary='Set new password for a user.',
+        summary='Set new password for a current user.',
         responses={
             status.HTTP_204_NO_CONTENT: OpenApiResponse(
                 description='User set a new password successfully.',
@@ -45,7 +45,7 @@ User = get_user_model()
     ),
     update_me=extend_schema(
         operation_id='user-update-me',
-        summary='Update user profile data.',
+        summary='Update a current user profile data.',
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description='User profile data are update successfully.',
@@ -63,7 +63,7 @@ User = get_user_model()
     ),
     disable_me=extend_schema(
         operation_id='user-disable-me',
-        summary='Disable a user.',
+        summary='Disable a current user.',
         responses={
             status.HTTP_204_NO_CONTENT: OpenApiResponse(description='User is disabled successfully.'),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
