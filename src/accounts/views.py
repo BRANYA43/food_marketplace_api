@@ -161,7 +161,7 @@ class UserViewSet(viewsets.GenericViewSet):
         login=import_string(jwt_api_settings.TOKEN_OBTAIN_SERIALIZER),
         logout=import_string(jwt_api_settings.TOKEN_BLACKLIST_SERIALIZER),
         refresh=import_string(jwt_api_settings.TOKEN_REFRESH_SERIALIZER),
-        verify=jwt_api_settings.TOKEN_VERIFY_SERIALIZER,
+        verify=import_string(jwt_api_settings.TOKEN_VERIFY_SERIALIZER),
     )
     permission_classes = dict(
         set_password_me=(IsAuthenticated,),
