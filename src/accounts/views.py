@@ -39,7 +39,7 @@ User = get_user_model()
         responses={
             status.HTTP_200_OK: OpenApiResponse(
                 description='User profile data are update successfully.',
-                response=None,
+                response=serializers.UserUpdateSerializer,
             ),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
                 description='Invalid data.',
@@ -202,7 +202,7 @@ class UserViewSet(viewsets.GenericViewSet):
         serializer.save()
         return Response(serializer.data, status.HTTP_200_OK)
 
-    @action(methods=['delete'], detail=False)
+    @action(methods=['post'], detail=False)
     def disable_me(self, request):
         user = self.get_current_user()
         serializer = self.get_serializer(instance=user, data=request.data)

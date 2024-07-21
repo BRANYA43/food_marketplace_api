@@ -81,23 +81,23 @@ class UserDisableViewTest(ApiTestCase):
         self.login_user_by_token(self.user)
 
     def test_view_allows_only_post_method(self):
-        self.assert_not_allowed_methods(self.url, ['get', 'post', 'put', 'patch'])
-        self.assert_allowed_method(self.url, 'delete', status.HTTP_204_NO_CONTENT, self.data)
+        self.assert_not_allowed_methods(self.url, ['get', 'put', 'patch', 'delete'])
+        self.assert_allowed_method(self.url, 'post', status.HTTP_204_NO_CONTENT, self.data)
 
     def test_view_isnt_accessed_for_unauthenticated_user(self):
         self.logout_user_by_token(self.user)
-        response = self.client.delete(self.url, self.data)
+        response = self.client.post(self.url, self.data)
         self.assert_response_status(response, status.HTTP_401_UNAUTHORIZED)
 
     def test_view_is_accessed_for_authenticated_user(self):
-        response = self.client.delete(self.url, self.data)
+        response = self.client.post(self.url, self.data)
         self.assert_response_status(response, status.HTTP_204_NO_CONTENT)
 
     def test_view_disable_user(self):
         address = self.create_test_address(self.user)
         self.user.refresh_from_db()
 
-        self.client.delete(self.url, self.data)
+        self.client.post(self.url, self.data)
 
         self.user.refresh_from_db()
 
@@ -112,7 +112,7 @@ class UserDisableViewTest(ApiTestCase):
         self.assertEqual(address.number, '-')
 
     def test_view_returns_no_data(self):
-        response = self.client.delete(self.url, self.data)
+        response = self.client.post(self.url, self.data)
         self.assertIsNone(response.data)
 
 
