@@ -6,9 +6,18 @@ from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.serializers import mixins
+from utils.serializers import AddressFieldSerializer
 from utils.serializers.mixins import AddressCreateUpdateMixin
 
 User = get_user_model()
+
+
+class UserRetrieveSerializer(serializers.ModelSerializer):
+    address = AddressFieldSerializer()
+
+    class Meta:
+        model = User
+        fields = ('email', 'full_name', 'phone', 'address')
 
 
 class UserSetPasswordSerializer(serializers.ModelSerializer):
