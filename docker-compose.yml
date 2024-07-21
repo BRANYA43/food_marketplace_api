@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: ./docker/django/Dockerfile
-    image: branya/food_marketplace_api:2.0.0
+    image: branya/food_marketplace_api:2.1.0
     container_name: api
     volumes:
       - static_volume:/opt/src/static
