@@ -159,7 +159,7 @@ class UserViewSet(viewsets.GenericViewSet):
         disable_me=serializers.UserDisableSerializer,
         register=serializers.UserRegisterSerializer,
         login=import_string(jwt_api_settings.TOKEN_OBTAIN_SERIALIZER),
-        logout=jwt_api_settings.TOKEN_BLACKLIST_SERIALIZER,
+        logout=import_string(jwt_api_settings.TOKEN_BLACKLIST_SERIALIZER),
         refresh=jwt_api_settings.TOKEN_REFRESH_SERIALIZER,
         verify=jwt_api_settings.TOKEN_VERIFY_SERIALIZER,
     )
