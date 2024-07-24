@@ -241,3 +241,12 @@ class UserDisableSerializerTest(ApiTestCase):
 
         for token in tokens:
             self.assertRaises(TokenError, token.check_blacklist)
+
+    def test_serializer_doesnt_raise_error_for_blacklisted_refresh_token(self):
+        blacklisted_token = self.user.refresh_token
+        blacklisted_token.blacklist()
+
+        self.assertRaises(TokenError, blacklisted_token.check_blacklist)
+
+        serializer = self.serializer_class(self.user, self.data)
+        self.assertTrue(serializer.is_valid(raise_exception=True))  # not raise

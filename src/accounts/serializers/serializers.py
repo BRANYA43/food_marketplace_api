@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -94,7 +95,10 @@ class UserDisableSerializer(serializers.ModelSerializer):
     def blacklist_tokens(self):
         tokens = OutstandingToken.objects.filter(user=self.instance)
         for token in tokens:
-            self.token_class(token.token).blacklist()
+            try:
+                self.token_class(token.token).blacklist()
+            except TokenError:
+                pass
 
 
 class UserUpdateSerializer(mixins.PhoneNumberValidationMixin, AddressCreateUpdateMixin, serializers.ModelSerializer):
