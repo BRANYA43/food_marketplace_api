@@ -36,7 +36,8 @@ class ApiTestCase(APITestCase):
         return Category.objects.create(name=name, **extra_fields)
 
     def get_expired_token(self, token):
-        return token.set_exp(from_time=now() - jwt_api_settings.REFRESH_TOKEN_LIFETIME)
+        token.set_exp(from_time=now() - jwt_api_settings.REFRESH_TOKEN_LIFETIME)
+        return token
 
     def login_user_by_token(self, user, use_expired_token=False):
         token = user.access_token
