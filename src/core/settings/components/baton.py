@@ -30,10 +30,10 @@ BATON = {
     'FORCE_THEME': 'dark',
     'MENU': (
         {'type': 'title', 'label': _('For Administration')},
-        {'type': 'model', 'label': _('Staffs'), 'name': 'customerproxy', 'app': 'accounts'},
+        {'type': 'model', 'label': _('Staffs'), 'name': 'staffproxy', 'app': 'accounts'},
         {'type': 'model', 'label': _('Groups'), 'name': 'group', 'app': 'auth'},
         {'type': 'title', 'label': _('Marketplace')},
-        {'type': 'model', 'label': _('Customers'), 'name': 'staffproxy', 'app': 'accounts'},
+        {'type': 'model', 'label': _('Customers'), 'name': 'customerproxy', 'app': 'accounts'},
         {'type': 'model', 'label': _('Categories'), 'name': 'category', 'app': 'catalogs'},
         {'type': 'title', 'label': _('Tokens')},
         {'type': 'model', 'label': _('Token Black List'), 'name': 'blacklistedtoken', 'app': 'token_blacklist'},
