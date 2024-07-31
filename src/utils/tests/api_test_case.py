@@ -90,11 +90,13 @@ class ApiTestCase(APITestCase):
 
     def assert_required_model_fields(self, model, data: dict, fields: Sequence[str]):
         for field in fields:
-            data = data.copy()
-            del data[field]
-            instance = model(**data)
+            copy_data = data.copy()
+            del copy_data[field]
+            instance = model(**copy_data)
             with self.assertRaisesRegex(
-                django_ValidationError, rf'{field}.+cannot be blank', msg=f'This field "{field}" is not required.'
+                django_ValidationError,
+                rf'{field}.+cannot be (blank|null)',
+                msg=f'This field "{field}" is not required.',
             ):
                 instance.full_clean()
 
