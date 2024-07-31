@@ -1,4 +1,4 @@
-from typing import Literal, Sequence
+from typing import Literal, Sequence, Any
 
 from django.core.exceptions import ValidationError as django_ValidationError
 from django.utils.timezone import now
@@ -131,6 +131,31 @@ class ApiTestCase(APITestCase):
                     value,
                     f'This field "{field}" is not set by default as "{value}". (There set {got_value}.)',
                 )
+
+    def assert_model_fields_max_length(self, model, data: dict[str, Any], fields: dict[str, Any]):
+        for field, max_length in fields.items():
+            copy_data = data.copy()
+
+            # Check max_length without error
+            copy_data[field] = 'a' * max_length
+            try:
+                model(**copy_data).full_clean()  # not raise error
+            except django_ValidationError:
+                raise AssertionError(
+                    f'The field "{field}" has less max_length the than specified value "{max_length}".'
+                )
+
+            # Check max_length with error
+            copy_data[field] += 'a'
+            with self.assertRaisesRegex(
+                django_ValidationError,
+                rf'Ensure this value has at most {max_length} characters',
+                msg=(
+                    f'The field "{field}" has a greater max_length than the specified value "{max_length}", or the '
+                    f'field class "{field}" is a TextField.'
+                ),
+            ):
+                model(**copy_data).full_clean()
 
     def assert_write_only_serializer_fields(self, serializer_class, data: dict, fields: Sequence[str]):
         serializer = serializer_class(data=data)

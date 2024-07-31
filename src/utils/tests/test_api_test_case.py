@@ -20,7 +20,8 @@ class TestSerializer(serializers.Serializer):
 
 class TestModel(models.Model):
     required_field = models.CharField(max_length=10, validators=[MinLengthValidator(2)])
-    optional_field = models.CharField(max_length=10, null=True, blank=True)
+    optional_field = models.CharField(max_length=20, null=True, blank=True)
+    text_field = models.TextField(max_length=30, null=True, blank=True)
     default_field = models.CharField(max_length=10, default='1')
     default_true_field = models.BooleanField(default=True)
     default_false_field = models.BooleanField(default=False)
@@ -202,3 +203,22 @@ class ApiTestCaseTest(ApiTestCase):
             r'This field "required_field" is not optional. It is required.',
         ):
             self.assert_optional_serializer_fields(TestSerializer, ['required_field'])
+
+    def test_assert_model_field_max_length(self):
+        self.assert_model_fields_max_length(
+            TestModel, dict(required_field='required'), dict(required_field=10, optional_field=20)
+        )  # not raise
+
+        with self.assertRaisesRegex(
+            AssertionError, r'The field "required_field" has less max_length the than specified value "15"'
+        ):
+            self.assert_model_fields_max_length(TestModel, dict(required_field='required'), dict(required_field=15))
+
+        with self.assertRaisesRegex(
+            AssertionError,
+            (
+                'The field "text_field" has a greater max_length than the specified value "30", or the field class'
+                ' "text_field" is a TextField.'
+            ),
+        ):
+            self.assert_model_fields_max_length(TestModel, dict(required_field='required'), dict(text_field=30))
