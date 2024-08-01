@@ -58,6 +58,9 @@ class AdvertModelTest(ModelTestCase):
     def test_expected_fields_have_specified_max_length(self):
         self.assert_fields_have_specified_max_length(self.model, dict(name=70, descr=1024))
 
+    def test_expected_decimal_field_is_set_correct(self):
+        self.assert_decimal_fields(self.model, [dict(name='price', max_digits=12, decimal_places=2)])
+
     def test_price_field_must_be_gte_0(self):
         self.data['price'] = -1
         advert = self.model(**self.data)
