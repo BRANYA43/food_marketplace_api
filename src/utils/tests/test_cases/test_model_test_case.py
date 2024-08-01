@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from pydantic import ValidationError
 
@@ -15,7 +16,8 @@ class TestModel(models.Model):
     default = models.BooleanField(default=True)
     one_to_one = models.OneToOneField(to=TestRelationModel, on_delete=models.CASCADE, related_name='one_to_one')
     many_to_many = models.ManyToManyField(to=TestRelationModel, related_name='many_to_many')
-    one_to_many = models.ForeignKey(to=TestRelationModel, on_delete=models.CASCADE)
+    many_to_one = models.ForeignKey(to=TestRelationModel, on_delete=models.CASCADE)
+    generic_one_to_many = GenericRelation(to=TestRelationModel)
 
     null_true = models.BooleanField(null=True)
     blank_true = models.BooleanField(blank=True)
@@ -87,7 +89,8 @@ class ModelTestCaseTest(ModelTestCase):
             [
                 dict(name='one_to_one', to=TestRelationModel, relation='one_to_one', related_name='one_to_one'),
                 dict(name='many_to_many', to=TestRelationModel, relation='many_to_many'),
-                dict(name='one_to_many', to=TestRelationModel, relation='many_to_one'),
+                dict(name='many_to_one', to=TestRelationModel, relation='many_to_one'),
+                dict(name='generic_one_to_many', to=TestRelationModel, relation='one_to_many'),
             ],
         )
 

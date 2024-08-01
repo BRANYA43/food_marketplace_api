@@ -1,5 +1,6 @@
 from typing import Any, Literal, Type
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db.models import Model, ForeignKey, OneToOneField, ManyToManyField, Field
 from django.db.models.fields import NOT_PROVIDED
 from pydantic import BaseModel
@@ -69,10 +70,10 @@ class ModelTestCase(BaseTestCase):
         for field_data in fields:
             field_data = self.FieldRelation(**field_data)  # type: ignore
             field = self.__get_field(model, field_data.name)
-            if not isinstance(field, (ForeignKey, OneToOneField, ManyToManyField)):
+            if not isinstance(field, (ForeignKey, OneToOneField, ManyToManyField, GenericRelation)):
                 raise TypeError(
                     f'The field "{field_data.name}" must be one of classes: "ForeignKey", '
-                    f'"OneToOneField", "ManyToManyField".'
+                    f'"OneToOneField", "ManyToManyField", "GenericRelation".'
                 )
             got_relation = getattr(field, field_data.relation)
             self.assertTrue(
