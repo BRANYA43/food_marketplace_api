@@ -2,6 +2,7 @@ from rest_framework.test import APITestCase
 
 from accounts.models import User
 from catalogs.models import Category
+from catalogs.models.models import Advert
 from utils.models import Address
 
 
@@ -25,6 +26,9 @@ class BaseTestCase(APITestCase):
     @staticmethod
     def create_test_category(name='name', **extra_fields) -> Category:
         return Category.objects.create(name=name, **extra_fields)
+
+    def create_test_advert(self, owner: User, category: Category, name='name', price=100, **extra_fields) -> Advert:
+        return Advert.objects.create(owner=owner, category=category, name=name, price=price, **extra_fields)
 
     ###########
     # Asserts #
