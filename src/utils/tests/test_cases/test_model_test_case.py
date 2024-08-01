@@ -147,3 +147,30 @@ class ModelTestCaseTest(ModelTestCase):
                     dict(name='one_to_one', to=TestRelationModel, relation='one_to_one', related_name='many_to_many'),
                 ],
             )
+
+    def test_assert_decimal_fields(self):
+        self.assert_decimal_fields(TestModel, [dict(name='decimal', max_digits=10, decimal_places=2)])
+
+        with self.assertRaisesRegex(AttributeError, r'The model "TestModel" has no field named "non_existent".'):
+            self.assert_decimal_fields(
+                TestModel,
+                [dict(name='non_existent', max_digits=10, decimal_places=2)],
+            )
+
+        with self.assertRaisesRegex(TypeError, r'The field "required" must be class named "DecimalField".'):
+            self.assert_decimal_fields(
+                TestModel,
+                [dict(name='required', max_digits=10, decimal_places=2)],
+            )
+
+        with self.assertRaisesRegex(AssertionError, r'The field "decimal" must have "12" max digits, but had "10".'):
+            self.assert_decimal_fields(
+                TestModel,
+                [dict(name='decimal', max_digits=12, decimal_places=2)],
+            )
+
+        with self.assertRaisesRegex(AssertionError, r'The field "decimal" must have "4" decimal places, but had "2".'):
+            self.assert_decimal_fields(
+                TestModel,
+                [dict(name='decimal', max_digits=10, decimal_places=4)],
+            )
