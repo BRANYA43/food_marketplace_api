@@ -40,7 +40,7 @@ class AdvertModelTest(ModelTestCase):
         )
 
     def test_expected_fields_have_default_values(self):
-        self.assert_fields_with_value_by_default(
+        self.assert_fields_have_default_value(
             self.model,
             dict(quantity=1, pickup=False, nova_post=False, courier=True),
         )

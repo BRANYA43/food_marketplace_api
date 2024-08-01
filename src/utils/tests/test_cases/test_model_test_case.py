@@ -55,18 +55,18 @@ class ModelTestCaseTest(ModelTestCase):
             self.assert_optional_fields(TestModel, ['blank_false'])
 
     def test_assert_fields_with_value_by_default(self):
-        self.assert_fields_with_value_by_default(TestModel, dict(default=True))
+        self.assert_fields_have_default_value(TestModel, dict(default=True))
 
         with self.assertRaisesRegex(AttributeError, r'The model "TestModel" has no field named "non_existent".'):
-            self.assert_fields_with_value_by_default(TestModel, dict(non_existent=True))
+            self.assert_fields_have_default_value(TestModel, dict(non_existent=True))
 
         with self.assertRaisesRegex(AssertionError, 'The field "required" has no default value.'):
-            self.assert_fields_with_value_by_default(TestModel, dict(required=True))
+            self.assert_fields_have_default_value(TestModel, dict(required=True))
 
         with self.assertRaisesRegex(
             AssertionError, r'The field "default" must have "False" by default, but had "True".'
         ):
-            self.assert_fields_with_value_by_default(TestModel, dict(default=False))
+            self.assert_fields_have_default_value(TestModel, dict(default=False))
 
     def test_assert_fields_have_specified_max_length(self):
         self.assert_fields_have_specified_max_length(

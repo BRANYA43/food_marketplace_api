@@ -49,7 +49,7 @@ class ModelTestCase(BaseTestCase):
                 msg=f'The field "{field_name}" must be blank.',
             )
 
-    def assert_fields_with_value_by_default(self, model: Type[Model], fields: dict[str, Any]):
+    def assert_fields_have_default_value(self, model: Type[Model], fields: dict[str, Any]):
         for field_name, expected_value in fields.items():
             field = self.__get_field(model, field_name)
             got_value = getattr(field, 'default')
