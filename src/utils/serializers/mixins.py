@@ -1,16 +1,13 @@
+from rest_framework import serializers
+
 from utils import models
 from utils.serializers.serializers import AddressFieldSerializer
 
 
-class AddressCreateUpdateMixin:
+class AddressCreateUpdateMixin(serializers.Serializer):
     """Serializer mixin to update or create address for models that have only one address."""
 
-    address = AddressFieldSerializer(required=False)
-
-    def get_fields(self):
-        fields = super().get_fields()
-        fields['address'] = AddressFieldSerializer(required=False)
-        return fields
+    address = AddressFieldSerializer(required=False, allow_null=True)
 
     def create(self, validated_data):
         address_data = validated_data.pop('address', None)
