@@ -1,7 +1,39 @@
 from catalogs.models import Category
+from catalogs.models.models import Advert
 from catalogs.serializers import CategoryListSerializer
-from catalogs.serializers.serializers import CategorySerializer
+from catalogs.serializers.serializers import CategorySerializer, AdvertListSerializer
 from utils.tests import ApiTestCase
+from utils.tests.cases import SerializerTestCase
+
+
+class AdvertListSerializerTest(SerializerTestCase):
+    serializer_class = AdvertListSerializer
+    model = Advert
+
+    def setUp(self):
+        self.owner = self.create_test_user()
+        self.category = self.create_test_category()
+        self.advert = self.create_test_advert(self.owner, self.category)
+
+    def test_expected_fields_are_read_only(self):
+        self.assert_fields_are_read_only(
+            self.serializer_class,
+            ['id', 'name', 'category', 'price'],
+        )
+
+    def test_serializer_returns_expected_data(self):
+        self.serializer_class()
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=self.advert,
+            input_data={},
+            output_data=dict(
+                id=self.advert.id,
+                name=self.advert.name,
+                category=self.advert.category.id,
+                price=str(self.advert.price),
+            ),
+        )
 
 
 class CategorySerializerTest(ApiTestCase):
