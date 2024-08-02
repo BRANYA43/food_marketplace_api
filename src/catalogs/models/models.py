@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
@@ -37,7 +39,7 @@ class Advert(CreatedUpdatedMixin):
         verbose_name=_('price'),
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(Decimal('0'))],
     )
     quantity = models.PositiveIntegerField(
         verbose_name=_('quantity'),
