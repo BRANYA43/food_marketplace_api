@@ -1,9 +1,76 @@
 from catalogs.models import Category
 from catalogs.models.models import Advert
 from catalogs.serializers import CategoryListSerializer
-from catalogs.serializers.serializers import CategorySerializer, AdvertListSerializer
+from catalogs.serializers.serializers import CategorySerializer, AdvertListSerializer, AdvertRetrieveSerializer
 from utils.tests import ApiTestCase
 from utils.tests.cases import SerializerTestCase
+
+
+class AdvertRetrieveSerializerTest(SerializerTestCase):
+    serializer_class = AdvertRetrieveSerializer
+    model = Advert
+
+    def setUp(self):
+        self.owner = self.create_test_user()
+        self.category = self.create_test_category()
+        self.advert = self.create_test_advert(self.owner, self.category)
+
+        self.output_data = dict(
+            id=self.advert.id,
+            owner=self.owner.id,
+            category=self.advert.category.id,
+            name=self.advert.name,
+            descr=self.advert.descr,
+            price=str(self.advert.price),
+            quantity=self.advert.quantity,
+            pickup=False,
+            nova_post=False,
+            courier=True,
+            address={},
+        )
+
+    def test_expected_fields_are_read_only(self):
+        self.assert_fields_are_read_only(
+            self.serializer_class,
+            [
+                'id',
+                'owner',
+                'category',
+                'name',
+                'descr',
+                'price',
+                'quantity',
+                'pickup',
+                'nova_post',
+                'courier',
+                'address',
+            ],
+        )
+
+    def test_serializer_returns_expected_data_without_address(self):
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=self.advert,
+            input_data={},
+            output_data=self.output_data,
+        )
+
+    def test_serializer_returns_expected_data_with_address(self):
+        address = self.create_test_address(self.advert)
+        address_data = dict(
+            city=address.city,
+            street=address.street,
+            number=address.number,
+        )
+        self.advert.refresh_from_db()
+        self.output_data['address'] = address_data
+
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=self.advert,
+            input_data={},
+            output_data=self.output_data,
+        )
 
 
 class AdvertListSerializerTest(SerializerTestCase):

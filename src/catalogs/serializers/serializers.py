@@ -2,12 +2,34 @@ from rest_framework import serializers
 
 from catalogs.models import Category
 from catalogs.models.models import Advert
+from utils.serializers import AddressFieldSerializer
 
 
 class AdvertListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advert
         fields = ('id', 'name', 'category', 'price')
+        read_only_fields = fields
+
+
+class AdvertRetrieveSerializer(serializers.ModelSerializer):
+    address = AddressFieldSerializer(read_only=True)
+
+    class Meta:
+        model = Advert
+        fields = (
+            'id',
+            'owner',
+            'category',
+            'name',
+            'descr',
+            'price',
+            'quantity',
+            'pickup',
+            'nova_post',
+            'courier',
+            'address',
+        )
         read_only_fields = fields
 
 
