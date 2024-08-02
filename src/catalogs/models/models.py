@@ -11,9 +11,17 @@ User = get_user_model()
 
 
 class Advert(CreatedUpdatedMixin):
-    owner = models.ForeignKey(verbose_name=_('owner'), to=User, on_delete=models.PROTECT, related_name='adverts')
+    owner = models.ForeignKey(
+        verbose_name=_('owner'),
+        to=User,
+        on_delete=models.PROTECT,
+        related_name='adverts',
+    )
     category = models.ForeignKey(
-        verbose_name=_('category'), to='Category', on_delete=models.PROTECT, related_name='adverts'
+        verbose_name=_('category'),
+        to='Category',
+        on_delete=models.PROTECT,
+        related_name='adverts',
     )
     name = models.CharField(
         verbose_name=_('name'),
@@ -26,7 +34,10 @@ class Advert(CreatedUpdatedMixin):
         blank=True,
     )
     price = models.DecimalField(
-        verbose_name=_('price'), max_digits=12, decimal_places=2, validators=[MinValueValidator(0)]
+        verbose_name=_('price'),
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
     )
     quantity = models.PositiveIntegerField(
         verbose_name=_('quantity'),
@@ -45,8 +56,8 @@ class Advert(CreatedUpdatedMixin):
         verbose_name=_('courier'),
         default=True,
     )
-    pickup_address = GenericRelation(
-        verbose_name=_('pickup_address'),
+    address = GenericRelation(
+        verbose_name=_('pickup address'),
         to=Address,
     )
 
@@ -62,7 +73,7 @@ class Advert(CreatedUpdatedMixin):
             )
 
     def clean_pickup_address_and_pickup(self):
-        if self.pickup and not self.pickup_address.first():
+        if self.pickup and not self.address.first():
             raise ValidationError(
                 'The "pickup_address" field must be if "pickup" field is True.',
                 'invalid_pickup_address',

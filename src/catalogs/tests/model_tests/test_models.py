@@ -51,7 +51,7 @@ class AdvertModelTest(ModelTestCase):
             [
                 dict(name='owner', to=User, relation='many_to_one', related_name='adverts'),
                 dict(name='category', to=Category, relation='many_to_one', related_name='adverts'),
-                dict(name='pickup_address', to=Address, relation='one_to_many'),
+                dict(name='address', to=Address, relation='one_to_many'),
             ],
         )
 
