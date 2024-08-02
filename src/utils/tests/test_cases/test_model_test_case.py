@@ -33,38 +33,63 @@ class ModelTestCaseTest(ModelTestCase):
     def test_assert_required_fields(self):
         self.assert_required_fields(TestModel, ['required'])
 
-        with self.assertRaisesRegex(AttributeError, r'The model "TestModel" has no field named "non_existent".'):
+        with self.assertRaisesRegex(
+            AttributeError,
+            r'The model "TestModel" has no field named "non_existent".',
+        ):
             self.assert_required_fields(TestModel, ['non_existent'])
 
-        with self.assertRaisesRegex(AssertionError, 'The field "null_true" cannot be null.'):
+        with self.assertRaisesRegex(
+            AssertionError,
+            'The field "null_true" cannot be null.',
+        ):
             self.assert_required_fields(TestModel, ['null_true'])
 
-        with self.assertRaisesRegex(AssertionError, 'The field "blank_true" cannot be blank.'):
+        with self.assertRaisesRegex(
+            AssertionError,
+            'The field "blank_true" cannot be blank.',
+        ):
             self.assert_required_fields(TestModel, ['blank_true'])
 
     def test_assert_optional_fields(self):
         self.assert_optional_fields(TestModel, ['optional'])
 
-        with self.assertRaisesRegex(AttributeError, r'The model "TestModel" has no field named "non_existent".'):
+        with self.assertRaisesRegex(
+            AttributeError,
+            r'The model "TestModel" has no field named "non_existent".',
+        ):
             self.assert_optional_fields(TestModel, ['non_existent'])
 
-        with self.assertRaisesRegex(AssertionError, 'The field "null_false" must be null.'):
+        with self.assertRaisesRegex(
+            AssertionError,
+            'The field "null_false" must be null.',
+        ):
             self.assert_optional_fields(TestModel, ['null_false'])
 
-        with self.assertRaisesRegex(AssertionError, 'The field "blank_false" must be blank.'):
+        with self.assertRaisesRegex(
+            AssertionError,
+            'The field "blank_false" must be blank.',
+        ):
             self.assert_optional_fields(TestModel, ['blank_false'])
 
     def test_assert_fields_with_value_by_default(self):
         self.assert_fields_have_default_value(TestModel, dict(default=True))
 
-        with self.assertRaisesRegex(AttributeError, r'The model "TestModel" has no field named "non_existent".'):
+        with self.assertRaisesRegex(
+            AttributeError,
+            r'The model "TestModel" has no field named "non_existent".',
+        ):
             self.assert_fields_have_default_value(TestModel, dict(non_existent=True))
 
-        with self.assertRaisesRegex(AssertionError, 'The field "required" has no default value.'):
+        with self.assertRaisesRegex(
+            AssertionError,
+            'The field "required" has no default value.',
+        ):
             self.assert_fields_have_default_value(TestModel, dict(required=True))
 
         with self.assertRaisesRegex(
-            AssertionError, r'The field "default" must have "False" by default, but had "True".'
+            AssertionError,
+            r'The field "default" must have "False" by default, but had "True".',
         ):
             self.assert_fields_have_default_value(TestModel, dict(default=False))
 
@@ -74,10 +99,16 @@ class ModelTestCaseTest(ModelTestCase):
             dict(required=10, optional=20),
         )
 
-        with self.assertRaisesRegex(AttributeError, r'The model "TestModel" has no field named "non_existent".'):
+        with self.assertRaisesRegex(
+            AttributeError,
+            r'The model "TestModel" has no field named "non_existent".',
+        ):
             self.assert_fields_have_specified_max_length(TestModel, dict(non_existent=10))
 
-        with self.assertRaisesRegex(AssertionError, r'The field "required" must have "5" max length, but had "10".'):
+        with self.assertRaisesRegex(
+            AssertionError,
+            r'The field "required" must have "5" max length, but had "10".',
+        ):
             self.assert_fields_have_specified_max_length(
                 TestModel,
                 dict(required=5),
@@ -94,7 +125,10 @@ class ModelTestCaseTest(ModelTestCase):
             ],
         )
 
-        with self.assertRaisesRegex(AttributeError, r'The model "TestModel" has no field named "non_existent".'):
+        with self.assertRaisesRegex(
+            AttributeError,
+            r'The model "TestModel" has no field named "non_existent".',
+        ):
             self.assert_fields_have_specified_relation(
                 TestModel,
                 [
@@ -111,7 +145,8 @@ class ModelTestCaseTest(ModelTestCase):
             )
 
         with self.assertRaisesRegex(
-            TypeError, r'The field "required" must be one of classes: "ForeignKey", "OneToOneField", "ManyToManyField".'
+            TypeError,
+            r'The field "required" must be one of classes: "ForeignKey", "OneToOneField", "ManyToManyField".',
         ):
             self.assert_fields_have_specified_relation(
                 TestModel,
@@ -120,7 +155,10 @@ class ModelTestCaseTest(ModelTestCase):
                 ],
             )
 
-        with self.assertRaisesRegex(AssertionError, r'The field "one_to_one" must have "many_to_one" relation.'):
+        with self.assertRaisesRegex(
+            AssertionError,
+            r'The field "one_to_one" must have "many_to_one" relation.',
+        ):
             self.assert_fields_have_specified_relation(
                 TestModel,
                 [
@@ -129,7 +167,8 @@ class ModelTestCaseTest(ModelTestCase):
             )
 
         with self.assertRaisesRegex(
-            AssertionError, r'The field "one_to_one" must is "TestModel", but was "TestRelationModel".'
+            AssertionError,
+            r'The field "one_to_one" must is "TestModel", but was "TestRelationModel".',
         ):
             self.assert_fields_have_specified_relation(
                 TestModel,
@@ -139,7 +178,8 @@ class ModelTestCaseTest(ModelTestCase):
             )
 
         with self.assertRaisesRegex(
-            AssertionError, r'The field "one_to_one" must have "many_to_many" related name", but had "one_to_one".'
+            AssertionError,
+            r'The field "one_to_one" must have "many_to_many" related name", but had "one_to_one".',
         ):
             self.assert_fields_have_specified_relation(
                 TestModel,
@@ -151,25 +191,37 @@ class ModelTestCaseTest(ModelTestCase):
     def test_assert_decimal_fields(self):
         self.assert_decimal_fields(TestModel, [dict(name='decimal', max_digits=10, decimal_places=2)])
 
-        with self.assertRaisesRegex(AttributeError, r'The model "TestModel" has no field named "non_existent".'):
+        with self.assertRaisesRegex(
+            AttributeError,
+            r'The model "TestModel" has no field named "non_existent".',
+        ):
             self.assert_decimal_fields(
                 TestModel,
                 [dict(name='non_existent', max_digits=10, decimal_places=2)],
             )
 
-        with self.assertRaisesRegex(TypeError, r'The field "required" must be class named "DecimalField".'):
+        with self.assertRaisesRegex(
+            TypeError,
+            r'The field "required" must be class named "DecimalField".',
+        ):
             self.assert_decimal_fields(
                 TestModel,
                 [dict(name='required', max_digits=10, decimal_places=2)],
             )
 
-        with self.assertRaisesRegex(AssertionError, r'The field "decimal" must have "12" max digits, but had "10".'):
+        with self.assertRaisesRegex(
+            AssertionError,
+            r'The field "decimal" must have "12" max digits, but had "10".',
+        ):
             self.assert_decimal_fields(
                 TestModel,
                 [dict(name='decimal', max_digits=12, decimal_places=2)],
             )
 
-        with self.assertRaisesRegex(AssertionError, r'The field "decimal" must have "4" decimal places, but had "2".'):
+        with self.assertRaisesRegex(
+            AssertionError,
+            r'The field "decimal" must have "4" decimal places, but had "2".',
+        ):
             self.assert_decimal_fields(
                 TestModel,
                 [dict(name='decimal', max_digits=10, decimal_places=4)],
