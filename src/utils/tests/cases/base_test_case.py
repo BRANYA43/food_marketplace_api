@@ -1,4 +1,4 @@
-from typing import Any, Type
+from typing import Any
 
 from django.db.models import Model
 from rest_framework.test import APITestCase
@@ -41,7 +41,7 @@ class BaseTestCase(APITestCase):
     def assert_is_subclass(self, __cls, __class_or_tuple):
         self.assertTrue(issubclass(__cls, __class_or_tuple), msg=f'{__cls} is not subclass of {__class_or_tuple}.')
 
-    def assert_model_instance(self, model_instance: Type[Model], expected_data: dict[str, Any], equal=True):
+    def assert_model_instance(self, model_instance: Model, expected_data: dict[str, Any], equal=True):
         assert_methods = {True: self.assertEqual, False: self.assertNotEqual}
         for field_name, value in expected_data.items():
             got_field_value = getattr(model_instance, field_name)
