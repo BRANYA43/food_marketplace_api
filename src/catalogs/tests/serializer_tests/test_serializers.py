@@ -8,11 +8,126 @@ from catalogs.serializers.serializers import (
     AdvertListSerializer,
     AdvertRetrieveSerializer,
     AdvertCreateSerializer,
+    AdvertUpdateSerializer,
 )
 from utils.models import Address
 from utils.tests import ApiTestCase
 from utils.tests.cases import SerializerTestCase
 from utils.serializers.mixins import AddressCreateUpdateMixin
+
+
+class AdvertUpdateSerializerTest(SerializerTestCase):
+    serializer_class = AdvertUpdateSerializer
+    advert_model = Advert
+    address_model = Address
+
+    def setUp(self):
+        self.owner = self.create_test_user()
+        self.category = self.create_test_category()
+        self.advert = self.create_test_advert(self.owner, self.category)
+
+        self.input_data = dict(name='New name')
+
+        self.output_data = dict(
+            id=1,
+            owner=self.owner.id,
+            category=self.category.id,
+            name=self.input_data['name'],
+            descr=None,
+            price=str(self.advert.price),
+            quantity=self.advert.quantity,
+            pickup=self.advert.pickup,
+            nova_post=self.advert.nova_post,
+            courier=self.advert.courier,
+            address={},
+        )
+
+        self.input_address_data = dict(city='new city', street='new stree', number='new number')
+
+    def test_serializer_inherits_mixins(self):
+        self.assert_is_subclass(self.serializer_class, AddressCreateUpdateMixin)
+
+    def test_expected_fields_are_read_only(self):
+        self.assert_fields_are_read_only(self.serializer_class, ['id', 'owner'])
+
+    def test_serializer_updates_advert_without_address(self):
+        self.assertEqual(self.address_model.objects.count(), 0)
+        self.assert_model_instance(self.advert, self.input_data, equal=False)
+
+        self.create_serializer(
+            self.serializer_class,
+            self.input_data,
+            save=True,
+            partial=True,
+            instance=self.advert,
+        )
+
+        self.assertEqual(self.address_model.objects.count(), 0)
+        self.assert_model_instance(self.advert, self.input_data)
+
+    def test_serializer_updates_advert_with_address(self):
+        address = self.create_test_address(self.advert)
+        self.advert.refresh_from_db()
+
+        self.assert_model_instance(address, self.input_address_data, equal=False)
+        self.assert_model_instance(self.advert, self.input_data, equal=False)
+
+        self.create_serializer(
+            self.serializer_class,
+            dict(**self.input_data, address=self.input_address_data),
+            save=True,
+            partial=True,
+            instance=self.advert,
+        )
+
+        address.refresh_from_db()
+        self.assert_model_instance(address, self.input_address_data)
+        self.assert_model_instance(self.advert, self.input_data)
+
+    def test_serializer_updates_advert_and_create_address(self):
+        self.assertEqual(self.address_model.objects.count(), 0)
+
+        self.assert_model_instance(
+            self.advert,
+            self.input_data,
+            equal=False,
+        )
+
+        self.create_serializer(
+            self.serializer_class,
+            dict(**self.input_data, address=self.input_address_data),
+            save=True,
+            partial=True,
+            instance=self.advert,
+        )
+
+        self.assertEqual(self.address_model.objects.count(), 1)
+
+        address = self.address_model.objects.get(object_id=self.advert.id)
+        self.assert_model_instance(address, self.input_address_data)
+
+        self.assert_model_instance(self.advert, self.input_data)
+
+    def test_serializer_returns_expected_data_without_address(self):
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            input_data=self.input_data,
+            output_data=self.output_data,
+            save=True,
+            partial=True,
+            instance=self.advert,
+        )
+
+    def test_serializer_returns_expected_data_with_address(self):
+        self.output_data['address'] = self.input_address_data
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            input_data=dict(**self.input_data, address=self.input_address_data),
+            output_data=self.output_data,
+            save=True,
+            partial=True,
+            instance=self.advert,
+        )
 
 
 class AdvertCreateSerializerTest(SerializerTestCase):

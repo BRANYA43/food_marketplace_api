@@ -53,6 +53,25 @@ class AdvertCreateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializ
         read_only_fields = ('id',)
 
 
+class AdvertUpdateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializer):
+    class Meta:
+        model = Advert
+        fields = (
+            'id',
+            'owner',
+            'category',
+            'name',
+            'descr',
+            'price',
+            'quantity',
+            'pickup',
+            'nova_post',
+            'courier',
+            'address',
+        )
+        read_only_fields = ('id', 'owner')
+
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
