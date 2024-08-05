@@ -18,6 +18,14 @@ from catalogs.serializers.serializers import (
 
 
 @extend_schema(tags=['Catalog'])
+@extend_schema_view(
+    list=extend_schema(summary='Get an advert list.'),
+    retrieve=extend_schema(summary='Get an advert by ID.'),
+    create=extend_schema(summary='Create a new advert.'),
+    update=extend_schema(summary='Update an advert by ID fully.'),
+    partial_update=extend_schema(summary='Update an advert by ID partially.'),
+    destroy=extend_schema(summary='Delete an advert by ID with a related address.'),
+)
 class AdvertViewSet(viewsets.ModelViewSet):
     queryset = Advert.objects.prefetch_related('address').order_by('-created_at')
     serializer_classes = dict(
