@@ -106,12 +106,14 @@ class SerializerTestCase(BaseTestCase):
     @staticmethod
     def create_serializer(
         serializer: Type[Serializer],
-        input_data: dict[str, Any] | list[dict[str, Any]],
+        input_data: dict[str, Any] | list[dict[str, Any]] = empty,
         save=False,
         **extra_params,
     ) -> Serializer | ModelSerializer:
         serializer = serializer(data=input_data, **extra_params)
-        serializer.is_valid(raise_exception=True)
+
+        if not isinstance(input_data, empty):
+            serializer.is_valid(raise_exception=True)
 
         if save:
             serializer.save()
