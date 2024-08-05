@@ -1,12 +1,45 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse, OpenApiExample, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from catalogs.models import Category
+from catalogs.models.models import Advert
+from catalogs.permissions import IsOwner
 from catalogs.serializers import CategoryListSerializer
-from catalogs.serializers.serializers import CategorySerializer
+from catalogs.serializers.serializers import (
+    CategorySerializer,
+    AdvertListSerializer,
+    AdvertRetrieveSerializer,
+    AdvertCreateSerializer,
+    AdvertUpdateSerializer,
+)
+
+
+@extend_schema(tags=['Catalog'])
+class AdvertViewSet(viewsets.ModelViewSet):
+    queryset = Advert.objects.prefetch_related('address').order_by('-created_at')
+    serializer_classes = dict(
+        list=AdvertListSerializer,
+        retrieve=AdvertRetrieveSerializer,
+        create=AdvertCreateSerializer,
+        update=AdvertUpdateSerializer,
+    )
+
+    def get_serializer_class(self):
+        if self.action == 'partial_update':
+            return self.serializer_classes['update']
+        return self.serializer_classes[self.action]
+
+    def get_permissions(self):
+        match self.action:
+            case 'create':
+                return (IsAuthenticated(),)
+            case 'list' | 'retrieve':
+                return (AllowAny(),)
+            case _:
+                return (IsOwner(),)
 
 
 @extend_schema(tags=['Catalog'])
