@@ -1,6 +1,8 @@
-from typing import Any
+from typing import Any, Type
 
 from django.db.models import Model
+from rest_framework.fields import empty
+from rest_framework.serializers import Serializer, ModelSerializer
 from rest_framework.test import APITestCase
 
 from accounts.models import User
@@ -30,10 +32,26 @@ class BaseTestCase(APITestCase):
     def create_test_category(name='name', **extra_fields) -> Category:
         return Category.objects.create(name=name, **extra_fields)
 
-    def create_test_advert(
-        self, owner: User, category: Category, name='name', price='100.00', **extra_fields
-    ) -> Advert:
+    @staticmethod
+    def create_test_advert(owner: User, category: Category, name='name', price='100.00', **extra_fields) -> Advert:
         return Advert.objects.create(owner=owner, category=category, name=name, price=price, **extra_fields)
+
+    @staticmethod
+    def create_serializer(
+        serializer: Type[Serializer],
+        input_data: dict[str, Any] | list[dict[str, Any]] = empty,
+        save=False,
+        **extra_params,
+    ) -> Serializer | ModelSerializer:
+        serializer = serializer(data=input_data, **extra_params)
+
+        if not isinstance(input_data, empty):
+            serializer.is_valid(raise_exception=True)
+
+        if save:
+            serializer.save()
+
+        return serializer
 
     ###########
     # Asserts #

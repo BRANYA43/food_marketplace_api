@@ -1,7 +1,7 @@
 from typing import Type, Any
 
 from rest_framework.fields import empty
-from rest_framework.serializers import Serializer, ModelSerializer
+from rest_framework.serializers import Serializer
 
 from utils.tests.cases import BaseTestCase
 
@@ -102,23 +102,6 @@ class SerializerTestCase(BaseTestCase):
                 field.write_only,
                 msg=f'The field "{field_name}" must be write only.',
             )
-
-    @staticmethod
-    def create_serializer(
-        serializer: Type[Serializer],
-        input_data: dict[str, Any] | list[dict[str, Any]] = empty,
-        save=False,
-        **extra_params,
-    ) -> Serializer | ModelSerializer:
-        serializer = serializer(data=input_data, **extra_params)
-
-        if not isinstance(input_data, empty):
-            serializer.is_valid(raise_exception=True)
-
-        if save:
-            serializer.save()
-
-        return serializer
 
     def assert_output_serializer_data(
         self,
