@@ -45,7 +45,7 @@ class BaseTestCase(APITestCase):
     ) -> Serializer | ModelSerializer:
         serializer = serializer(data=input_data, **extra_params)
 
-        if not isinstance(input_data, empty):
+        if input_data is not empty:
             serializer.is_valid(raise_exception=True)
 
         if save:
