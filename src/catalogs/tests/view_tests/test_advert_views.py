@@ -247,3 +247,58 @@ class AdvertUpdateViewTest(ViewTestCase):
         serializer = self.create_serializer(self.serializer_class, instance=self.advert)
 
         self.assert_response(response, status.HTTP_200_OK, output_data=serializer.data)
+
+
+class AdvertDeleteViewTest(ViewTestCase):
+    advert_model = Advert
+    address_model = Address
+
+    def setUp(self):
+        self.owner = self.create_test_user()
+        self.category = self.create_test_category()
+        self.advert = self.create_test_advert(self.owner, self.category)
+        self.url = reverse('advert-detail', [self.advert.pk])
+
+        self.login_user_by_token(self.owner)
+
+    def test_view_isnt_available_to_unauthenticated_user(self):
+        self.logout_user_by_token(self.owner)
+
+        response = self.client.delete(self.url)
+
+        self.assert_response(response, status.HTTP_401_UNAUTHORIZED)
+
+    def test_view_is_available_to_authenticated_owner(self):
+        response = self.client.delete(self.url)
+
+        self.assert_response(response, status.HTTP_204_NO_CONTENT)
+
+    def test_view_isnt_available_to_not_owner(self):
+        not_owner = self.create_test_user(email='not.owner@test.com')
+        self.login_user_by_token(not_owner)
+
+        response = self.client.delete(self.url)
+
+        self.assert_response(response, status.HTTP_403_FORBIDDEN)
+
+    def test_view_delete_advert_without_address(self):
+        self.assertEqual(self.advert_model.objects.count(), 1)
+        self.assertEqual(self.address_model.objects.count(), 0)
+
+        response = self.client.delete(self.url)
+
+        self.assert_response(response, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(self.advert_model.objects.count(), 0)
+        self.assertEqual(self.address_model.objects.count(), 0)
+
+    def test_view_delete_advert_with_address(self):
+        self.create_test_address(self.advert)
+
+        self.assertEqual(self.advert_model.objects.count(), 1)
+        self.assertEqual(self.address_model.objects.count(), 1)
+
+        response = self.client.delete(self.url)
+
+        self.assert_response(response, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(self.advert_model.objects.count(), 0)
+        self.assertEqual(self.address_model.objects.count(), 0)
