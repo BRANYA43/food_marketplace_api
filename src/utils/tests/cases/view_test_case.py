@@ -33,6 +33,7 @@ class ViewTestCase(BaseTestCase):
         response: Response,
         status_code: int,
         output_data: list[dict[str, Any]] | dict[str, Any] | None = empty,
+        used_paginate=False,
     ):
         self.assertEqual(
             response.status_code,
@@ -41,7 +42,8 @@ class ViewTestCase(BaseTestCase):
         )
 
         if output_data is not empty:
-            self.assertEqual(response.data, output_data)
+            response_data = response.data['results'] if used_paginate else response.data
+            self.assertEqual(response_data, output_data)
 
     def assert_http_methods_availability(
         self,
