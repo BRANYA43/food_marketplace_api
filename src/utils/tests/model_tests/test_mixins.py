@@ -1,19 +1,14 @@
 from utils.models.mixins import CreatedUpdatedMixin
-from utils.tests import AbstractModelTestCase
+from utils.tests.cases import ModelTestCase
 
 
-class CreatedUpdatedMixinTest(AbstractModelTestCase):
-    abstract_model = CreatedUpdatedMixin
+class CreatedUpdatedMixinTest(ModelTestCase):
+    mixin = CreatedUpdatedMixin
 
-    def test_updated_at_field_sets_value_auto(self):
-        instance = self.model.objects.create()
-        old_update_at = instance.updated_at
-        instance.save()
+    def test_updated_at_field_sets_value_auto_after_update(self):
+        field = self.mixin.updated_at.field
+        self.assertTrue(field.auto_now)
 
-        self.assertNotEqual(old_update_at, instance.updated_at)
-
-    def test_created_at_field_sets_value_auto_only_once(self):
-        instance = self.model.objects.create()
-        old_create_at = instance.created_at
-        instance.save()
-        self.assertEqual(old_create_at, instance.created_at)
+    def test_created_at_field_sets_value_auto_after_creation(self):
+        field = self.mixin.created_at.field
+        self.assertTrue(field.auto_now_add)
