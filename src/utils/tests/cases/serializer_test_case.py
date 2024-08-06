@@ -106,8 +106,8 @@ class SerializerTestCase(BaseTestCase):
     def assert_output_serializer_data(
         self,
         serializer: Type[Serializer],
-        input_data: dict[str, Any] | list[dict[str, Any]],
         output_data: dict[str, Any] | list[dict[str, Any]],
+        input_data: dict[str, Any] | list[dict[str, Any]] = empty,
         save=False,
         **extra_params,
     ):
