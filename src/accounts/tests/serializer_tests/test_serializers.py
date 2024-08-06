@@ -3,54 +3,22 @@ from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.serializers import serializers, mixins
-from accounts.serializers.serializers import UserDisableSerializer
+from accounts.serializers import (
+    UserSetPasswordSerializer,
+    UserRegisterSerializer,
+    UserRetrieveSerializer,
+    UserUpdateSerializer,
+    UserDisableSerializer,
+)
+from accounts.serializers.mixins import PasswordValidationMixin, PhoneNumberValidationMixin
 from utils.serializers.mixins import AddressCreateUpdateMixin
-from utils.tests import ApiTestCase
+from utils.tests.cases import SerializerTestCase
 
 User = get_user_model()
 
 
-class UserRetrieveSerializerTest(ApiTestCase):
-    serializer_class = serializers.UserRetrieveSerializer
-
-    def setUp(self) -> None:
-        self.user = self.create_test_user(full_name=self.TEST_FULL_NAME, phone=self.TEST_PHONE)
-
-    def test_serializer_returns_expected_data_without_address(self):
-        expected_data = dict(
-            email=self.user.email,
-            full_name=self.user.full_name,
-            phone=self.user.phone,
-            address={},
-        )
-
-        serializer = self.serializer_class(instance=self.user)
-
-        self.assertEqual(serializer.data, expected_data)
-
-    def test_serializer_returns_expected_data_with_address(self):
-        address = self.create_test_address(self.user)
-        self.user.refresh_from_db()
-
-        expected_data = dict(
-            email=self.user.email,
-            full_name=self.user.full_name,
-            phone=self.user.phone,
-            address=dict(
-                city=address.city,
-                street=address.street,
-                number=address.number,
-            ),
-        )
-
-        serializer = self.serializer_class(instance=self.user)
-
-        self.assertEqual(serializer.data, expected_data)
-
-
-class UserSetPasswordSerializerTest(ApiTestCase):
-    serializer_class = serializers.UserSetPasswordSerializer
+class UserSetPasswordSerializerTest(SerializerTestCase):
+    serializer_class = UserSetPasswordSerializer
 
     def setUp(self) -> None:
         self.user = self.create_test_user()
@@ -60,40 +28,45 @@ class UserSetPasswordSerializerTest(ApiTestCase):
         )
 
     def test_expected_field_are_required(self):
-        self.assert_required_serializer_fields(self.serializer_class, self.data, ['password', 'new_password'])
+        self.assert_required_fields(self.serializer_class, ['password', 'new_password'])
+
+    def test_expected_fields_are_write_only(self):
+        self.assert_fields_are_write_only(self.serializer_class, ['password', 'new_password'])
 
     def test_serializer_updates_user_password(self):
         self.assertFalse(self.user.check_password(self.data['new_password']))
 
-        serializer = self.serializer_class(self.user, self.data)
-        self.assertTrue(serializer.is_valid(raise_exception=True))
-        serializer.save()
-
-        self.user.refresh_from_db()
+        self.create_serializer(self.serializer_class, input_data=self.data, instance=self.user, save=True)
 
         self.assertTrue(self.user.check_password(self.data['new_password']))
 
     def test_serializer_doesnt_update_user_password_with_not_user_password(self):
         self.data['password'] = 'invalid_password'
 
-        serializer = self.serializer_class(self.user, self.data)
         with self.assertRaisesRegex(ValidationError, r'password.+invalid_password.'):
-            serializer.is_valid(raise_exception=True)
+            self.create_serializer(
+                self.serializer_class,
+                input_data=self.data,
+                instance=self.user,
+            )
 
     def test_serializer_doesnt_update_user_password_with_invalid_new_password(self):
         self.data['new_password'] = '123'
 
-        serializer = self.serializer_class(self.user, self.data)
         with self.assertRaisesRegex(ValidationError, r'password_too_short.+password_entirely_numeric'):
-            serializer.is_valid(raise_exception=True)
+            self.create_serializer(
+                self.serializer_class,
+                input_data=self.data,
+                instance=self.user,
+            )
 
 
-class UserRegisterSerializerTest(ApiTestCase):
-    serializer_class = serializers.UserRegisterSerializer
-    model = User
+class UserRegisterSerializerTest(SerializerTestCase):
+    serializer_class = UserRegisterSerializer
+    user_model = User
 
     def setUp(self) -> None:
-        self.data = dict(
+        self.input_data = dict(
             email=self.TEST_EMAIL,
             password=self.TEST_PASSWORD,
             full_name=self.TEST_FULL_NAME,
@@ -101,79 +74,109 @@ class UserRegisterSerializerTest(ApiTestCase):
         )
 
     def test_serializer_inherits_expected_mixins(self):
-        expected_mixins = [mixins.PasswordValidationMixin, mixins.PhoneNumberValidationMixin]
-        for mixin in expected_mixins:
-            self.assert_is_subclass(self.serializer_class, mixin)
-
-    def test_serializer_creates_user(self):
-        self.assertEqual(self.model.objects.count(), 0)
-
-        serializer = self.serializer_class(data=self.data)
-        self.assertTrue(serializer.is_valid(raise_exception=True))
-        serializer.save()
-
-        self.assertEqual(self.model.objects.count(), 1)
-
-        user = self.model.objects.first()
-
-        self.assertEqual(user.email, self.data['email'])
-        self.assertTrue(user.check_password(self.data['password']))
-        self.assertEqual(user.full_name, self.data['full_name'])
-        self.assertEqual(user.phone, self.data['phone'])
-
-    def test_expected_fields_are_write_only(self):
-        self.assert_write_only_serializer_fields(self.serializer_class, self.data, ['password'])
+        self.assert_is_subclass(self.serializer_class, (PasswordValidationMixin, PhoneNumberValidationMixin))
 
     def test_expected_fields_are_required(self):
-        self.assert_required_serializer_fields(
-            self.serializer_class, self.data, ['email', 'password', 'full_name', 'phone']
+        self.assert_required_fields(self.serializer_class, ['email', 'password', 'full_name', 'phone'])
+
+    def test_expected_fields_are_write_only(self):
+        self.assert_fields_are_write_only(self.serializer_class, ['password'])
+
+    def test_serializer_creates_user(self):
+        self.assertEqual(self.user_model.objects.count(), 0)
+
+        self.create_serializer(
+            self.serializer_class,
+            input_data=self.input_data,
+            save=True,
+        )
+
+        self.assertEqual(self.user_model.objects.count(), 1)
+
+        user = self.user_model.objects.first()
+
+        self.assertTrue(user.check_password(self.input_data.pop('password')))
+        self.assert_model_instance(user, self.input_data)
+
+
+class UserRetrieveSerializerTest(SerializerTestCase):
+    serializer_class = UserRetrieveSerializer
+
+    def setUp(self) -> None:
+        self.user = self.create_test_user(full_name=self.TEST_FULL_NAME, phone=self.TEST_PHONE)
+
+    def test_expected_fields_are_read_only(self):
+        self.assert_fields_are_read_only(self.serializer_class, ['email', 'full_name', 'phone', 'address'])
+
+    def test_serializer_returns_expected_data_without_address(self):
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=self.user,
+            output_data=dict(
+                email=self.user.email,
+                full_name=self.user.full_name,
+                phone=self.user.phone,
+                address={},
+            ),
+        )
+
+    def test_serializer_returns_expected_data_with_address(self):
+        address = self.create_test_address(self.user)
+        self.user.refresh_from_db()
+
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=self.user,
+            output_data=dict(
+                email=self.user.email,
+                full_name=self.user.full_name,
+                phone=self.user.phone,
+                address=dict(
+                    city=address.city,
+                    street=address.street,
+                    number=address.number,
+                ),
+            ),
         )
 
 
-class UserUpdateSerializerTest(ApiTestCase):
-    serializer_class = serializers.UserUpdateSerializer
+class UserUpdateSerializerTest(SerializerTestCase):
+    serializer_class = UserUpdateSerializer
 
     def setUp(self) -> None:
         self.user = self.create_test_user()
-        self.update_data = dict(
+        self.input_data = dict(
             email='new.email@test.com',
         )
 
-        self.expected_data = dict(
-            **self.update_data,
+        self.output_data = dict(
+            **self.input_data,
             full_name=self.user.full_name,
             phone=self.user.phone,
             address={},
         )
 
-    def test_serializer_inherits_expected_mixins(self):
-        expected_mixins = (mixins.PhoneNumberValidationMixin, AddressCreateUpdateMixin)
-        self.assert_is_subclass(self.serializer_class, expected_mixins)
+    def test_serializer_inherits_mixins(self):
+        self.assert_is_subclass(self.serializer_class, (PhoneNumberValidationMixin, AddressCreateUpdateMixin))
 
-    def test_serializer_returns_expected_data_without_address(self):
-        serializer = self.serializer_class(self.user, self.update_data, partial=True)
-        self.assertTrue(serializer.is_valid(raise_exception=True))
-        serializer.save()
+    def test_expected_fields_are_required(self):
+        self.assert_required_fields(self.serializer_class, ['email', 'full_name', 'phone'])
 
-        self.assertEqual(serializer.data, self.expected_data)
+    def test_expected_fields_are_optional(self):
+        self.assert_optional_fields(self.serializer_class, ['address'])
 
-    def test_serializer_returns_expected_data_with_address(self):
-        address = self.create_test_address(self.user)
-        self.user.refresh_from_db()
-        self.expected_data['address'] = dict(
-            city=address.city,
-            street=address.street,
-            number=address.number,
+    def test_serializer_returns_data_without_address(self):
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=self.user,
+            input_data=self.input_data,
+            output_data=self.output_data,
+            partial=True,
+            save=True,
         )
 
-        serializer = self.serializer_class(self.user, self.update_data, partial=True)
-        self.assertTrue(serializer.is_valid(raise_exception=True))
-        serializer.save()
 
-        self.assertEqual(serializer.data, self.expected_data)
-
-
-class UserDisableSerializerTest(ApiTestCase):
+class UserDisableSerializerTest(SerializerTestCase):
     serializer_class = UserDisableSerializer
 
     def setUp(self) -> None:
@@ -182,62 +185,82 @@ class UserDisableSerializerTest(ApiTestCase):
             password=self.TEST_PASSWORD,
         )
 
-    # TODO password must be required
-    # def test_expected_fields_are_required(self):
-    #     self.assert_required_serializer_fields(self.serializer_class, self.data, ['password'])
+    def test_expected_fields_are_required(self):
+        self.assert_required_fields(self.serializer_class, ['password'])
 
     def serializer_doesnt_disable_user_by_not_user_password(self):
         self.data['password'] = 'other_password'
-        serializer = self.serializer_class(self.user, self.data)
         with self.assertRaisesRegex(ValidationError, r'invalid_password'):
-            serializer.is_valid(raise_exception=True)
+            self.create_serializer(
+                self.serializer_class,
+                instance=self.user,
+                input_data=self.data,
+            )
 
     def serializer_doesnt_disable_superuser(self):
         self.user.is_superuser = True
         self.user.save()
 
-        serializer = self.serializer_class(self.user, self.data)
-
         with self.assertRaisesRegex(ValidationError, r'disable_staff'):
-            serializer.is_valid(raise_exception=True)
+            self.create_serializer(
+                self.serializer_class,
+                instance=self.user,
+                input_data=self.data,
+            )
 
     def serializer_doesnt_disable_staff_user(self):
         self.user.is_staff = True
         self.user.save()
 
-        serializer = self.serializer_class(self.user, self.data)
-
         with self.assertRaisesRegex(ValidationError, r'disable_staff'):
-            serializer.is_valid(raise_exception=True)
+            self.create_serializer(
+                self.serializer_class,
+                instance=self.user,
+                input_data=self.data,
+            )
 
     def test_serializer_replaces_user_data(self):
-        serializer = self.serializer_class(self.user, self.data)
-        self.assertTrue(serializer.is_valid(raise_exception=True))
+        self.create_serializer(
+            self.serializer_class,
+            instance=self.user,
+            input_data=self.data,
+        )
 
         self.user.refresh_from_db()
 
-        self.assertFalse(self.user.is_active)
-        self.assertEqual(self.user.email, f'user.{self.user.pk}@disabled.com')
-        self.assertEqual(self.user.full_name, f'disabled user {self.user.pk}')
-        self.assertEqual(self.user.phone, '+38 (012) 345 6789')
-        self.assertEqual(self.user.password, '-')
+        self.assert_model_instance(
+            self.user,
+            dict(
+                is_active=False,
+                email=f'user.{self.user.pk}@disabled.com',
+                password='-',
+                full_name=f'disabled user {self.user.pk}',
+                phone='+38 (012) 345 6789',
+            ),
+        )
 
     def test_serializer_replaces_user_address_data(self):
         address = self.create_test_address(self.user)
         self.user.refresh_from_db()
 
-        serializer = self.serializer_class(self.user, self.data)
-        self.assertTrue(serializer.is_valid(raise_exception=True))
+        self.create_serializer(
+            self.serializer_class,
+            instance=self.user,
+            input_data=self.data,
+        )
 
         address.refresh_from_db()
 
-        self.assertEqual(address.number, '-')
+        self.assert_model_instance(address, dict(number='-'))
 
     def test_serializer_blacklists_refresh_tokens_that_are_associated_with_user(self):
         tokens: list[RefreshToken] = [self.user.refresh_token, self.user.refresh_token, self.user.refresh_token]
 
-        serializer = self.serializer_class(self.user, self.data)
-        self.assertTrue(serializer.is_valid(raise_exception=True))
+        self.create_serializer(
+            self.serializer_class,
+            instance=self.user,
+            input_data=self.data,
+        )
 
         for token in tokens:
             self.assertRaises(TokenError, token.check_blacklist)
@@ -248,5 +271,8 @@ class UserDisableSerializerTest(ApiTestCase):
 
         self.assertRaises(TokenError, blacklisted_token.check_blacklist)
 
-        serializer = self.serializer_class(self.user, self.data)
-        self.assertTrue(serializer.is_valid(raise_exception=True))  # not raise
+        self.create_serializer(
+            self.serializer_class,
+            instance=self.user,
+            input_data=self.data,
+        )  # not raise error

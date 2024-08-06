@@ -13,14 +13,6 @@ from utils.serializers.mixins import AddressCreateUpdateMixin
 User = get_user_model()
 
 
-class UserRetrieveSerializer(serializers.ModelSerializer):
-    address = AddressFieldSerializer()
-
-    class Meta:
-        model = User
-        fields = ('email', 'full_name', 'phone', 'address')
-
-
 class UserSetPasswordSerializer(serializers.ModelSerializer):
     """Serializer to set new password for user."""
 
@@ -50,6 +42,45 @@ class UserSetPasswordSerializer(serializers.ModelSerializer):
         return self.instance
 
 
+class UserRegisterSerializer(
+    serializers.ModelSerializer, mixins.PasswordValidationMixin, mixins.PhoneNumberValidationMixin
+):
+    """Serializer to create a new user by credentials."""
+
+    class Meta:
+        model = User
+        fields = ('email', 'password', 'full_name', 'phone')
+        extra_kwargs = dict(
+            password=dict(write_only=True),
+            full_name=dict(required=True),
+            phone=dict(required=True),
+        )
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
+
+
+class UserRetrieveSerializer(serializers.ModelSerializer):
+    address = AddressFieldSerializer(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'full_name', 'phone', 'address')
+        read_only_fields = fields
+
+
+class UserUpdateSerializer(mixins.PhoneNumberValidationMixin, AddressCreateUpdateMixin, serializers.ModelSerializer):
+    """Serializer to update user data."""
+
+    class Meta:
+        model = User
+        fields = ('email', 'full_name', 'phone', 'address')
+        extra_kwargs = dict(
+            full_name=dict(required=True),
+            phone=dict(required=True),
+        )
+
+
 class UserDisableSerializer(serializers.ModelSerializer):
     """Serializer to disable user and replace his real data to fake data."""
 
@@ -58,7 +89,6 @@ class UserDisableSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('password',)
-        extra_kwargs = dict(password=dict(required=False))  # TODO password must be required
 
     def validate_password(self, password: str) -> str:
         if not self.instance.check_password(password):
@@ -99,29 +129,3 @@ class UserDisableSerializer(serializers.ModelSerializer):
                 self.token_class(token.token).blacklist()
             except TokenError:
                 pass
-
-
-class UserUpdateSerializer(mixins.PhoneNumberValidationMixin, AddressCreateUpdateMixin, serializers.ModelSerializer):
-    """Serializer to update user data."""
-
-    class Meta:
-        model = User
-        fields = ('email', 'full_name', 'phone', 'address')
-
-
-class UserRegisterSerializer(
-    serializers.ModelSerializer, mixins.PasswordValidationMixin, mixins.PhoneNumberValidationMixin
-):
-    """Serializer to create a new user by credentials."""
-
-    class Meta:
-        model = User
-        fields = ('email', 'password', 'full_name', 'phone')
-        extra_kwargs = dict(
-            password=dict(write_only=True),
-            full_name=dict(required=True),
-            phone=dict(required=True),
-        )
-
-    def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
