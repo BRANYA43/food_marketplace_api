@@ -7,7 +7,8 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext as _
 
-from utils.models import CreatedUpdatedMixin, Address
+from utils.models.mixins import CreatedUpdatedMixin
+from utils.models import Address
 
 User = get_user_model()
 

@@ -4,7 +4,8 @@ from django.db import IntegrityError
 
 from catalogs.models import Category
 from catalogs.models.models import Advert
-from utils.models import CreatedUpdatedMixin, Address
+from utils.models.mixins import CreatedUpdatedMixin
+from utils.models import Address
 from utils.tests import ApiTestCase
 from utils.tests.cases import ModelTestCase
 

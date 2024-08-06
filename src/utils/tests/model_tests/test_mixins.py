@@ -1,9 +1,9 @@
-from utils import models
+from utils.models.mixins import CreatedUpdatedMixin
 from utils.tests import AbstractModelTestCase
 
 
 class CreatedUpdatedMixinTest(AbstractModelTestCase):
-    abstract_model = models.CreatedUpdatedMixin
+    abstract_model = CreatedUpdatedMixin
 
     def test_updated_at_field_sets_value_auto(self):
         instance = self.model.objects.create()
