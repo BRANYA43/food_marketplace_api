@@ -1,22 +1,26 @@
 from utils import models
 from utils.models.mixins import CreatedUpdatedMixin
-from utils.tests import ApiTestCase
+from utils.tests.cases import ModelTestCase
 
 
-class AddressModelTest(ApiTestCase):
+class AddressModelTest(ModelTestCase):
     model = models.Address
 
     def setUp(self) -> None:
         self.content_obj = self.create_test_user()
-        self.data = dict(city='city', street='street', number='0', content_obj=self.content_obj)
+        self.data = dict(
+            city='city',
+            street='street',
+            number='0',
+            content_obj=self.content_obj,
+        )
 
-    def test_models_inherit_created_updated_mixin(self):
+    def test_models_inherit_mixin(self):
         self.assert_is_subclass(self.model, CreatedUpdatedMixin)
 
     def test_expected_fields_are_required(self):
-        self.assert_required_model_fields(
+        self.assert_required_fields(
             self.model,
-            self.data,
             ['city', 'street', 'number'],
         )
 
