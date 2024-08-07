@@ -1,12 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
 
 from catalogs.models import Category
 from catalogs.models.models import Advert
 from utils.models.mixins import CreatedUpdatedMixin
 from utils.models import Address
-from utils.tests import ApiTestCase
 from utils.tests.cases import ModelTestCase
 
 User = get_user_model()
@@ -89,7 +87,7 @@ class AdvertModelTest(ModelTestCase):
             advert.full_clean()
 
 
-class CategoryModelTest(ApiTestCase):
+class CategoryModelTest(ModelTestCase):
     model = Category
 
     def setUp(self) -> None:
@@ -98,15 +96,22 @@ class CategoryModelTest(ApiTestCase):
         )
 
     def test_expected_fields_are_required(self):
-        self.assert_required_model_fields(self.model, self.data, ['name'])
+        self.assert_required_fields(self.model, ['name'])
 
     def test_expected_fields_are_optional(self):
-        self.assert_optional_model_fields(self.model, self.data, ['parent'])
+        self.assert_optional_fields(self.model, ['parent'])
 
-    def test_name_field_is_unique(self):
-        self.model.objects.create(**self.data)
-        with self.assertRaisesRegex(IntegrityError, r'UNIQUE'):
-            self.model.objects.create(**self.data)
+    def test_expected_fields_are_unique(self):
+        self.assert_unique_fields(self.model, ['name'])
+
+    def test_expected_fields_have_specified_max_length(self):
+        self.assert_fields_have_specified_max_length(self.model, dict(name=100))
+
+    def test_expected_fields_have_specified_relation(self):
+        self.assert_fields_have_specified_relation(
+            self.model,
+            [dict(name='parent', to=self.model, relation='many_to_one', related_name='children')],
+        )
 
     def test_is_parent_property(self):
         parent = self.model.objects.create(name='parent')
