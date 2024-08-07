@@ -5,6 +5,7 @@ from drf_standardized_errors import openapi_serializers
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt import views as jwt_views
 from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
@@ -174,17 +175,6 @@ class UserViewSet(viewsets.GenericViewSet):
         refresh=import_string(jwt_api_settings.TOKEN_REFRESH_SERIALIZER),
         verify=import_string(jwt_api_settings.TOKEN_VERIFY_SERIALIZER),
     )
-    permission_classes = dict(
-        set_password_me=(IsAuthenticated,),
-        retrieve_me=(IsAuthenticated,),
-        update_me=(IsAuthenticated,),
-        disable_me=(IsAuthenticated,),
-        register=(AllowAny,),
-        login=(AllowAny,),
-        logout=(IsAuthenticated,),
-        refresh=(AllowAny,),
-        verify=(AllowAny,),
-    )
 
     def get_serializer_class(self):
         return self.serializers_classes[self.action]
@@ -193,12 +183,14 @@ class UserViewSet(viewsets.GenericViewSet):
         return self.request.user
 
     def get_permissions(self):
-        if self.action is None:
-            return [AllowAny()]
-        return [permission() for permission in self.permission_classes[self.action]]
+        match self.action:
+            case 'set_password_me' | 'retrieve_me' | 'update_me' | 'disable_me' | 'logout':
+                return (IsAuthenticated(),)
+            case _:
+                return (AllowAny(),)
 
     @action(methods=['put'], detail=False)
-    def set_password_me(self, request):
+    def set_password_me(self, request: Request):
         user = self.get_current_user()
         serializer = self.get_serializer(instance=user, data=request.data)
         serializer.is_valid(raise_exception=True)

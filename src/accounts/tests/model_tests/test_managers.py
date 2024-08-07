@@ -1,10 +1,9 @@
 from accounts.models import managers
 from accounts import models
+from utils.tests.cases import BaseTestCase
 
-from utils.tests import ApiTestCase
 
-
-class UserManagerTest(ApiTestCase):
+class UserManagerTest(BaseTestCase):
     def setUp(self) -> None:
         self.manager = managers.UserManager()
         self.manager.model = models.User
