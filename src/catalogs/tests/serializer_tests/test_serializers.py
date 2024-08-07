@@ -11,7 +11,6 @@ from catalogs.serializers.serializers import (
     AdvertUpdateSerializer,
 )
 from utils.models import Address
-from utils.tests import ApiTestCase
 from utils.tests.cases import SerializerTestCase
 from utils.serializers.mixins import AddressCreateUpdateMixin
 
@@ -337,31 +336,32 @@ class AdvertListSerializerTest(SerializerTestCase):
         )
 
 
-class CategorySerializerTest(ApiTestCase):
+class CategorySerializerTest(SerializerTestCase):
     serializer_class = CategorySerializer
     model = Category
 
-    def test_serializer_returns_expected_data_for_some_category(self):
+    def test_serializer_returns_data_with_some_category(self):
         self.create_test_category(name='Category 1')
         self.create_test_category(name='Category 2')
 
-        expected_data = [dict(id=category.id, name=category.name) for category in self.model.objects.all()]
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=self.model.objects.filter(children=None),
+            many=True,
+            output_data=[dict(id=category.id, name=category.name) for category in self.model.objects.all()],
+        )
 
-        serializer = self.serializer_class(self.model.objects.filter(children=None), many=True)
-
-        self.assertSequenceEqual(serializer.data, expected_data)
-
-    def test_serializer_returns_expected_data_for_category(self):
+    def test_serializer_returns_data_with_one_category(self):
         category = self.create_test_category(name='Category 1')
 
-        expected_data = dict(id=category.id, name=category.name)
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=category,
+            output_data=dict(id=category.id, name=category.name),
+        )
 
-        serializer = self.serializer_class(category)
 
-        self.assertSequenceEqual(serializer.data, expected_data)
-
-
-class CategoryListSerializerTest(ApiTestCase):
+class CategoryListSerializerTest(SerializerTestCase):
     serializer_class = CategoryListSerializer
     model = Category
 
@@ -382,11 +382,12 @@ class CategoryListSerializerTest(ApiTestCase):
         self.create_test_category(name='Category 2')
         self.create_test_category(name='Category 3')
 
-        expected_data = self.get_expected_category_data(self.model.objects.filter(parent=None))
-
-        serializer = self.serializer_class(self.model.objects.filter(parent=None), many=True)
-
-        self.assertSequenceEqual(serializer.data, expected_data)
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=self.model.objects.filter(parent=None),
+            output_data=self.get_expected_category_data(self.model.objects.filter(parent=None)),
+            many=True,
+        )
 
     def test_serializer_returns_expected_data_for_some_categories_with_children(self):
         food = self.create_test_category(name='Food')
@@ -395,8 +396,9 @@ class CategoryListSerializerTest(ApiTestCase):
         self.create_test_category(name='Fruits', parent=food)
         self.create_test_category('All For Home')
 
-        expected_data = self.get_expected_category_data(self.model.objects.filter(parent=None))
-
-        serializer = self.serializer_class(self.model.objects.filter(parent=None), many=True)
-
-        self.assertSequenceEqual(serializer.data, expected_data)
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=self.model.objects.filter(parent=None),
+            output_data=self.get_expected_category_data(self.model.objects.filter(parent=None)),
+            many=True,
+        )
