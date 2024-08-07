@@ -13,6 +13,8 @@ class TestRelationModel(models.Model):
 class TestModel(models.Model):
     required = models.CharField(max_length=10)
     optional = models.CharField(max_length=20, null=True, blank=True)
+    unique = models.CharField(max_length=1, unique=True)
+    not_unique = models.CharField(max_length=1)
     decimal = models.DecimalField(max_digits=10, decimal_places=2)
     default = models.BooleanField(default=True)
     one_to_one = models.OneToOneField(to=TestRelationModel, on_delete=models.CASCADE, related_name='one_to_one')
@@ -227,3 +229,12 @@ class ModelTestCaseTest(ModelTestCase):
                 TestModel,
                 [dict(name='decimal', max_digits=10, decimal_places=4)],
             )
+
+    def test_(self):
+        self.assert_unique_fields(TestModel, ['unique'])  # not raise
+
+        with self.assertRaisesRegex(
+            AssertionError,
+            r'The field "not_unique" must be unique.',
+        ):
+            self.assert_unique_fields(TestModel, ['not_unique'])

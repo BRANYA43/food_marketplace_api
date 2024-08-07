@@ -122,3 +122,11 @@ class ModelTestCase(BaseTestCase):
                 field_data.decimal_places,
                 msg=f'The field "{field_data.name}" must have "{field_data.decimal_places}" decimal places, but had "{got_decimal_places}".',
             )
+
+    def assert_unique_fields(self, model: Type[Model], fields: list[str]):
+        for field_name in fields:
+            field = self.__get_field(model, field_name)
+            self.assertTrue(
+                field.unique,
+                msg=f'The field "{field_name}" must be unique.',
+            )
