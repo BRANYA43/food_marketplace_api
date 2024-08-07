@@ -2,7 +2,6 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResp
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
 
 from catalogs.models import Category
 from catalogs.models.models import Advert
@@ -93,38 +92,23 @@ class AdvertViewSet(viewsets.ModelViewSet):
         },
     ),
 )
-class CategoryViewSet(viewsets.GenericViewSet):
-    model = Category
+class CategoryViewSet(viewsets.mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_classes = dict(
         list=CategoryListSerializer,
         select_list=CategorySerializer,
     )
     permission_classes = (AllowAny,)
-    queryset = model.objects.filter(parent=None)
+    queryset = Category.objects.filter(parent=None)
 
     def get_serializer_class(self):
         return self.serializer_classes[self.action]
 
     def get_queryset(self):
-        querysets = dict(
-            select_list=self.model.objects.filter(children=None),
-        )
-        return querysets[self.action] if self.action in querysets else super().get_queryset()
-
-    def _list(self, request):
-        queryset = self.get_queryset()
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def list(self, request):
-        return self._list(request)
+        if self.action == 'select_list':
+            return Category.objects.filter(children=None)
+        else:
+            return super().get_queryset()
 
     @action(methods=['get'], detail=False)
-    def select_list(self, request):
-        return self._list(request)
+    def select_list(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
