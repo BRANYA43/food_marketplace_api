@@ -11,7 +11,7 @@ class CustomerCreationFormTest(BaseTestCase):
     model = User
 
     def setUp(self) -> None:
-        self.data = dict(
+        self.input_data = dict(
             email=self.TEST_EMAIL,
             password=self.TEST_PASSWORD,
             confirming_password=self.TEST_PASSWORD,
@@ -25,7 +25,7 @@ class CustomerCreationFormTest(BaseTestCase):
     def test_form_creates_user(self):
         self.assertEqual(self.model.objects.count(), 0)
 
-        form = self.form_class(data=self.data)
+        form = self.form_class(data=self.input_data)
         self.assertTrue(form.is_valid())
         form.save()
 
@@ -33,10 +33,9 @@ class CustomerCreationFormTest(BaseTestCase):
 
         user = self.model.objects.first()
 
-        self.assertEqual(user.email, self.data['email'])
-        self.assertTrue(user.check_password(self.data['password']))
-        self.assertEqual(user.full_name, self.data['full_name'])
-        self.assertEqual(user.phone, self.data['phone'])
+        del self.input_data['confirming_password']
+        self.assertTrue(user.check_password(self.input_data.pop('password')))
+        self.assert_model_instance(user, self.input_data)
 
 
 class StaffCreationFormTest(BaseTestCase):
@@ -44,7 +43,7 @@ class StaffCreationFormTest(BaseTestCase):
     model = User
 
     def setUp(self) -> None:
-        self.data = dict(
+        self.input_data = dict(
             email=self.TEST_EMAIL,
             password=self.TEST_PASSWORD,
             confirming_password=self.TEST_PASSWORD,
@@ -56,7 +55,7 @@ class StaffCreationFormTest(BaseTestCase):
     def test_form_creates_user(self):
         self.assertEqual(self.model.objects.count(), 0)
 
-        form = self.form_class(data=self.data)
+        form = self.form_class(data=self.input_data)
         self.assertTrue(form.is_valid())
         form.save()
 
@@ -64,10 +63,9 @@ class StaffCreationFormTest(BaseTestCase):
 
         user = self.model.objects.first()
 
-        self.assertEqual(user.email, self.data['email'])
-        self.assertTrue(user.check_password(self.data['password']))
-        self.assertTrue(user.is_active)
-        self.assertTrue(user.is_staff)
+        del self.input_data['confirming_password']
+        self.assertTrue(user.check_password(self.input_data.pop('password')))
+        self.assert_model_instance(user, self.input_data)
 
 
 class BaseUserCreationFormTest(BaseTestCase):
