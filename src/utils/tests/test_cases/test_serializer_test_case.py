@@ -247,13 +247,13 @@ class SerializerTestCaseTest(SerializerTestCase):
     def test_assert_output_serializer_data(self):
         self.assert_output_serializer_data(
             TestSerializerForCreate,
-            dict(username='username', password='123'),
-            dict(username='username'),
+            input_data=dict(username='username', password='123'),
+            output_data=dict(username='username'),
         )
 
         with self.assertRaisesRegex(NotImplementedError, r'.save\(\) method was called.'):
             self.create_serializer(
                 TestSerializerForCreate,
-                dict(username='username', password='123'),
+                input_data=dict(username='username', password='123'),
                 save=True,
             )

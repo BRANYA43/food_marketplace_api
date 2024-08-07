@@ -13,6 +13,7 @@ class TestRelationModel(models.Model):
 class TestModel(models.Model):
     required = models.CharField(max_length=10)
     optional = models.CharField(max_length=20, null=True, blank=True)
+    decimal = models.DecimalField(max_digits=10, decimal_places=2)
     default = models.BooleanField(default=True)
     one_to_one = models.OneToOneField(to=TestRelationModel, on_delete=models.CASCADE, related_name='one_to_one')
     many_to_many = models.ManyToManyField(to=TestRelationModel, related_name='many_to_many')

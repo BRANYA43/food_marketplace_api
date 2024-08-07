@@ -25,7 +25,7 @@ class ViewTestCaseTest(ViewTestCase):
         with self.assertRaisesRegex(AssertionError, r'None !='):
             self.assert_response(mock_response, 200, output_data={'test': 'test'})
 
-        mock_response.data = dict(results=[None])
+        mock_response.data = dict(results=[{'test': 'test'}])
         self.assert_response(mock_response, 200, output_data=[{'test': 'test'}], used_paginate=True)  # not raise
 
         with self.assertRaisesRegex(AssertionError, r'!='):
