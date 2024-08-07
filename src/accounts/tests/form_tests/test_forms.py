@@ -1,12 +1,12 @@
 from django.contrib.auth import get_user_model
 
 from accounts.forms import BaseUserCreationForm, StaffCreationForm, CustomerCreationForm
-from utils.tests import ApiTestCase
+from utils.tests.cases import BaseTestCase
 
 User = get_user_model()
 
 
-class CustomerCreationFormTest(ApiTestCase):
+class CustomerCreationFormTest(BaseTestCase):
     form_class = CustomerCreationForm
     model = User
 
@@ -39,7 +39,7 @@ class CustomerCreationFormTest(ApiTestCase):
         self.assertEqual(user.phone, self.data['phone'])
 
 
-class StaffCreationFormTest(ApiTestCase):
+class StaffCreationFormTest(BaseTestCase):
     form_class = StaffCreationForm
     model = User
 
@@ -70,7 +70,7 @@ class StaffCreationFormTest(ApiTestCase):
         self.assertTrue(user.is_staff)
 
 
-class BaseUserCreationFormTest(ApiTestCase):
+class BaseUserCreationFormTest(BaseTestCase):
     form_class = BaseUserCreationForm
     model = User
 
