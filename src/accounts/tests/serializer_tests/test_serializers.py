@@ -36,7 +36,7 @@ class UserSetPasswordSerializerTest(SerializerTestCase):
     def test_serializer_updates_user_password(self):
         self.assertFalse(self.user.check_password(self.data['new_password']))
 
-        self.create_serializer(self.serializer_class, input_data=self.data, instance=self.user, save=True)
+        self.create_serializer_deprecated(self.serializer_class, input_data=self.data, instance=self.user, save=True)
 
         self.assertTrue(self.user.check_password(self.data['new_password']))
 
@@ -44,7 +44,7 @@ class UserSetPasswordSerializerTest(SerializerTestCase):
         self.data['password'] = 'invalid_password'
 
         with self.assertRaisesRegex(ValidationError, r'password.+invalid_password.'):
-            self.create_serializer(
+            self.create_serializer_deprecated(
                 self.serializer_class,
                 input_data=self.data,
                 instance=self.user,
@@ -54,7 +54,7 @@ class UserSetPasswordSerializerTest(SerializerTestCase):
         self.data['new_password'] = '123'
 
         with self.assertRaisesRegex(ValidationError, r'password_too_short.+password_entirely_numeric'):
-            self.create_serializer(
+            self.create_serializer_deprecated(
                 self.serializer_class,
                 input_data=self.data,
                 instance=self.user,
@@ -85,7 +85,7 @@ class UserRegisterSerializerTest(SerializerTestCase):
     def test_serializer_creates_user(self):
         self.assertEqual(self.user_model.objects.count(), 0)
 
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             input_data=self.input_data,
             save=True,
@@ -191,7 +191,7 @@ class UserDisableSerializerTest(SerializerTestCase):
     def serializer_doesnt_disable_user_by_not_user_password(self):
         self.data['password'] = 'other_password'
         with self.assertRaisesRegex(ValidationError, r'invalid_password'):
-            self.create_serializer(
+            self.create_serializer_deprecated(
                 self.serializer_class,
                 instance=self.user,
                 input_data=self.data,
@@ -202,7 +202,7 @@ class UserDisableSerializerTest(SerializerTestCase):
         self.user.save()
 
         with self.assertRaisesRegex(ValidationError, r'disable_staff'):
-            self.create_serializer(
+            self.create_serializer_deprecated(
                 self.serializer_class,
                 instance=self.user,
                 input_data=self.data,
@@ -213,14 +213,14 @@ class UserDisableSerializerTest(SerializerTestCase):
         self.user.save()
 
         with self.assertRaisesRegex(ValidationError, r'disable_staff'):
-            self.create_serializer(
+            self.create_serializer_deprecated(
                 self.serializer_class,
                 instance=self.user,
                 input_data=self.data,
             )
 
     def test_serializer_replaces_user_data(self):
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             instance=self.user,
             input_data=self.data,
@@ -243,7 +243,7 @@ class UserDisableSerializerTest(SerializerTestCase):
         address = self.create_test_address(self.user)
         self.user.refresh_from_db()
 
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             instance=self.user,
             input_data=self.data,
@@ -256,7 +256,7 @@ class UserDisableSerializerTest(SerializerTestCase):
     def test_serializer_blacklists_refresh_tokens_that_are_associated_with_user(self):
         tokens: list[RefreshToken] = [self.user.refresh_token, self.user.refresh_token, self.user.refresh_token]
 
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             instance=self.user,
             input_data=self.data,
@@ -271,7 +271,7 @@ class UserDisableSerializerTest(SerializerTestCase):
 
         self.assertRaises(TokenError, blacklisted_token.check_blacklist)
 
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             instance=self.user,
             input_data=self.data,

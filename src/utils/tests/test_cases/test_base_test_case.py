@@ -32,7 +32,7 @@ class BaseTestCaseTest(BaseTestCase):
             self.assert_is_subclass(Another, Parent)
 
     def test_create_serializer(self):
-        serializer = self.create_serializer(
+        serializer = self.create_serializer_deprecated(
             TestSerializerForCreate,
             dict(username='username', password='123'),
             initial=dict(username='initial username'),
@@ -44,13 +44,13 @@ class BaseTestCaseTest(BaseTestCase):
         self.assertEqual(serializer.initial, dict(username='initial username'))
 
         with self.assertRaisesRegex(ValidationError, r'password.+required'):
-            self.create_serializer(
+            self.create_serializer_deprecated(
                 TestSerializerForCreate,
                 dict(username='username'),
             )
 
         with self.assertRaisesRegex(NotImplementedError, r'.save\(\) method was called.'):
-            self.create_serializer(
+            self.create_serializer_deprecated(
                 TestSerializerForCreate,
                 dict(username='username', password='123'),
                 save=True,

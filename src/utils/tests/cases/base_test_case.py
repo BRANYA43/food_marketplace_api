@@ -37,7 +37,7 @@ class BaseTestCase(APITestCase):
         return Advert.objects.create(owner=owner, category=category, name=name, price=price, **extra_fields)
 
     @staticmethod
-    def create_serializer(
+    def create_serializer_deprecated(
         serializer: Type[Serializer],
         input_data: dict[str, Any] | list[dict[str, Any]] = empty,
         save=False,

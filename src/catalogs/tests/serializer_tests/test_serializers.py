@@ -53,7 +53,7 @@ class AdvertUpdateSerializerTest(SerializerTestCase):
         self.assertEqual(self.address_model.objects.count(), 0)
         self.assert_model_instance(self.advert, self.input_data, equal=False)
 
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             self.input_data,
             save=True,
@@ -71,7 +71,7 @@ class AdvertUpdateSerializerTest(SerializerTestCase):
         self.assert_model_instance(address, self.input_address_data, equal=False)
         self.assert_model_instance(self.advert, self.input_data, equal=False)
 
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             dict(**self.input_data, address=self.input_address_data),
             save=True,
@@ -92,7 +92,7 @@ class AdvertUpdateSerializerTest(SerializerTestCase):
             equal=False,
         )
 
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             dict(**self.input_data, address=self.input_address_data),
             save=True,
@@ -178,7 +178,7 @@ class AdvertCreateSerializerTest(SerializerTestCase):
         self.assertEqual(self.advert_model.objects.count(), 0)
         self.assertEqual(self.address_model.objects.count(), 0)
 
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             input_data=self.input_data,
             save=True,
@@ -200,7 +200,7 @@ class AdvertCreateSerializerTest(SerializerTestCase):
         self.assertEqual(self.advert_model.objects.count(), 0)
         self.assertEqual(self.address_model.objects.count(), 0)
 
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             input_data=self.input_data,
             save=True,

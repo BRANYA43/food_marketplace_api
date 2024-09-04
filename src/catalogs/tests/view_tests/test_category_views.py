@@ -35,7 +35,7 @@ class CategorySelectListViewTest(ViewTestCase):
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=self.create_serializer(
+            output_data=self.create_serializer_deprecated(
                 self.serializer_class,
                 instance=self.model.objects.filter(children=None),
                 many=True,
@@ -72,7 +72,7 @@ class CategoryListViewTest(ViewTestCase):
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=self.create_serializer(
+            output_data=self.create_serializer_deprecated(
                 self.serializer_class,
                 instance=self.model.objects.filter(parent=None),
                 many=True,
