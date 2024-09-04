@@ -92,3 +92,22 @@ class BaseTestCase(APITestCase):
                 got_field_value,
                 value,
             )
+
+    def assert_serializer_output_data(
+        self,
+        serializer_class: Type[Serializer],
+        expected_data: dict[str, Any] | list[dict[str, Any]],
+        save=False,
+        **serializer_args,
+    ):
+        """
+        Compares `expected_data` with `data` of created serializer.
+        Creates the serializer and passes to it args through `serializer_args` before comparison.
+
+        Supply `data` to call `.is_valid()`.
+
+        Set `save` to true to call `.save()`.
+        """
+        serializer = self.create_serializer(serializer_class, save=save, **serializer_args)
+
+        self.assertDictEqual(serializer.data, expected_data)

@@ -63,3 +63,21 @@ class BaseTestCaseTest(BaseTestCase):
             save=True,
         )
         mock_save.assert_called()
+
+    def test_assert_serializer_output_data(self):
+        self.assert_serializer_output_data(
+            TestSerializerForCreate, expected_data=self.serializer_data, data=self.serializer_data
+        )  # not raise
+
+        with self.assertRaises(AssertionError):
+            self.assert_serializer_output_data(
+                TestSerializerForCreate, expected_data=dict(username='another username'), data=self.serializer_data
+            )  # not raise
+
+    @patch.object(BaseTestCase, 'create_serializer')
+    def test_assert_serializer_output_data_calls_create_serializer_method(self, mock_create_serializer: MagicMock):
+        with self.assertRaises(AssertionError):
+            self.assert_serializer_output_data(
+                TestSerializerForCreate, expected_data=self.serializer_data, data=self.serializer_data
+            )
+        mock_create_serializer.assert_called()
