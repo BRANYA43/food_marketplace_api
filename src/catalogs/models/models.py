@@ -13,6 +13,34 @@ from utils.models import Address
 User = get_user_model()
 
 
+class Image(CreatedUpdatedMixin):
+    class Type(models.IntegerChoices):
+        MAIN = 0, _('main')
+        EXTRA = 1, _('extra')
+
+    advert = models.ForeignKey(
+        verbose_name=_('advert'),
+        to='Advert',
+        on_delete=models.CASCADE,
+        related_name='images',
+    )
+    file = models.ImageField(
+        verbose_name=_('file'),
+        upload_to='images/%Y/%m/%d',
+    )
+    type = models.PositiveIntegerField(
+        verbose_name=_('type'),
+        choices=Type.choices,
+    )
+
+    class Meta:
+        verbose_name = _('image')
+        verbose_name_plural = _('images')
+
+    def __str__(self):
+        return f'{self.advert.name} {self.type} image'
+
+
 class Advert(CreatedUpdatedMixin):
     owner = models.ForeignKey(
         verbose_name=_('owner'),
