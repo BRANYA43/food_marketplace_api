@@ -1,3 +1,3 @@
-from .models import Category
+from .models import Category, Advert
 
-__all__ = ['Category']
+__all__ = ['Category', 'Advert']
