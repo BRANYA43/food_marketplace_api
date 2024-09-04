@@ -53,6 +53,29 @@ class BaseTestCase(APITestCase):
 
         return serializer
 
+    @staticmethod
+    def create_serializer(
+        serializer_class: Type[Serializer],
+        save=False,
+        **serializer_args,
+    ) -> Serializer | ModelSerializer:
+        """
+        Creates the serializer and passes to it args through `serializer_args`.
+
+        Supply `data` to call `.is_valid()`.
+
+        Set `save` to true to call `.save()`.
+        """
+        serializer = serializer_class(**serializer_args)
+
+        if 'data' in serializer_args:
+            serializer.is_valid(raise_exception=True)
+
+        if save:
+            serializer.save()
+
+        return serializer
+
     ###########
     # Asserts #
     ###########
