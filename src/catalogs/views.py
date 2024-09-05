@@ -32,7 +32,7 @@ from catalogs.serializers.serializers import (
         description="Delete multiple images by filename. User cannot delete images from advert if he doesn't own it.",
     ),
 )
-class ImageViewSet(viewsets.ModelViewSet):
+class ImageViewSet(viewsets.GenericViewSet):
     serializer_classes = dict(
         multiple_create=ImageMultipleCreateSerializer,
         multiple_delete=ImageMultipleDeleteSerializer,
