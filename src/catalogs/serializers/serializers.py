@@ -1,9 +1,53 @@
+from django.db import transaction
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from catalogs.models import Category
-from catalogs.models.models import Advert
+from catalogs.models.models import Advert, Image
 from utils.serializers import AddressFieldSerializer
 from utils.serializers.mixins import AddressCreateUpdateMixin
+
+
+class ImageMultipleCreateSerializer(serializers.ModelSerializer):
+    files = serializers.ListSerializer(
+        child=serializers.ImageField(allow_null=False, allow_empty_file=False, required=True),
+        allow_empty=False,
+        allow_null=False,
+        required=True,
+    )
+    types = serializers.ListSerializer(
+        child=serializers.ChoiceField(choices=Image.Type.choices, allow_null=False, required=True),
+        allow_empty=False,
+        allow_null=False,
+        required=True,
+    )
+
+    class Meta:
+        model = Image
+        fields = ('advert', 'files', 'types')
+
+    def validate(self, attrs):
+        files = attrs.get('files', [])
+        types = attrs.get('types', [None])
+
+        if len(files) != len(types):
+            raise ValidationError(
+                'File quantity should match type quantity.',
+                'invalid_quantity',
+            )
+        return attrs
+
+    @transaction.atomic
+    def create(self, validated_data):
+        advert = validated_data.pop('advert')
+        image_data = [dict(advert=advert, file=file, type=type_) for file, type_ in zip(*validated_data.values())]
+
+        for data in image_data:
+            img = Image(**data)
+            img.full_clean()
+            img.save()
+
+        return Image.objects.filter(advert=advert).first()
 
 
 class AdvertListSerializer(serializers.ModelSerializer):

@@ -1,7 +1,10 @@
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
+
 from catalogs.models import Category
-from catalogs.models.models import Advert
+from catalogs.models.models import Advert, Image
 from catalogs.serializers import CategoryListSerializer
 from catalogs.serializers.serializers import (
     CategorySerializer,
@@ -9,10 +12,69 @@ from catalogs.serializers.serializers import (
     AdvertRetrieveSerializer,
     AdvertCreateSerializer,
     AdvertUpdateSerializer,
+    ImageMultipleCreateSerializer,
 )
 from utils.models import Address
-from utils.tests.cases import SerializerTestCase
+from utils.tests.cases import SerializerTestCase, MediaTestCase
 from utils.serializers.mixins import AddressCreateUpdateMixin
+
+
+class ImageMultipleCreateSerializerTest(MediaTestCase):
+    serializer_class = ImageMultipleCreateSerializer
+
+    def setUp(self):
+        self.owner = self.create_test_user()
+        self.category = self.create_test_category()
+        self.advert = self.create_test_advert(self.owner, self.category)
+        self.main_file = self.get_image_simple_uploaded_file('main_image.png')
+        self.extra_file = self.get_image_simple_uploaded_file('extra_image.png')
+
+        self.data = dict(
+            advert=self.advert.id,
+            files=[self.main_file, self.extra_file],
+            types=[Image.Type.MAIN, Image.Type.EXTRA],
+        )
+
+    def test_serializer_creates_images(self):
+        self.assertEqual(Image.objects.count(), 0)
+
+        self.create_serializer(
+            self.serializer_class,
+            data=self.data,
+            save=True,
+        )
+
+        self.assertEqual(Image.objects.count(), 2)
+
+        main_image = Image.objects.get(advert=self.advert, type=Image.Type.MAIN)
+        extra_image = Image.objects.get(advert=self.advert, type=Image.Type.EXTRA)
+
+        self.assertIn(self.main_file.name, main_image.file.name)
+        self.assertIn(self.extra_file.name, extra_image.file.name)
+
+    def test_serializer_cancels_all_created_images_and_doesnt_create_other_images_if_error_is_raised(self):
+        self.data['files'].append(self.main_file)
+        self.data['types'].append(Image.Type.MAIN)
+
+        self.assertEqual(Image.objects.count(), 0)
+
+        with self.assertRaises(DjangoValidationError):
+            self.create_serializer(
+                self.serializer_class,
+                data=self.data,
+                save=True,
+            )
+
+        self.assertEqual(Image.objects.count(), 0)
+
+    def test_serializer_raises_error_if_files_and_types_count_mismatch(self):
+        self.data['types'] = [self.data['types'][0]]
+        with self.assertRaisesRegex(DRFValidationError, 'File quantity should match type quantity.'):
+            self.create_serializer(
+                self.serializer_class,
+                data=self.data,
+                save=True,
+            )
 
 
 class AdvertUpdateSerializerTest(SerializerTestCase):
