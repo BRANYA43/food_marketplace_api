@@ -26,10 +26,16 @@ from catalogs.serializers.serializers import (
         summary='Create multiple images.',
         description='Create multiple images. Main image can be only single and extra images can be several for a '
         'advert.',
+        responses={
+            status.HTTP_201_CREATED: OpenApiResponse(description='Created images successfully.'),
+        },
     ),
     multiple_delete=extend_schema(
         summary='Delete multiple images by filename.',
         description="Delete multiple images by filename. User cannot delete images from advert if he doesn't own it.",
+        responses={
+            status.HTTP_204_NO_CONTENT: OpenApiResponse(description='Deleted images successfully.'),
+        },
     ),
 )
 class ImageViewSet(viewsets.GenericViewSet):
