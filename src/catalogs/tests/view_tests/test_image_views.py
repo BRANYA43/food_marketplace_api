@@ -5,6 +5,51 @@ from catalogs.models import Image
 from utils.tests.cases import MediaTestCase, ViewTestCase
 
 
+class ImageMultipleDeleteViewTest(MediaTestCase, ViewTestCase):
+    url = reverse('images-multiple-delete')
+
+    def setUp(self):
+        self.owner = self.create_test_user()
+        self.category = self.create_test_category()
+        self.advert = self.create_test_advert(self.owner, self.category)
+        self.main_image = self.create_test_image(self.advert)
+        self.extra_image = self.create_test_image(self.advert, type=Image.Type.EXTRA)
+
+        self.data = dict(
+            advert=self.advert.id,
+            files=[str(self.extra_image.file)],
+        )
+
+        self.login_user_by_token(self.owner)
+
+    def test_view_isnt_available_for_unauthenticated_user(self):
+        self.logout_user_by_token(self.owner)
+        response = self.client.post(self.url, self.data, format='json')
+        self.assert_response(response, status.HTTP_401_UNAUTHORIZED)
+
+    def test_view_isnt_available_for_authenticated_non_owner(self):
+        non_owner = self.create_test_user('non_owner@test.com')
+        self.login_user_by_token(non_owner)
+        response = self.client.post(self.url, self.data, format='json')
+        self.assert_response(response, status.HTTP_403_FORBIDDEN)
+
+    def test_view_is_available_for_authenticated_owner(self):
+        response = self.client.post(self.url, self.data, format='json')
+        self.assert_response(response, status.HTTP_204_NO_CONTENT)
+
+    def test_view_deletes_image(self):
+        self.assertEqual(Image.objects.count(), 2)
+
+        response = self.client.post(self.url, self.data, format='json')
+        self.assert_response(response, status.HTTP_204_NO_CONTENT)
+
+        self.assertEqual(Image.objects.count(), 1)
+
+    def test_view_return_no_data(self):
+        response = self.client.post(self.url, self.data, format='json')
+        self.assert_response(response, status.HTTP_204_NO_CONTENT, output_data=None)
+
+
 class ImageMultipleCreateViewTest(MediaTestCase, ViewTestCase):
     url = reverse('images-multiple-create')
 

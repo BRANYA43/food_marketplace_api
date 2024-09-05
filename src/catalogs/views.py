@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse, OpenApiExample, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -15,6 +16,7 @@ from catalogs.serializers.serializers import (
     AdvertCreateSerializer,
     AdvertUpdateSerializer,
     ImageMultipleCreateSerializer,
+    ImageMultipleDeleteSerializer,
 )
 
 
@@ -24,16 +26,29 @@ from catalogs.serializers.serializers import (
         summary='Create multiple images.',
         description='Create multiple images. Main image can be only single and extra images can be several for a '
         'advert.',
-    )
+    ),
+    multiple_delete=extend_schema(
+        summary='Delete multiple images by filename.',
+        description="Delete multiple images by filename. User cannot delete images from advert if he doesn't own it.",
+    ),
 )
 class ImageViewSet(viewsets.ModelViewSet):
     serializer_classes = dict(
         multiple_create=ImageMultipleCreateSerializer,
+        multiple_delete=ImageMultipleDeleteSerializer,
     )
-    permission_classes = (IsAuthenticated,)
 
     def get_serializer_class(self):
         return self.serializer_classes[self.action]
+
+    def get_permissions(self):
+        if self.action == 'multiple_delete':
+            return (IsOwner(),)
+        return (IsAuthenticated(),)
+
+    def get_object(self):
+        print(self.kwargs)
+        return super().get_object()
 
     @action(['post'], detail=False)
     def multiple_create(self, request):
@@ -43,6 +58,15 @@ class ImageViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_201_CREATED)
+
+    @action(['post'], detail=False)
+    def multiple_delete(self, request):
+        advert = get_object_or_404(Advert, pk=request.data['advert'])
+        self.check_object_permissions(request, advert)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema(tags=['Catalog'])
