@@ -19,16 +19,22 @@ class ImageModelTest(MediaTestCase):
         self.category = self.create_test_category()
         self.advert = self.create_test_advert(owner=self.owner, category=self.category)
         self.file = self.get_image_simple_uploaded_file('image.png')
-        self.image = Image.objects.create(advert=self.advert, file=self.file, type=Image.Type.MAIN)
+        self.data = dict(
+            advert=self.advert,
+            file=self.file,
+            type=Image.Type.MAIN,
+        )
 
     def test_model_returns_expected_str_representation(self):
-        self.assertEqual(str(self.image), f'{self.advert.name} {self.image.type} image')
+        image = Image.objects.create(**self.data)
+        self.assertEqual(str(image), f'{self.advert.name} {image.type} image')
 
     def test_model_save_file_by_expected_path(self):
+        image = Image.objects.create(**self.data)
         date = datetime.now()
         month = f'0{date.month}' if date.month < 10 else str(date.month)
         day = f'0{date.day}' if date.day < 10 else str(date.day)
-        self.assertEqual(self.image.file.url, f'/media/images/{date.year}/{month}/{day}/{self.file.name}')
+        self.assertEqual(image.file.url, f'/media/images/{date.year}/{month}/{day}/{self.file.name}')
 
 
 class AdvertModelTest(ModelTestCase):
