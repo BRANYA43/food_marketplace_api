@@ -8,6 +8,45 @@ from utils.serializers import AddressFieldSerializer
 from utils.serializers.mixins import AddressCreateUpdateMixin
 
 
+class ImageMultipleDeleteSerializer(serializers.ModelSerializer):
+    files = serializers.ListSerializer(
+        child=serializers.CharField(allow_null=False, allow_blank=False, required=False),
+        allow_empty=False,
+        allow_null=False,
+        required=True,
+    )
+
+    class Meta:
+        model = Image
+        fields = ('advert', 'files')
+
+    def validate(self, attrs):
+        advert = attrs['advert']
+        files = set(attrs['files'])
+        images = {str(img.file) for img in advert.images.filter(file__in=files)}
+        if diff := files.difference(images):
+            raise ValidationError(
+                f'Advert have not followed images with the names: {list(diff)}.',
+                'invalid_filename',
+            )
+        return attrs
+
+    def delete(self):
+        assert hasattr(self, '_errors'), 'You must call `.is_valid()` before calling `.save()`.'
+
+        assert not self.errors, 'You cannot call `.save()` on a serializer with invalid data.'
+
+        assert not hasattr(self, '_data'), (
+            'You cannot call `.save()` after accessing `serializer.data`.'
+            'If you need to access data before committing to the database then '
+            "inspect 'serializer.validated_data' instead. "
+        )
+
+        advert = self.validated_data['advert']
+        files = self.validated_data['files']
+        advert.images.filter(file__in=files).delete()
+
+
 class ImageMultipleCreateSerializer(serializers.ModelSerializer):
     files = serializers.ListSerializer(
         child=serializers.ImageField(allow_null=False, allow_empty_file=False, required=True),

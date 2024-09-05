@@ -16,7 +16,9 @@ class ImageMultipleCreateViewTest(MediaTestCase, ViewTestCase):
         self.extra_file = self.get_image_simple_uploaded_file('extra_image.png')
 
         self.data = dict(
-            advert=self.advert.id, files=[self.main_file, self.extra_file], types=[Image.Type.MAIN, Image.Type.EXTRA]
+            advert=self.advert.id,
+            files=[self.main_file, self.extra_file],
+            types=[Image.Type.MAIN, Image.Type.EXTRA],
         )
 
         self.login_user_by_token(self.owner)

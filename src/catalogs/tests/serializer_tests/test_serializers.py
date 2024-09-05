@@ -13,10 +13,53 @@ from catalogs.serializers.serializers import (
     AdvertCreateSerializer,
     AdvertUpdateSerializer,
     ImageMultipleCreateSerializer,
+    ImageMultipleDeleteSerializer,
 )
 from utils.models import Address
 from utils.tests.cases import SerializerTestCase, MediaTestCase
 from utils.serializers.mixins import AddressCreateUpdateMixin
+
+
+class ImageMultipleDeleteSerializerTest(MediaTestCase):
+    serializer_class = ImageMultipleDeleteSerializer
+
+    def setUp(self):
+        self.owner = self.create_test_user()
+        self.category = self.create_test_category()
+        self.advert = self.create_test_advert(self.owner, self.category)
+        self.main_image = self.create_test_image(self.advert)
+        self.extra_image = self.create_test_image(self.advert, type=Image.Type.EXTRA)
+
+        self.data = dict(
+            advert=self.advert.id,
+            files=[str(self.extra_image.file)],
+        )
+
+    def test_serializer_deletes_image(self):
+        self.assertEqual(Image.objects.count(), 2)
+
+        serializer = self.create_serializer(
+            self.serializer_class,
+            data=self.data,
+        )
+        serializer.delete()
+
+        self.assertEqual(Image.objects.count(), 1)
+
+    def test_serializer_doesnt_delete_non_existent_image(self):
+        self.assertEqual(Image.objects.count(), 2)
+
+        self.data['files'].append('non_existent_img.png')
+        with self.assertRaisesRegex(
+            DRFValidationError,
+            r"Advert have not followed images with the names: \['non_existent_img.png'\].",
+        ):
+            self.create_serializer(
+                self.serializer_class,
+                data=self.data,
+            )
+
+        self.assertEqual(Image.objects.count(), 2)
 
 
 class ImageMultipleCreateSerializerTest(MediaTestCase):
