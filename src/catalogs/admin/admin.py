@@ -2,7 +2,11 @@ from django.contrib import admin
 from django.utils.translation import gettext as _
 
 from catalogs.admin.inlines import SubCategoryInline
-from catalogs.models import Category
+from catalogs.models import Category, Advert
+
+
+@admin.register(Advert)
+class AdvertAdmin(admin.ModelAdmin): ...
 
 
 @admin.register(Category)

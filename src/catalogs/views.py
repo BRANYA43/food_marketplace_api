@@ -2,6 +2,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResp
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
 from catalogs.models import Category
 from catalogs.models.models import Advert
@@ -13,7 +14,35 @@ from catalogs.serializers.serializers import (
     AdvertRetrieveSerializer,
     AdvertCreateSerializer,
     AdvertUpdateSerializer,
+    ImageMultipleCreateSerializer,
 )
+
+
+@extend_schema(tags=['Catalog'])
+@extend_schema_view(
+    multiple_create=extend_schema(
+        summary='Create multiple images.',
+        description='Create multiple images. Main image can be only single and extra images can be several for a '
+        'advert.',
+    )
+)
+class ImageViewSet(viewsets.ModelViewSet):
+    serializer_classes = dict(
+        multiple_create=ImageMultipleCreateSerializer,
+    )
+    permission_classes = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        return self.serializer_classes[self.action]
+
+    @action(['post'], detail=False)
+    def multiple_create(self, request):
+        data = request.data
+        data = {key: data[key] if len(data.getlist(key)) == 1 else data.getlist(key) for key in data.keys()}
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_201_CREATED)
 
 
 @extend_schema(tags=['Catalog'])
