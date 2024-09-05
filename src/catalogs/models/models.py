@@ -40,6 +40,13 @@ class Image(CreatedUpdatedMixin):
     def __str__(self):
         return f'{self.advert.name} {self.type} image'
 
+    def clean(self):
+        if self.advert.images.filter(type=self.Type.MAIN).exists() and self.type == self.Type.MAIN:
+            raise ValidationError(
+                'Advert already has main image.',
+                'image_conflict',
+            )
+
 
 class Advert(CreatedUpdatedMixin):
     owner = models.ForeignKey(

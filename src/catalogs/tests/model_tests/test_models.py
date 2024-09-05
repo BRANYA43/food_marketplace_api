@@ -36,6 +36,18 @@ class ImageModelTest(MediaTestCase):
         day = f'0{date.day}' if date.day < 10 else str(date.day)
         self.assertEqual(image.file.url, f'/media/images/{date.year}/{month}/{day}/{self.file.name}')
 
+    def test_model_doesnt_save_main_image_if_advert_already_has_main_image(self):
+        Image.objects.create(**self.data)
+        with self.assertRaisesRegex(ValidationError, r'Advert already has main image.'):
+            image = Image(**self.data)
+            image.full_clean()
+
+    def test_model_saves_some_extra_images_for_advert(self):
+        Image.objects.create(**self.data)
+        self.data['type'] = Image.Type.EXTRA
+        for i in range(3):
+            Image.objects.create(**self.data)
+
 
 class AdvertModelTest(ModelTestCase):
     model = Advert
