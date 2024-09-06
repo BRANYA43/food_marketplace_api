@@ -41,11 +41,12 @@ class Image(CreatedUpdatedMixin):
         return f'{self.advert.name} {self.type} image'
 
     def clean(self):
-        if self.advert.images.filter(type=self.Type.MAIN).exists() and self.type == self.Type.MAIN:
-            raise ValidationError(
-                'Advert already has main image.',
-                'image_conflict',
-            )
+        if not self.pk:
+            if self.advert.images.filter(type=self.Type.MAIN).exists() and self.type == self.Type.MAIN:
+                raise ValidationError(
+                    'Advert already has main image.',
+                    'image_conflict',
+                )
 
 
 class Advert(CreatedUpdatedMixin):
