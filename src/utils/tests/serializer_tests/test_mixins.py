@@ -40,7 +40,7 @@ class AddressMixinTest(SerializerTestCase):
         self.assertEqual(self.user_model.objects.count(), 0)
         self.assertEqual(self.address_model.objects.count(), 0)
 
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             input_data=self.create_input_data,
             save=True,
@@ -58,7 +58,7 @@ class AddressMixinTest(SerializerTestCase):
         self.assertEqual(self.address_model.objects.count(), 0)
 
         data = dict(**self.create_input_data, address=self.input_address_data)
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             input_data=data,
             save=True,
@@ -80,7 +80,7 @@ class AddressMixinTest(SerializerTestCase):
         self.assert_model_instance(user, self.update_input_data, equal=False)
         self.assertEqual(self.address_model.objects.count(), 0)
 
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             input_data=self.update_input_data,
             instance=user,
@@ -99,7 +99,7 @@ class AddressMixinTest(SerializerTestCase):
         self.assert_model_instance(address, self.input_address_data, equal=False)
 
         data = dict(**self.update_input_data, address=self.input_address_data)
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             input_data=data,
             instance=user,
@@ -119,7 +119,7 @@ class AddressMixinTest(SerializerTestCase):
         self.assertEqual(self.address_model.objects.count(), 0)
 
         data = dict(**self.update_input_data, address=self.input_address_data)
-        self.create_serializer(
+        self.create_serializer_deprecated(
             self.serializer_class,
             input_data=data,
             instance=user,

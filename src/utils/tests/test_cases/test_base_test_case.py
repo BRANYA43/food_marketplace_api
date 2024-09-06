@@ -1,18 +1,21 @@
+from unittest.mock import patch, MagicMock
+
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 
 from utils.tests.cases import BaseTestCase
 
 
 class TestSerializerForCreate(serializers.Serializer):
     username = serializers.CharField()
-    password = serializers.CharField(write_only=True)
 
     def save(self, **kwargs):
-        raise NotImplementedError('.save() method was called.')
+        return NotImplementedError
 
 
 class BaseTestCaseTest(BaseTestCase):
+    def setUp(self):
+        self.serializer_data = dict(username='username')
+
     def test_assert_is_subclass(self):
         class Parent:
             pass
@@ -31,27 +34,50 @@ class BaseTestCaseTest(BaseTestCase):
         ):
             self.assert_is_subclass(Another, Parent)
 
-    def test_create_serializer(self):
+    def test_create_serializer_without_data(self):
+        serializer = self.create_serializer(TestSerializerForCreate)
+
+        self.assertIsInstance(serializer, TestSerializerForCreate)
+
+    def test_create_serializer_with_data(self):
         serializer = self.create_serializer(
             TestSerializerForCreate,
-            dict(username='username', password='123'),
-            initial=dict(username='initial username'),
+            data=self.serializer_data,
         )
 
-        self.assertIsInstance(serializer, serializers.Serializer)
-        self.assertEqual(serializer.data, dict(username='username'))
-        # creator gives arguments to serializer
-        self.assertEqual(serializer.initial, dict(username='initial username'))
+        self.assertEqual(serializer.data, self.serializer_data)
 
-        with self.assertRaisesRegex(ValidationError, r'password.+required'):
-            self.create_serializer(
-                TestSerializerForCreate,
-                dict(username='username'),
-            )
+    @patch.object(TestSerializerForCreate, 'is_valid')
+    def test_serializer_creating_calls_is_valid_method_if_data_is_supplied(self, mock_is_valid: MagicMock):
+        self.create_serializer(
+            TestSerializerForCreate,
+            data=self.serializer_data,
+        )
+        mock_is_valid.assert_called()
 
-        with self.assertRaisesRegex(NotImplementedError, r'.save\(\) method was called.'):
-            self.create_serializer(
-                TestSerializerForCreate,
-                dict(username='username', password='123'),
-                save=True,
+    @patch.object(TestSerializerForCreate, 'save')
+    def test_serializer_creating_calls_save_method_if_save_is_true(self, mock_save: MagicMock):
+        self.create_serializer(
+            TestSerializerForCreate,
+            data=self.serializer_data,
+            save=True,
+        )
+        mock_save.assert_called()
+
+    def test_assert_serializer_output_data(self):
+        self.assert_serializer_output_data(
+            TestSerializerForCreate, expected_data=self.serializer_data, data=self.serializer_data
+        )  # not raise
+
+        with self.assertRaises(AssertionError):
+            self.assert_serializer_output_data(
+                TestSerializerForCreate, expected_data=dict(username='another username'), data=self.serializer_data
+            )  # not raise
+
+    @patch.object(BaseTestCase, 'create_serializer')
+    def test_assert_serializer_output_data_calls_create_serializer_method(self, mock_create_serializer: MagicMock):
+        with self.assertRaises(AssertionError):
+            self.assert_serializer_output_data(
+                TestSerializerForCreate, expected_data=self.serializer_data, data=self.serializer_data
             )
+        mock_create_serializer.assert_called()

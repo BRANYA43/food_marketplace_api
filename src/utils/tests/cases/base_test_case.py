@@ -37,7 +37,7 @@ class BaseTestCase(APITestCase):
         return Advert.objects.create(owner=owner, category=category, name=name, price=price, **extra_fields)
 
     @staticmethod
-    def create_serializer(
+    def create_serializer_deprecated(
         serializer: Type[Serializer],
         input_data: dict[str, Any] | list[dict[str, Any]] = empty,
         save=False,
@@ -46,6 +46,29 @@ class BaseTestCase(APITestCase):
         serializer = serializer(data=input_data, **extra_params)
 
         if input_data is not empty:
+            serializer.is_valid(raise_exception=True)
+
+        if save:
+            serializer.save()
+
+        return serializer
+
+    @staticmethod
+    def create_serializer(
+        serializer_class: Type[Serializer],
+        save=False,
+        **serializer_args,
+    ) -> Serializer | ModelSerializer:
+        """
+        Creates the serializer and passes to it args through `serializer_args`.
+
+        Supply `data` to call `.is_valid()`.
+
+        Set `save` to true to call `.save()`.
+        """
+        serializer = serializer_class(**serializer_args)
+
+        if 'data' in serializer_args:
             serializer.is_valid(raise_exception=True)
 
         if save:
@@ -69,3 +92,22 @@ class BaseTestCase(APITestCase):
                 got_field_value,
                 value,
             )
+
+    def assert_serializer_output_data(
+        self,
+        serializer_class: Type[Serializer],
+        expected_data: dict[str, Any] | list[dict[str, Any]],
+        save=False,
+        **serializer_args,
+    ):
+        """
+        Compares `expected_data` with `data` of created serializer.
+        Creates the serializer and passes to it args through `serializer_args` before comparison.
+
+        Supply `data` to call `.is_valid()`.
+
+        Set `save` to true to call `.save()`.
+        """
+        serializer = self.create_serializer(serializer_class, save=save, **serializer_args)
+
+        self.assertDictEqual(serializer.data, expected_data)

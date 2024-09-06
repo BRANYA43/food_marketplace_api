@@ -1,13 +1,52 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
 from catalogs.models import Category
-from catalogs.models.models import Advert
+from catalogs.models.models import Advert, Image
 from utils.models.mixins import CreatedUpdatedMixin
 from utils.models import Address
 from utils.tests.cases import ModelTestCase
+from utils.tests.cases.media_case import MediaTestCase
 
 User = get_user_model()
+
+
+class ImageModelTest(MediaTestCase):
+    def setUp(self):
+        self.owner = self.create_test_user()
+        self.category = self.create_test_category()
+        self.advert = self.create_test_advert(owner=self.owner, category=self.category)
+        self.file = self.get_image_simple_uploaded_file('image.png')
+        self.data = dict(
+            advert=self.advert,
+            file=self.file,
+            type=Image.Type.MAIN,
+        )
+
+    def test_model_returns_expected_str_representation(self):
+        image = Image.objects.create(**self.data)
+        self.assertEqual(str(image), f'{self.advert.name} {image.type} image')
+
+    def test_model_save_file_by_expected_path(self):
+        image = Image.objects.create(**self.data)
+        date = datetime.now()
+        month = f'0{date.month}' if date.month < 10 else str(date.month)
+        day = f'0{date.day}' if date.day < 10 else str(date.day)
+        self.assertEqual(image.file.url, f'/media/images/{date.year}/{month}/{day}/{self.file.name}')
+
+    def test_model_doesnt_save_main_image_if_advert_already_has_main_image(self):
+        Image.objects.create(**self.data)
+        with self.assertRaisesRegex(ValidationError, r'Advert already has main image.'):
+            image = Image(**self.data)
+            image.full_clean()
+
+    def test_model_saves_some_extra_images_for_advert(self):
+        Image.objects.create(**self.data)
+        self.data['type'] = Image.Type.EXTRA
+        for i in range(3):
+            Image.objects.create(**self.data)
 
 
 class AdvertModelTest(ModelTestCase):

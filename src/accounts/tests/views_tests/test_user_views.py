@@ -108,7 +108,7 @@ class UserRetrieveViewTest(ViewTestCase):
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=self.create_serializer(self.serializer_class, instance=self.user).data,
+            output_data=self.create_serializer_deprecated(self.serializer_class, instance=self.user).data,
         )
 
     def test_view_returns_data_with_address(self):
@@ -119,7 +119,7 @@ class UserRetrieveViewTest(ViewTestCase):
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=self.create_serializer(self.serializer_class, instance=self.user).data,
+            output_data=self.create_serializer_deprecated(self.serializer_class, instance=self.user).data,
         )
 
 
@@ -256,7 +256,7 @@ class UserUpdateViewTest(ViewTestCase):
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=self.create_serializer(self.serializer_class, instance=self.user).data,
+            output_data=self.create_serializer_deprecated(self.serializer_class, instance=self.user).data,
         )
 
     def test_view_returns_data_with_address(self):
@@ -270,7 +270,7 @@ class UserUpdateViewTest(ViewTestCase):
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=self.create_serializer(self.serializer_class, instance=self.user).data,
+            output_data=self.create_serializer_deprecated(self.serializer_class, instance=self.user).data,
         )
 
 

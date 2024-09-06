@@ -111,6 +111,6 @@ class SerializerTestCase(BaseTestCase):
         save=False,
         **extra_params,
     ):
-        serializer = self.create_serializer(serializer, input_data, save, **extra_params)
+        serializer = self.create_serializer_deprecated(serializer, input_data, save, **extra_params)
 
         self.assertEqual(serializer.data, output_data)

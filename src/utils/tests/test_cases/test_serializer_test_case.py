@@ -252,7 +252,7 @@ class SerializerTestCaseTest(SerializerTestCase):
         )
 
         with self.assertRaisesRegex(NotImplementedError, r'.save\(\) method was called.'):
-            self.create_serializer(
+            self.create_serializer_deprecated(
                 TestSerializerForCreate,
                 input_data=dict(username='username', password='123'),
                 save=True,

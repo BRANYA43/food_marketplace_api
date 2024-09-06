@@ -31,7 +31,7 @@ class AdvertListViewTest(ViewTestCase):
         self.assert_response(response, status.HTTP_200_OK)
 
     def test_view_returns_expected_data(self):
-        serializer = self.create_serializer(self.serializer_class, instance=[self.advert], many=True)
+        serializer = self.create_serializer_deprecated(self.serializer_class, instance=[self.advert], many=True)
         response = self.client.get(self.url)
         self.assert_response(
             response,
@@ -57,7 +57,7 @@ class AdvertRetrieveViewTest(ViewTestCase):
         self.assert_response(response, status.HTTP_200_OK)
 
     def test_view_returns_expected_data(self):
-        serializer = self.create_serializer(self.serializer_class, instance=self.advert)
+        serializer = self.create_serializer_deprecated(self.serializer_class, instance=self.advert)
         response = self.client.get(self.url)
         self.assert_response(
             response,
@@ -134,7 +134,7 @@ class AdvertCreateViewTest(ViewTestCase):
         response = self.client.post(self.url, data=self.input_data)
 
         advert = self.advert_model.objects.first()
-        serializer = self.create_serializer(self.serializer_class, instance=advert)
+        serializer = self.create_serializer_deprecated(self.serializer_class, instance=advert)
         self.assert_response(response, status.HTTP_201_CREATED, output_data=serializer.data)
 
     def test_view_returns_expected_data_with_address(self):
@@ -142,7 +142,7 @@ class AdvertCreateViewTest(ViewTestCase):
         response = self.client.post(self.url, data=data, format='json')
 
         advert = self.advert_model.objects.first()
-        serializer = self.create_serializer(self.serializer_class, instance=advert)
+        serializer = self.create_serializer_deprecated(self.serializer_class, instance=advert)
         self.assert_response(response, status.HTTP_201_CREATED, output_data=serializer.data)
 
 
@@ -234,7 +234,7 @@ class AdvertUpdateViewTest(ViewTestCase):
         response = self.client.patch(self.url, self.input_data)
 
         self.advert.refresh_from_db()
-        serializer = self.create_serializer(self.serializer_class, instance=self.advert)
+        serializer = self.create_serializer_deprecated(self.serializer_class, instance=self.advert)
 
         self.assert_response(response, status.HTTP_200_OK, output_data=serializer.data)
 
@@ -244,7 +244,7 @@ class AdvertUpdateViewTest(ViewTestCase):
         response = self.client.patch(self.url, self.input_data)
 
         self.advert.refresh_from_db()
-        serializer = self.create_serializer(self.serializer_class, instance=self.advert)
+        serializer = self.create_serializer_deprecated(self.serializer_class, instance=self.advert)
 
         self.assert_response(response, status.HTTP_200_OK, output_data=serializer.data)
 

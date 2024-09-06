@@ -13,6 +13,42 @@ from utils.models import Address
 User = get_user_model()
 
 
+class Image(CreatedUpdatedMixin):
+    class Type(models.IntegerChoices):
+        MAIN = 0, _('main')
+        EXTRA = 1, _('extra')
+
+    advert = models.ForeignKey(
+        verbose_name=_('advert'),
+        to='Advert',
+        on_delete=models.CASCADE,
+        related_name='images',
+    )
+    file = models.ImageField(
+        verbose_name=_('file'),
+        upload_to='images/%Y/%m/%d',
+    )
+    type = models.PositiveIntegerField(
+        verbose_name=_('type'),
+        choices=Type.choices,
+    )
+
+    class Meta:
+        verbose_name = _('image')
+        verbose_name_plural = _('images')
+
+    def __str__(self):
+        return f'{self.advert.name} {self.type} image'
+
+    def clean(self):
+        if not self.pk:
+            if self.advert.images.filter(type=self.Type.MAIN).exists() and self.type == self.Type.MAIN:
+                raise ValidationError(
+                    'Advert already has main image.',
+                    'image_conflict',
+                )
+
+
 class Advert(CreatedUpdatedMixin):
     owner = models.ForeignKey(
         verbose_name=_('owner'),
@@ -69,7 +105,7 @@ class Advert(CreatedUpdatedMixin):
         verbose_name_plural = _('adverts')
 
     def clean_pickup_nova_post_courier(self):
-        if not any([self.pickup, self.nova_post, self.pickup]):
+        if not any([self.pickup, self.nova_post, self.courier]):
             raise ValidationError(
                 'One of the fields "pickup", "nova_post", "courier" must be True.',
                 'invalid_select',

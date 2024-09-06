@@ -1,7 +1,9 @@
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse, OpenApiExample, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
 from catalogs.models import Category
 from catalogs.models.models import Advert
@@ -13,7 +15,64 @@ from catalogs.serializers.serializers import (
     AdvertRetrieveSerializer,
     AdvertCreateSerializer,
     AdvertUpdateSerializer,
+    ImageMultipleCreateSerializer,
+    ImageMultipleDeleteSerializer,
 )
+
+
+@extend_schema(tags=['Catalog'])
+@extend_schema_view(
+    multiple_create=extend_schema(
+        summary='Create multiple images.',
+        description='Create multiple images. Main image can be only single and extra images can be several for a '
+        'advert.',
+        responses={
+            status.HTTP_201_CREATED: OpenApiResponse(description='Created images successfully.'),
+        },
+    ),
+    multiple_delete=extend_schema(
+        summary='Delete multiple images by filename.',
+        description="Delete multiple images by filename. User cannot delete images from advert if he doesn't own it.",
+        responses={
+            status.HTTP_204_NO_CONTENT: OpenApiResponse(description='Deleted images successfully.'),
+        },
+    ),
+)
+class ImageViewSet(viewsets.GenericViewSet):
+    serializer_classes = dict(
+        multiple_create=ImageMultipleCreateSerializer,
+        multiple_delete=ImageMultipleDeleteSerializer,
+    )
+
+    def get_serializer_class(self):
+        return self.serializer_classes[self.action]
+
+    def get_permissions(self):
+        if self.action == 'multiple_delete':
+            return (IsOwner(),)
+        return (IsAuthenticated(),)
+
+    def get_object(self):
+        print(self.kwargs)
+        return super().get_object()
+
+    @action(['post'], detail=False)
+    def multiple_create(self, request):
+        data = request.data
+        data = {key: data[key] if len(data.getlist(key)) == 1 else data.getlist(key) for key in data.keys()}
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_201_CREATED)
+
+    @action(['post'], detail=False)
+    def multiple_delete(self, request):
+        advert = get_object_or_404(Advert, pk=request.data['advert'])
+        self.check_object_permissions(request, advert)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema(tags=['Catalog'])
