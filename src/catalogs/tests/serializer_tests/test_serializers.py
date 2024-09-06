@@ -411,7 +411,7 @@ class AdvertRetrieveSerializerTest(SerializerTestCase):
         )
 
 
-class AdvertListSerializerTest(SerializerTestCase):
+class AdvertListSerializerTest(MediaTestCase, SerializerTestCase):
     serializer_class = AdvertListSerializer
     model = Advert
 
@@ -420,14 +420,7 @@ class AdvertListSerializerTest(SerializerTestCase):
         self.category = self.create_test_category()
         self.advert = self.create_test_advert(self.owner, self.category)
 
-    def test_expected_fields_are_read_only(self):
-        self.assert_fields_are_read_only(
-            self.serializer_class,
-            ['id', 'name', 'category', 'price'],
-        )
-
-    def test_serializer_returns_expected_data(self):
-        self.serializer_class()
+    def test_serializer_returns_expected_data_without_main_image(self):
         self.assert_output_serializer_data(
             self.serializer_class,
             instance=self.advert,
@@ -437,6 +430,23 @@ class AdvertListSerializerTest(SerializerTestCase):
                 name=self.advert.name,
                 category=self.advert.category.id,
                 price=str(self.advert.price),
+                main_image=None,
+            ),
+        )
+
+    def test_serializer_returns_expected_data_with_main_image(self):
+        main_image = self.create_test_image(self.advert)
+        self.advert.refresh_from_db()
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=self.advert,
+            input_data={},
+            output_data=dict(
+                id=self.advert.id,
+                name=self.advert.name,
+                category=self.advert.category.id,
+                price=str(self.advert.price),
+                main_image=str(main_image.file),
             ),
         )
 

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -90,10 +92,19 @@ class ImageMultipleCreateSerializer(serializers.ModelSerializer):
 
 
 class AdvertListSerializer(serializers.ModelSerializer):
+    main_image = serializers.SerializerMethodField('get_main_image')
+
     class Meta:
         model = Advert
-        fields = ('id', 'name', 'category', 'price')
+        fields = ('id', 'name', 'category', 'price', 'main_image')
         read_only_fields = fields
+
+    @staticmethod
+    def get_main_image(obj) -> Optional[str]:
+        img = obj.images.filter(type=Image.Type.MAIN).first()
+        if img is None:
+            return None
+        return str(img.file)
 
 
 class AdvertRetrieveSerializer(serializers.ModelSerializer):
