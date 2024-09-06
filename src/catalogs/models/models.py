@@ -104,7 +104,7 @@ class Advert(CreatedUpdatedMixin):
         verbose_name_plural = _('adverts')
 
     def clean_pickup_nova_post_courier(self):
-        if not any([self.pickup, self.nova_post, self.pickup]):
+        if not any([self.pickup, self.nova_post, self.courier]):
             raise ValidationError(
                 'One of the fields "pickup", "nova_post", "courier" must be True.',
                 'invalid_select',
