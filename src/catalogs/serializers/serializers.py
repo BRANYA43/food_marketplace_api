@@ -109,6 +109,8 @@ class AdvertListSerializer(serializers.ModelSerializer):
 
 class AdvertRetrieveSerializer(serializers.ModelSerializer):
     address = AddressFieldSerializer(read_only=True)
+    main_image = serializers.SerializerMethodField('get_main_image')
+    extra_images = serializers.SerializerMethodField('get_extra_images')
 
     class Meta:
         model = Advert
@@ -124,8 +126,22 @@ class AdvertRetrieveSerializer(serializers.ModelSerializer):
             'nova_post',
             'courier',
             'address',
+            'main_image',
+            'extra_images',
         )
         read_only_fields = fields
+
+    @staticmethod
+    def get_main_image(obj) -> Optional[str]:
+        img = obj.images.filter(type=Image.Type.MAIN).first()
+        if img is None:
+            return None
+        return str(img.file)
+
+    @staticmethod
+    def get_extra_images(obj) -> list[str]:
+        imgs = obj.images.filter(type=Image.Type.EXTRA)
+        return [str(img.file) for img in imgs]
 
 
 class AdvertCreateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializer):

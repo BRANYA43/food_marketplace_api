@@ -344,7 +344,7 @@ class AdvertCreateSerializerTest(SerializerTestCase):
         )
 
 
-class AdvertRetrieveSerializerTest(SerializerTestCase):
+class AdvertRetrieveSerializerTest(MediaTestCase, SerializerTestCase):
     serializer_class = AdvertRetrieveSerializer
     model = Advert
 
@@ -365,6 +365,8 @@ class AdvertRetrieveSerializerTest(SerializerTestCase):
             nova_post=False,
             courier=True,
             address={},
+            main_image=None,
+            extra_images=[],
         )
 
     def test_expected_fields_are_read_only(self):
@@ -385,7 +387,7 @@ class AdvertRetrieveSerializerTest(SerializerTestCase):
             ],
         )
 
-    def test_serializer_returns_expected_data_without_address(self):
+    def test_serializer_returns_expected_data(self):
         self.assert_output_serializer_data(
             self.serializer_class,
             instance=self.advert,
@@ -403,6 +405,28 @@ class AdvertRetrieveSerializerTest(SerializerTestCase):
         self.advert.refresh_from_db()
         self.output_data['address'] = address_data
 
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=self.advert,
+            input_data={},
+            output_data=self.output_data,
+        )
+
+    def test_serializer_returns_expected_data_with_main_image(self):
+        main_image = self.create_test_image(self.advert)
+        self.advert.refresh_from_db()
+        self.output_data['main_image'] = str(main_image.file)
+        self.assert_output_serializer_data(
+            self.serializer_class,
+            instance=self.advert,
+            input_data={},
+            output_data=self.output_data,
+        )
+
+    def test_serializer_returns_expected_data_with_extra_images(self):
+        extra_image = self.create_test_image(self.advert, type=Image.Type.EXTRA)
+        self.advert.refresh_from_db()
+        self.output_data['extra_images'] = [str(extra_image.file)]
         self.assert_output_serializer_data(
             self.serializer_class,
             instance=self.advert,
