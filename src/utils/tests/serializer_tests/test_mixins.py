@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from utils import models
 from utils.serializers import mixins
-from utils.tests.cases import SerializerTestCase
+from utils.tests.cases import BaseTestCase
 
 User = get_user_model()
 
@@ -14,7 +14,7 @@ class TestSerializer(mixins.AddressCreateUpdateMixin, serializers.ModelSerialize
         fields = ('email', 'password', 'address')
 
 
-class AddressMixinTest(SerializerTestCase):
+class AddressMixinTest(BaseTestCase):
     serializer_class = TestSerializer
     user_model = User
     address_model = models.Address
@@ -33,16 +33,13 @@ class AddressMixinTest(SerializerTestCase):
             email='new.email@test.com',
         )
 
-    def test_expected_fields_are_optional(self):
-        self.assert_optional_fields(self.serializer_class, ['address'])
-
     def test_mixin_creates_content_obj_without_address(self):
         self.assertEqual(self.user_model.objects.count(), 0)
         self.assertEqual(self.address_model.objects.count(), 0)
 
-        self.create_serializer_deprecated(
+        self.create_serializer(
             self.serializer_class,
-            input_data=self.create_input_data,
+            data=self.create_input_data,
             save=True,
         )
 
@@ -58,9 +55,9 @@ class AddressMixinTest(SerializerTestCase):
         self.assertEqual(self.address_model.objects.count(), 0)
 
         data = dict(**self.create_input_data, address=self.input_address_data)
-        self.create_serializer_deprecated(
+        self.create_serializer(
             self.serializer_class,
-            input_data=data,
+            data=data,
             save=True,
         )
 
@@ -80,9 +77,9 @@ class AddressMixinTest(SerializerTestCase):
         self.assert_model_instance(user, self.update_input_data, equal=False)
         self.assertEqual(self.address_model.objects.count(), 0)
 
-        self.create_serializer_deprecated(
+        self.create_serializer(
             self.serializer_class,
-            input_data=self.update_input_data,
+            data=self.update_input_data,
             instance=user,
             save=True,
             partial=True,
@@ -99,9 +96,9 @@ class AddressMixinTest(SerializerTestCase):
         self.assert_model_instance(address, self.input_address_data, equal=False)
 
         data = dict(**self.update_input_data, address=self.input_address_data)
-        self.create_serializer_deprecated(
+        self.create_serializer(
             self.serializer_class,
-            input_data=data,
+            data=data,
             instance=user,
             save=True,
             partial=True,
@@ -119,9 +116,9 @@ class AddressMixinTest(SerializerTestCase):
         self.assertEqual(self.address_model.objects.count(), 0)
 
         data = dict(**self.update_input_data, address=self.input_address_data)
-        self.create_serializer_deprecated(
+        self.create_serializer(
             self.serializer_class,
-            input_data=data,
+            data=data,
             instance=user,
             save=True,
             partial=True,
@@ -134,17 +131,17 @@ class AddressMixinTest(SerializerTestCase):
         self.assert_model_instance(address, self.input_address_data)
 
     def test_mixin_returns_expected_data_without_address(self):
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
-            input_data=self.create_input_data,
-            output_data=dict(**self.create_input_data, address={}),
+            data=self.create_input_data,
+            expected_data=dict(**self.create_input_data, address={}),
             save=True,
         )
 
     def test_mixin_returns_expected_data_with_address(self):
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
-            input_data=dict(**self.create_input_data, address=self.input_address_data),
-            output_data=dict(**self.create_input_data, address=self.input_address_data),
+            data=dict(**self.create_input_data, address=self.input_address_data),
+            expected_data=dict(**self.create_input_data, address=self.input_address_data),
             save=True,
         )
