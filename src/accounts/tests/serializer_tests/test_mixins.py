@@ -3,12 +3,12 @@ from rest_framework.exceptions import ValidationError as rest_ValidationError
 from django.core.exceptions import ValidationError as django_ValidationError
 
 from accounts.serializers.mixins import PhoneNumberValidationMixin, PasswordValidationMixin
-from utils.tests.cases import SerializerTestCase
+from utils.tests.cases import BaseTestCase
 
 User = get_user_model()
 
 
-class PhoneNumberMixinTest(SerializerTestCase):
+class PhoneNumberMixinTest(BaseTestCase):
     mixin = PhoneNumberValidationMixin
 
     def test_validate_phone_method_doesnt_raise_and_return_valid_phone(self):
@@ -27,7 +27,7 @@ class PhoneNumberMixinTest(SerializerTestCase):
             self.mixin().validate_phone(invalid_phone)
 
 
-class PasswordValidationMixinTest(SerializerTestCase):
+class PasswordValidationMixinTest(BaseTestCase):
     mixin = PasswordValidationMixin
     mixin.instance = None  # type: ignore
 
