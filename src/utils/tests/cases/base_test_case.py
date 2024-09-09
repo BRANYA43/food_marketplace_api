@@ -85,10 +85,18 @@ class BaseTestCase(APITestCase):
         """
         self.assertTrue(issubclass(__cls, __class_or_tuple), msg=f'{__cls} is not subclass of {__class_or_tuple}.')
 
-    def assert_model_instance(self, model_instance: Model, expected_data: dict[str, Any], equal=True):
+    def assert_model_instance(self, instance: Model, expected_data: dict[str, Any], equal=True):
+        """
+        Checks whether a model instance fields are equal to the expected data or not.
+
+        :param instance: a model instance whose field values will be checked
+        :param expected_data: a dict where keys are field names and values are expected field values.
+        :param equal: if True method checks that field values are equal to values in the expected data.
+        If False method checks that field values aren't equal to values in the expected data.
+        """
         assert_methods = {True: self.assertEqual, False: self.assertNotEqual}
         for field_name, value in expected_data.items():
-            got_field_value = getattr(model_instance, field_name)
+            got_field_value = getattr(instance, field_name)
             if isinstance(value, int) and isinstance(got_field_value, Model):
                 got_field_value = got_field_value.id
             assert_methods[equal](
