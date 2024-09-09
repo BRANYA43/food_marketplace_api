@@ -12,9 +12,9 @@ from utils.models import Address
 
 
 class BaseTestCase(APITestCase):
-    ############
-    # Creators #
-    ############
+    ####################################################################################################################
+    # Creators                                                                                                         #
+    ####################################################################################################################
     TEST_EMAIL = 'rick.sanchez@test.com'
     TEST_PASSWORD = 'rick123!@#'
     TEST_PHONE = '+38 (012) 345 6789'
@@ -76,9 +76,9 @@ class BaseTestCase(APITestCase):
 
         return serializer
 
-    ###########
-    # Asserts #
-    ###########
+    ####################################################################################################################
+    # Asserts                                                                                                          #
+    ####################################################################################################################
     def assert_is_subclass(self, __cls, __class_or_tuple):
         self.assertTrue(issubclass(__cls, __class_or_tuple), msg=f'{__cls} is not subclass of {__class_or_tuple}.')
 
