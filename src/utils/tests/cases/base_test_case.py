@@ -1,9 +1,13 @@
+from tokenize import TokenError
 from typing import Any, Type
 
 from django.db.models import Model
 from rest_framework.fields import empty
 from rest_framework.serializers import Serializer, ModelSerializer
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import User
 from catalogs.models import Category
@@ -12,6 +16,25 @@ from utils.models import Address
 
 
 class BaseTestCase(APITestCase):
+    ####################################################################################################################
+    # Utils                                                                                                            #
+    ####################################################################################################################
+    def login_user_by_token(self, user):
+        token = user.access_token
+        credentials = {jwt_api_settings.AUTH_HEADER_NAME: f'{jwt_api_settings.AUTH_HEADER_TYPES[0]} {token}'}
+        self.client.credentials(**credentials)
+
+    def logout_user_by_token(self, user: User):
+        tokens = OutstandingToken.objects.filter(user=user)
+
+        for token in tokens:
+            try:
+                RefreshToken(token.token).blacklist()
+            except TokenError:
+                pass
+
+        self.client.credentials()
+
     ####################################################################################################################
     # Creators                                                                                                         #
     ####################################################################################################################
