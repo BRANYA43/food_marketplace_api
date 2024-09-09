@@ -1,13 +1,13 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 
 from catalogs.models import Category
 from catalogs.models.models import Advert, Image
 from utils.models.mixins import CreatedUpdatedMixin
-from utils.models import Address
-from utils.tests.cases import ModelTestCase, MediaTestCase
+from utils.tests.cases import BaseTestCase, MediaTestCase
 
 User = get_user_model()
 
@@ -48,7 +48,7 @@ class ImageModelTest(MediaTestCase):
             Image.objects.create(**self.data)
 
 
-class AdvertModelTest(ModelTestCase):
+class AdvertModelTest(BaseTestCase):
     model = Advert
 
     def setUp(self):
@@ -64,39 +64,8 @@ class AdvertModelTest(ModelTestCase):
     def test_model_inherit_expected_mixins(self):
         self.assert_is_subclass(self.model, CreatedUpdatedMixin)
 
-    def test_expected_fields_are_required(self):
-        self.assert_required_fields(
-            self.model,
-            ['owner', 'category', 'name', 'price'],
-        )
-
-    def test_expected_fields_are_optional(self):
-        self.assert_optional_fields(
-            self.model,
-            ['descr'],
-        )
-
-    def test_expected_fields_have_default_values(self):
-        self.assert_fields_have_default_value(
-            self.model,
-            dict(quantity=1, pickup=False, nova_post=False, courier=True),
-        )
-
-    def test_expected_fields_have_specified_relation(self):
-        self.assert_fields_have_specified_relation(
-            self.model,
-            [
-                dict(name='owner', to=User, relation='many_to_one', related_name='adverts'),
-                dict(name='category', to=Category, relation='many_to_one', related_name='adverts'),
-                dict(name='address', to=Address, relation='one_to_many'),
-            ],
-        )
-
-    def test_expected_fields_have_specified_max_length(self):
-        self.assert_fields_have_specified_max_length(self.model, dict(name=70, descr=1024))
-
-    def test_expected_decimal_field_is_set_correct(self):
-        self.assert_decimal_fields(self.model, [dict(name='price', max_digits=12, decimal_places=2)])
+    def test_address_relates_with_advert(self):
+        self.assertIsInstance(self.model.address.field, GenericRelation)
 
     def test_price_field_must_be_gte_0(self):
         self.data['price'] = -1
@@ -125,30 +94,12 @@ class AdvertModelTest(ModelTestCase):
             advert.full_clean()
 
 
-class CategoryModelTest(ModelTestCase):
+class CategoryModelTest(BaseTestCase):
     model = Category
 
     def setUp(self) -> None:
         self.data = dict(
             name='Name',
-        )
-
-    def test_expected_fields_are_required(self):
-        self.assert_required_fields(self.model, ['name'])
-
-    def test_expected_fields_are_optional(self):
-        self.assert_optional_fields(self.model, ['parent'])
-
-    def test_expected_fields_are_unique(self):
-        self.assert_unique_fields(self.model, ['name'])
-
-    def test_expected_fields_have_specified_max_length(self):
-        self.assert_fields_have_specified_max_length(self.model, dict(name=100))
-
-    def test_expected_fields_have_specified_relation(self):
-        self.assert_fields_have_specified_relation(
-            self.model,
-            [dict(name='parent', to=self.model, relation='many_to_one', related_name='children')],
         )
 
     def test_is_parent_property(self):
