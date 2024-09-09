@@ -1,3 +1,6 @@
+# mypy: disable-error-code="attr-defined"
+
+
 from typing import Any, Literal
 
 from rest_framework.fields import empty
@@ -50,7 +53,7 @@ class ViewTestCase(BaseTestCase):
         url: str,
         methods: list[Literal['get', 'post', 'put', 'patch', 'delete']],
         status_code: int,
-        input_data: dict[str, Any] = None,
+        input_data: dict[str, Any] | list[dict[str, Any]] = None,  # type: ignore
     ):
         for method in methods:
             response = getattr(self.client, method)(url, input_data)

@@ -177,7 +177,7 @@ class BaseTestCase(APITestCase):
         url: str,
         methods: list[Literal['get', 'post', 'put', 'patch', 'delete']],
         status_code: int,
-        data: dict[str, Any] | list[dict[str, Any]] = None,
+        data: dict[str, Any] | list[dict[str, Any]] = None,  # type: ignore
     ):
         """
         Checks availability of specified HTTP methods for a given URL.
