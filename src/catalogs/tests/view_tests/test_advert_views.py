@@ -11,7 +11,7 @@ from catalogs.serializers import (
     AdvertRetrieveSerializer,
 )
 from utils.models import Address
-from utils.tests.cases.view_test_case import BaseTestCase
+from utils.tests.cases import BaseTestCase
 
 LIST_URL = 'advert-list'
 DETAIL_URL = 'advert-detail'
