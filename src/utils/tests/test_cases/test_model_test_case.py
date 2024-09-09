@@ -1,6 +1,6 @@
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import ValidationError
 from django.db import models
-from pydantic import ValidationError
 
 from utils.tests.cases import ModelTestCase
 

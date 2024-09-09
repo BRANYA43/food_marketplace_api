@@ -3,8 +3,8 @@ from decimal import Decimal
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from catalogs.models.models import Advert
-from catalogs.serializers.serializers import (
+from catalogs.models import Advert
+from catalogs.serializers import (
     AdvertListSerializer,
     AdvertCreateSerializer,
     AdvertUpdateSerializer,

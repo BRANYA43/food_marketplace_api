@@ -1,11 +1,11 @@
-from accounts.models import managers
+from accounts.models.managers import UserManager
 from accounts import models
 from utils.tests.cases import BaseTestCase
 
 
 class UserManagerTest(BaseTestCase):
     def setUp(self) -> None:
-        self.manager = managers.UserManager()
+        self.manager = UserManager()
         self.manager.model = models.User
 
         self.data = dict(

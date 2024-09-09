@@ -7,8 +7,7 @@ from catalogs.models import Category
 from catalogs.models.models import Advert, Image
 from utils.models.mixins import CreatedUpdatedMixin
 from utils.models import Address
-from utils.tests.cases import ModelTestCase
-from utils.tests.cases.media_case import MediaTestCase
+from utils.tests.cases import ModelTestCase, MediaTestCase
 
 User = get_user_model()
 

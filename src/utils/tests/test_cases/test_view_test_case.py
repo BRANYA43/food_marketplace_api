@@ -1,6 +1,6 @@
 from unittest.mock import patch, MagicMock
 
-from utils.tests.cases.view_test_case import ViewTestCase
+from utils.tests.cases import ViewTestCase
 
 
 class ViewTestCaseTest(ViewTestCase):

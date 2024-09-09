@@ -3,10 +3,9 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
-from catalogs.models import Category
-from catalogs.models.models import Advert, Image
-from catalogs.serializers import CategoryListSerializer
-from catalogs.serializers.serializers import (
+from catalogs.models import Category, Advert, Image
+from catalogs.serializers import (
+    CategoryListSerializer,
     CategorySerializer,
     AdvertListSerializer,
     AdvertRetrieveSerializer,

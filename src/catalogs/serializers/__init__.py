@@ -5,6 +5,8 @@ from .serializers import (
     AdvertCreateSerializer,
     AdvertUpdateSerializer,
     CategorySerializer,
+    ImageMultipleDeleteSerializer,
+    ImageMultipleCreateSerializer,
 )
 
 __all__ = [
@@ -14,4 +16,6 @@ __all__ = [
     'AdvertCreateSerializer',
     'AdvertUpdateSerializer',
     'CategorySerializer',
+    'ImageMultipleDeleteSerializer',
+    'ImageMultipleCreateSerializer',
 ]

@@ -2,8 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from catalogs.models import Category
-from catalogs.serializers import CategoryListSerializer
-from catalogs.serializers.serializers import CategorySerializer
+from catalogs.serializers import CategoryListSerializer, CategorySerializer
 from utils.tests.cases import ViewTestCase
 
 
