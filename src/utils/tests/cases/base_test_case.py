@@ -145,7 +145,7 @@ class BaseTestCase(APITestCase):
         """
         serializer = self.create_serializer(serializer_class, save=save, **serializer_args)
 
-        self.assertDictEqual(serializer.data, expected_data)
+        self.assertEqual(serializer.data, expected_data)
 
     def assert_response(
         self,
