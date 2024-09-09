@@ -3,6 +3,7 @@ from typing import Any, Type
 
 from django.db.models import Model
 from rest_framework.fields import empty
+from rest_framework.response import Response
 from rest_framework.serializers import Serializer, ModelSerializer
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.settings import api_settings as jwt_api_settings
@@ -145,3 +146,28 @@ class BaseTestCase(APITestCase):
         serializer = self.create_serializer(serializer_class, save=save, **serializer_args)
 
         self.assertDictEqual(serializer.data, expected_data)
+
+    def assert_response(
+        self,
+        response: Response,
+        status_code: int,
+        expected_data: list[dict[str, Any]] | dict[str, Any] | None = empty,
+        is_paginated=False,
+    ):
+        """
+        Checks response status code and data if data was passed.
+
+        :param response: the response objects to check.
+        :param status_code: the expected HTTP status code.
+        :param expected_data: the expected data in the response.
+        :param is_paginated: Set True if the response data is paginated. Method will parse the 'results' key in this case.
+        """
+        self.assertEqual(
+            response.status_code,
+            status_code,
+            msg=f'Expected status code "{status_code}", but got "{response.status_code}".',
+        )
+
+        if expected_data is not empty:
+            response_data = response.data['results'] if is_paginated else response.data
+            self.assertEqual(response_data, expected_data)
