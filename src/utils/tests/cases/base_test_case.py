@@ -1,5 +1,5 @@
 from tokenize import TokenError
-from typing import Any, Type
+from typing import Any, Type, Literal
 
 from django.db.models import Model
 from rest_framework.fields import empty
@@ -171,3 +171,22 @@ class BaseTestCase(APITestCase):
         if expected_data is not empty:
             response_data = response.data['results'] if is_paginated else response.data
             self.assertEqual(response_data, expected_data)
+
+    def assert_http_methods_availability(
+        self,
+        url: str,
+        methods: list[Literal['get', 'post', 'put', 'patch', 'delete']],
+        status_code: int,
+        data: dict[str, Any] | list[dict[str, Any]] = None,
+    ):
+        """
+        Checks availability of specified HTTP methods for a given URL.
+
+        :param url: the URL of view.
+        :param methods: an HTTP method list to check.
+        :param status_code: the HTTP status code that is expected(e.g. 405 for not allowed methods).
+        :param data: Optional data to send with request.
+        """
+        for method in methods:
+            response = getattr(self.client, method)(url, data)
+            self.assert_response(response, status_code)
