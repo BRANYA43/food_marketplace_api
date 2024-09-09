@@ -4,12 +4,12 @@ from rest_framework.reverse import reverse
 
 from accounts.serializers import UserUpdateSerializer, UserRetrieveSerializer
 from utils.models import Address
-from utils.tests.cases import ViewTestCase
+from utils.tests.cases import BaseTestCase
 
 User = get_user_model()
 
 
-class UserSetPasswordViewTest(ViewTestCase):
+class UserSetPasswordViewTest(BaseTestCase):
     url = reverse('user-set-password-me')
 
     def setUp(self) -> None:
@@ -75,10 +75,10 @@ class UserSetPasswordViewTest(ViewTestCase):
 
     def test_view_returns_no_data(self):
         response = self.client.put(self.url, self.input_data)
-        self.assert_response(response, status_code=status.HTTP_204_NO_CONTENT, output_data=None)
+        self.assert_response(response, status_code=status.HTTP_204_NO_CONTENT, expected_data=None)
 
 
-class UserRetrieveViewTest(ViewTestCase):
+class UserRetrieveViewTest(BaseTestCase):
     url = reverse('user-retrieve-me')
     serializer_class = UserRetrieveSerializer
 
@@ -104,26 +104,28 @@ class UserRetrieveViewTest(ViewTestCase):
         self.assert_response(response, status.HTTP_200_OK)
 
     def test_view_returns_data_without_address(self):
+        serializer = self.create_serializer(self.serializer_class, instance=self.user)
         response = self.client.get(self.url)
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=self.create_serializer_deprecated(self.serializer_class, instance=self.user).data,
+            expected_data=serializer.data,
         )
 
     def test_view_returns_data_with_address(self):
         self.create_test_address(self.user)
         self.user.refresh_from_db()
+        serializer = self.create_serializer(self.serializer_class, instance=self.user)
 
         response = self.client.get(self.url)
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=self.create_serializer_deprecated(self.serializer_class, instance=self.user).data,
+            expected_data=serializer.data,
         )
 
 
-class UserDisableViewTest(ViewTestCase):
+class UserDisableViewTest(BaseTestCase):
     url = reverse('user-disable-me')
 
     def setUp(self) -> None:
@@ -176,10 +178,10 @@ class UserDisableViewTest(ViewTestCase):
 
     def test_view_returns_no_data(self):
         response = self.client.post(self.url, self.input_data)
-        self.assert_response(response, status.HTTP_204_NO_CONTENT, output_data=None)
+        self.assert_response(response, status.HTTP_204_NO_CONTENT, expected_data=None)
 
 
-class UserUpdateViewTest(ViewTestCase):
+class UserUpdateViewTest(BaseTestCase):
     url = reverse('user-update-me')
     serializer_class = UserUpdateSerializer
     user_model = User
@@ -252,11 +254,12 @@ class UserUpdateViewTest(ViewTestCase):
     def test_view_returns_data_without_address(self):
         response = self.client.patch(self.url, self.input_data)
         self.user.refresh_from_db()
+        serializer = self.create_serializer(self.serializer_class, instance=self.user)
 
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=self.create_serializer_deprecated(self.serializer_class, instance=self.user).data,
+            expected_data=serializer.data,
         )
 
     def test_view_returns_data_with_address(self):
@@ -266,15 +269,16 @@ class UserUpdateViewTest(ViewTestCase):
         data = dict(**self.input_data, address=self.address_input_data)
         response = self.client.patch(self.url, data, format='json')
         self.user.refresh_from_db()
+        serializer = self.create_serializer(self.serializer_class, instance=self.user)
 
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=self.create_serializer_deprecated(self.serializer_class, instance=self.user).data,
+            expected_data=serializer.data,
         )
 
 
-class UserRegisterViewTest(ViewTestCase):
+class UserRegisterViewTest(BaseTestCase):
     url = reverse('user-register')
     model = User
 
@@ -338,10 +342,10 @@ class UserRegisterViewTest(ViewTestCase):
 
     def test_view_doesnt_return_data(self):
         response = self.client.post(self.url, self.input_data)
-        self.assert_response(response, status.HTTP_201_CREATED, output_data=None)
+        self.assert_response(response, status.HTTP_201_CREATED, expected_data=None)
 
 
-class UserLoginViewTest(ViewTestCase):
+class UserLoginViewTest(BaseTestCase):
     url = reverse('user-login')
 
     def setUp(self) -> None:
@@ -379,7 +383,7 @@ class UserLoginViewTest(ViewTestCase):
         self.assertIn('refresh', response.data)
 
 
-class UserLogoutViewTest(ViewTestCase):
+class UserLogoutViewTest(BaseTestCase):
     url = reverse('user-logout')
 
     def setUp(self) -> None:
@@ -411,10 +415,10 @@ class UserLogoutViewTest(ViewTestCase):
 
     def test_view_returns_no_data(self):
         response = self.client.post(self.url, self.input_data)
-        self.assert_response(response, status.HTTP_204_NO_CONTENT, output_data=None)
+        self.assert_response(response, status.HTTP_204_NO_CONTENT, expected_data=None)
 
 
-class UserRefreshViewTest(ViewTestCase):
+class UserRefreshViewTest(BaseTestCase):
     url = reverse('user-refresh')
 
     def setUp(self) -> None:
@@ -440,7 +444,7 @@ class UserRefreshViewTest(ViewTestCase):
         self.assert_response(response, status.HTTP_200_OK)
 
 
-class UserVerifyViewTest(ViewTestCase):
+class UserVerifyViewTest(BaseTestCase):
     url = reverse('user-verify')
 
     def setUp(self) -> None:
@@ -467,4 +471,4 @@ class UserVerifyViewTest(ViewTestCase):
 
     def test_view_returns_no_data(self):
         response = self.client.post(self.url, self.input_data)
-        self.assert_response(response, status.HTTP_204_NO_CONTENT, output_data=None)
+        self.assert_response(response, status.HTTP_204_NO_CONTENT, expected_data=None)
