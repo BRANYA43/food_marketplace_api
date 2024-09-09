@@ -80,6 +80,9 @@ class BaseTestCase(APITestCase):
     # Asserts                                                                                                          #
     ####################################################################################################################
     def assert_is_subclass(self, __cls, __class_or_tuple):
+        """
+        Checks that the class is the subclass of another class or classes.
+        """
         self.assertTrue(issubclass(__cls, __class_or_tuple), msg=f'{__cls} is not subclass of {__class_or_tuple}.')
 
     def assert_model_instance(self, model_instance: Model, expected_data: dict[str, Any], equal=True):
