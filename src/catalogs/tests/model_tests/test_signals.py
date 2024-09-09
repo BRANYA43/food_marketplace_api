@@ -1,4 +1,4 @@
-from catalogs.models.models import Advert
+from catalogs.models import Advert
 from utils.models import Address
 from utils.tests.cases import BaseTestCase
 

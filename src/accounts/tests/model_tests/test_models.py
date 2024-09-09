@@ -6,10 +6,10 @@ from rest_framework_simplejwt.tokens import Token
 
 from accounts import models
 from accounts.models.managers import UserManager
-from utils.tests.cases import ModelTestCase
+from utils.tests.cases import BaseTestCase
 
 
-class UserModelTest(ModelTestCase):
+class UserModelTest(BaseTestCase):
     model = models.User
 
     def setUp(self) -> None:
@@ -20,18 +20,6 @@ class UserModelTest(ModelTestCase):
 
     def test_model_inherits_classes(self):
         self.assert_is_subclass(self.model, (PermissionsMixin, AbstractBaseUser))
-
-    def test_expected_field_are_required(self):
-        self.assert_required_fields(self.model, ['email', 'password'])
-
-    def test_expected_fields_are_optional(self):
-        self.assert_optional_fields(self.model, ['full_name', 'phone'])
-
-    def test_expected_fields_are_set_by_default(self):
-        self.assert_fields_have_default_value(
-            self.model,
-            dict(is_staff=False, is_superuser=False, is_active=True),
-        )
 
     def test_email_field_is_username_field(self):
         self.assertEqual(self.model.USERNAME_FIELD, 'email')

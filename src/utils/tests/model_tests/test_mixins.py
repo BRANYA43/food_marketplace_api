@@ -1,8 +1,8 @@
 from utils.models.mixins import CreatedUpdatedMixin
-from utils.tests.cases import ModelTestCase
+from utils.tests.cases import BaseTestCase
 
 
-class CreatedUpdatedMixinTest(ModelTestCase):
+class CreatedUpdatedMixinTest(BaseTestCase):
     mixin = CreatedUpdatedMixin
 
     def test_updated_at_field_sets_value_auto_after_update(self):

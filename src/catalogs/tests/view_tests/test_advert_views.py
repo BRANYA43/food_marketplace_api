@@ -3,21 +3,21 @@ from decimal import Decimal
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from catalogs.models.models import Advert
-from catalogs.serializers.serializers import (
+from catalogs.models import Advert
+from catalogs.serializers import (
     AdvertListSerializer,
     AdvertCreateSerializer,
     AdvertUpdateSerializer,
     AdvertRetrieveSerializer,
 )
 from utils.models import Address
-from utils.tests.cases.view_test_case import ViewTestCase
+from utils.tests.cases import BaseTestCase
 
 LIST_URL = 'advert-list'
 DETAIL_URL = 'advert-detail'
 
 
-class AdvertListViewTest(ViewTestCase):
+class AdvertListViewTest(BaseTestCase):
     url = reverse(LIST_URL)
     serializer_class = AdvertListSerializer
 
@@ -36,12 +36,12 @@ class AdvertListViewTest(ViewTestCase):
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=serializer.data,
-            used_paginate=True,
+            expected_data=serializer.data,
+            is_paginated=True,
         )
 
 
-class AdvertRetrieveViewTest(ViewTestCase):
+class AdvertRetrieveViewTest(BaseTestCase):
     serializer_class = AdvertRetrieveSerializer
     advert_model = Advert
     address_model = Address
@@ -62,11 +62,11 @@ class AdvertRetrieveViewTest(ViewTestCase):
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=serializer.data,
+            expected_data=serializer.data,
         )
 
 
-class AdvertCreateViewTest(ViewTestCase):
+class AdvertCreateViewTest(BaseTestCase):
     url = reverse(LIST_URL)
     serializer_class = AdvertCreateSerializer
     advert_model = Advert
@@ -135,7 +135,7 @@ class AdvertCreateViewTest(ViewTestCase):
 
         advert = self.advert_model.objects.first()
         serializer = self.create_serializer_deprecated(self.serializer_class, instance=advert)
-        self.assert_response(response, status.HTTP_201_CREATED, output_data=serializer.data)
+        self.assert_response(response, status.HTTP_201_CREATED, expected_data=serializer.data)
 
     def test_view_returns_expected_data_with_address(self):
         data = dict(**self.input_data, address=self.address_input_data)
@@ -143,10 +143,10 @@ class AdvertCreateViewTest(ViewTestCase):
 
         advert = self.advert_model.objects.first()
         serializer = self.create_serializer_deprecated(self.serializer_class, instance=advert)
-        self.assert_response(response, status.HTTP_201_CREATED, output_data=serializer.data)
+        self.assert_response(response, status.HTTP_201_CREATED, expected_data=serializer.data)
 
 
-class AdvertUpdateViewTest(ViewTestCase):
+class AdvertUpdateViewTest(BaseTestCase):
     serializer_class = AdvertUpdateSerializer
     advert_model = Advert
     address_model = Address
@@ -236,7 +236,7 @@ class AdvertUpdateViewTest(ViewTestCase):
         self.advert.refresh_from_db()
         serializer = self.create_serializer_deprecated(self.serializer_class, instance=self.advert)
 
-        self.assert_response(response, status.HTTP_200_OK, output_data=serializer.data)
+        self.assert_response(response, status.HTTP_200_OK, expected_data=serializer.data)
 
     def test_view_returns_expected_data_with_address(self):
         self.create_test_address(self.advert)
@@ -246,10 +246,10 @@ class AdvertUpdateViewTest(ViewTestCase):
         self.advert.refresh_from_db()
         serializer = self.create_serializer_deprecated(self.serializer_class, instance=self.advert)
 
-        self.assert_response(response, status.HTTP_200_OK, output_data=serializer.data)
+        self.assert_response(response, status.HTTP_200_OK, expected_data=serializer.data)
 
 
-class AdvertDeleteViewTest(ViewTestCase):
+class AdvertDeleteViewTest(BaseTestCase):
     advert_model = Advert
     address_model = Address
 

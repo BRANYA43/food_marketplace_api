@@ -2,10 +2,10 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from catalogs.models import Image
-from utils.tests.cases import MediaTestCase, ViewTestCase
+from utils.tests.cases import MediaTestCase, BaseTestCase
 
 
-class ImageMultipleDeleteViewTest(MediaTestCase, ViewTestCase):
+class ImageMultipleDeleteViewTest(MediaTestCase, BaseTestCase):
     url = reverse('images-multiple-delete')
 
     def setUp(self):
@@ -47,10 +47,10 @@ class ImageMultipleDeleteViewTest(MediaTestCase, ViewTestCase):
 
     def test_view_return_no_data(self):
         response = self.client.post(self.url, self.data, format='json')
-        self.assert_response(response, status.HTTP_204_NO_CONTENT, output_data=None)
+        self.assert_response(response, status.HTTP_204_NO_CONTENT, expected_data=None)
 
 
-class ImageMultipleCreateViewTest(MediaTestCase, ViewTestCase):
+class ImageMultipleCreateViewTest(MediaTestCase, BaseTestCase):
     url = reverse('images-multiple-create')
 
     def setUp(self):
@@ -93,4 +93,4 @@ class ImageMultipleCreateViewTest(MediaTestCase, ViewTestCase):
 
     def test_view_returns_no_data(self):
         response = self.client.post(self.url, self.data, format='multipart')
-        self.assert_response(response, status.HTTP_201_CREATED, output_data=None)
+        self.assert_response(response, status.HTTP_201_CREATED, expected_data=None)

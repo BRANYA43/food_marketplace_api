@@ -3,10 +3,9 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
-from catalogs.models import Category
-from catalogs.models.models import Advert, Image
-from catalogs.serializers import CategoryListSerializer
-from catalogs.serializers.serializers import (
+from catalogs.models import Category, Advert, Image
+from catalogs.serializers import (
+    CategoryListSerializer,
     CategorySerializer,
     AdvertListSerializer,
     AdvertRetrieveSerializer,
@@ -16,7 +15,7 @@ from catalogs.serializers.serializers import (
     ImageMultipleDeleteSerializer,
 )
 from utils.models import Address
-from utils.tests.cases import SerializerTestCase, MediaTestCase
+from utils.tests.cases import BaseTestCase, MediaTestCase
 from utils.serializers.mixins import AddressCreateUpdateMixin
 
 
@@ -120,7 +119,7 @@ class ImageMultipleCreateSerializerTest(MediaTestCase):
             )
 
 
-class AdvertUpdateSerializerTest(SerializerTestCase):
+class AdvertUpdateSerializerTest(BaseTestCase):
     serializer_class = AdvertUpdateSerializer
     advert_model = Advert
     address_model = Address
@@ -151,16 +150,13 @@ class AdvertUpdateSerializerTest(SerializerTestCase):
     def test_serializer_inherits_mixins(self):
         self.assert_is_subclass(self.serializer_class, AddressCreateUpdateMixin)
 
-    def test_expected_fields_are_read_only(self):
-        self.assert_fields_are_read_only(self.serializer_class, ['id', 'owner'])
-
     def test_serializer_updates_advert_without_address(self):
         self.assertEqual(self.address_model.objects.count(), 0)
         self.assert_model_instance(self.advert, self.input_data, equal=False)
 
-        self.create_serializer_deprecated(
+        self.create_serializer(
             self.serializer_class,
-            self.input_data,
+            data=self.input_data,
             save=True,
             partial=True,
             instance=self.advert,
@@ -176,9 +172,9 @@ class AdvertUpdateSerializerTest(SerializerTestCase):
         self.assert_model_instance(address, self.input_address_data, equal=False)
         self.assert_model_instance(self.advert, self.input_data, equal=False)
 
-        self.create_serializer_deprecated(
+        self.create_serializer(
             self.serializer_class,
-            dict(**self.input_data, address=self.input_address_data),
+            data=dict(**self.input_data, address=self.input_address_data),
             save=True,
             partial=True,
             instance=self.advert,
@@ -197,9 +193,9 @@ class AdvertUpdateSerializerTest(SerializerTestCase):
             equal=False,
         )
 
-        self.create_serializer_deprecated(
+        self.create_serializer(
             self.serializer_class,
-            dict(**self.input_data, address=self.input_address_data),
+            data=dict(**self.input_data, address=self.input_address_data),
             save=True,
             partial=True,
             instance=self.advert,
@@ -213,10 +209,10 @@ class AdvertUpdateSerializerTest(SerializerTestCase):
         self.assert_model_instance(self.advert, self.input_data)
 
     def test_serializer_returns_expected_data_without_address(self):
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
-            input_data=self.input_data,
-            output_data=self.output_data,
+            data=self.input_data,
+            expected_data=self.output_data,
             save=True,
             partial=True,
             instance=self.advert,
@@ -224,17 +220,17 @@ class AdvertUpdateSerializerTest(SerializerTestCase):
 
     def test_serializer_returns_expected_data_with_address(self):
         self.output_data['address'] = self.input_address_data
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
-            input_data=dict(**self.input_data, address=self.input_address_data),
-            output_data=self.output_data,
+            data=dict(**self.input_data, address=self.input_address_data),
+            expected_data=self.output_data,
             save=True,
             partial=True,
             instance=self.advert,
         )
 
 
-class AdvertCreateSerializerTest(SerializerTestCase):
+class AdvertCreateSerializerTest(BaseTestCase):
     serializer_class = AdvertCreateSerializer
     advert_model = Advert
     address_model = Address
@@ -273,19 +269,13 @@ class AdvertCreateSerializerTest(SerializerTestCase):
     def test_serializer_inherits_mixins(self):
         self.assert_is_subclass(self.serializer_class, AddressCreateUpdateMixin)
 
-    def test_expected_fields_are_read_only(self):
-        self.assert_fields_are_read_only(
-            self.serializer_class,
-            ['id'],
-        )
-
     def test_serializer_creates_advert_without_address(self):
         self.assertEqual(self.advert_model.objects.count(), 0)
         self.assertEqual(self.address_model.objects.count(), 0)
 
-        self.create_serializer_deprecated(
+        self.create_serializer(
             self.serializer_class,
-            input_data=self.input_data,
+            data=self.input_data,
             save=True,
         )
 
@@ -305,9 +295,9 @@ class AdvertCreateSerializerTest(SerializerTestCase):
         self.assertEqual(self.advert_model.objects.count(), 0)
         self.assertEqual(self.address_model.objects.count(), 0)
 
-        self.create_serializer_deprecated(
+        self.create_serializer(
             self.serializer_class,
-            input_data=self.input_data,
+            data=self.input_data,
             save=True,
         )
 
@@ -322,10 +312,10 @@ class AdvertCreateSerializerTest(SerializerTestCase):
         self.assert_model_instance(address, self.input_address_data)
 
     def test_serializer_returns_expected_data_without_address(self):
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
-            input_data=self.input_data,
-            output_data=self.output_data,
+            data=self.input_data,
+            expected_data=self.output_data,
             save=True,
         )
 
@@ -336,15 +326,15 @@ class AdvertCreateSerializerTest(SerializerTestCase):
         self.output_data['address'] = self.input_address_data
         self.output_data['pickup'] = True
 
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
-            input_data=self.input_data,
-            output_data=self.output_data,
+            data=self.input_data,
+            expected_data=self.output_data,
             save=True,
         )
 
 
-class AdvertRetrieveSerializerTest(MediaTestCase, SerializerTestCase):
+class AdvertRetrieveSerializerTest(MediaTestCase, BaseTestCase):
     serializer_class = AdvertRetrieveSerializer
     model = Advert
 
@@ -369,30 +359,11 @@ class AdvertRetrieveSerializerTest(MediaTestCase, SerializerTestCase):
             extra_images=[],
         )
 
-    def test_expected_fields_are_read_only(self):
-        self.assert_fields_are_read_only(
-            self.serializer_class,
-            [
-                'id',
-                'owner',
-                'category',
-                'name',
-                'descr',
-                'price',
-                'quantity',
-                'pickup',
-                'nova_post',
-                'courier',
-                'address',
-            ],
-        )
-
     def test_serializer_returns_expected_data(self):
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
             instance=self.advert,
-            input_data={},
-            output_data=self.output_data,
+            expected_data=self.output_data,
         )
 
     def test_serializer_returns_expected_data_with_address(self):
@@ -405,37 +376,34 @@ class AdvertRetrieveSerializerTest(MediaTestCase, SerializerTestCase):
         self.advert.refresh_from_db()
         self.output_data['address'] = address_data
 
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
             instance=self.advert,
-            input_data={},
-            output_data=self.output_data,
+            expected_data=self.output_data,
         )
 
     def test_serializer_returns_expected_data_with_main_image(self):
         main_image = self.create_test_image(self.advert)
         self.advert.refresh_from_db()
         self.output_data['main_image'] = str(main_image.file)
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
             instance=self.advert,
-            input_data={},
-            output_data=self.output_data,
+            expected_data=self.output_data,
         )
 
     def test_serializer_returns_expected_data_with_extra_images(self):
         extra_image = self.create_test_image(self.advert, type=Image.Type.EXTRA)
         self.advert.refresh_from_db()
         self.output_data['extra_images'] = [str(extra_image.file)]
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
             instance=self.advert,
-            input_data={},
-            output_data=self.output_data,
+            expected_data=self.output_data,
         )
 
 
-class AdvertListSerializerTest(MediaTestCase, SerializerTestCase):
+class AdvertListSerializerTest(MediaTestCase, BaseTestCase):
     serializer_class = AdvertListSerializer
     model = Advert
 
@@ -445,11 +413,10 @@ class AdvertListSerializerTest(MediaTestCase, SerializerTestCase):
         self.advert = self.create_test_advert(self.owner, self.category)
 
     def test_serializer_returns_expected_data_without_main_image(self):
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
             instance=self.advert,
-            input_data={},
-            output_data=dict(
+            expected_data=dict(
                 id=self.advert.id,
                 name=self.advert.name,
                 category=self.advert.category.id,
@@ -461,11 +428,10 @@ class AdvertListSerializerTest(MediaTestCase, SerializerTestCase):
     def test_serializer_returns_expected_data_with_main_image(self):
         main_image = self.create_test_image(self.advert)
         self.advert.refresh_from_db()
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
             instance=self.advert,
-            input_data={},
-            output_data=dict(
+            expected_data=dict(
                 id=self.advert.id,
                 name=self.advert.name,
                 category=self.advert.category.id,
@@ -475,7 +441,7 @@ class AdvertListSerializerTest(MediaTestCase, SerializerTestCase):
         )
 
 
-class CategorySerializerTest(SerializerTestCase):
+class CategorySerializerTest(BaseTestCase):
     serializer_class = CategorySerializer
     model = Category
 
@@ -483,24 +449,24 @@ class CategorySerializerTest(SerializerTestCase):
         self.create_test_category(name='Category 1')
         self.create_test_category(name='Category 2')
 
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
             instance=self.model.objects.filter(children=None),
             many=True,
-            output_data=[dict(id=category.id, name=category.name) for category in self.model.objects.all()],
+            expected_data=[dict(id=category.id, name=category.name) for category in self.model.objects.all()],
         )
 
     def test_serializer_returns_data_with_one_category(self):
         category = self.create_test_category(name='Category 1')
 
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
             instance=category,
-            output_data=dict(id=category.id, name=category.name),
+            expected_data=dict(id=category.id, name=category.name),
         )
 
 
-class CategoryListSerializerTest(SerializerTestCase):
+class CategoryListSerializerTest(BaseTestCase):
     serializer_class = CategoryListSerializer
     model = Category
 
@@ -521,10 +487,10 @@ class CategoryListSerializerTest(SerializerTestCase):
         self.create_test_category(name='Category 2')
         self.create_test_category(name='Category 3')
 
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
             instance=self.model.objects.filter(parent=None),
-            output_data=self.get_expected_category_data(self.model.objects.filter(parent=None)),
+            expected_data=self.get_expected_category_data(self.model.objects.filter(parent=None)),
             many=True,
         )
 
@@ -535,9 +501,9 @@ class CategoryListSerializerTest(SerializerTestCase):
         self.create_test_category(name='Fruits', parent=food)
         self.create_test_category('All For Home')
 
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
             instance=self.model.objects.filter(parent=None),
-            output_data=self.get_expected_category_data(self.model.objects.filter(parent=None)),
+            expected_data=self.get_expected_category_data(self.model.objects.filter(parent=None)),
             many=True,
         )

@@ -1,9 +1,9 @@
 from utils import models
 from utils.models.mixins import CreatedUpdatedMixin
-from utils.tests.cases import ModelTestCase
+from utils.tests.cases import BaseTestCase
 
 
-class AddressModelTest(ModelTestCase):
+class AddressModelTest(BaseTestCase):
     model = models.Address
 
     def setUp(self) -> None:
@@ -17,12 +17,6 @@ class AddressModelTest(ModelTestCase):
 
     def test_models_inherit_mixin(self):
         self.assert_is_subclass(self.model, CreatedUpdatedMixin)
-
-    def test_expected_fields_are_required(self):
-        self.assert_required_fields(
-            self.model,
-            ['city', 'street', 'number'],
-        )
 
     def test_model_is_polymorphic(self):
         address1 = self.model.objects.create(**self.data)

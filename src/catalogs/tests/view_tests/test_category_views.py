@@ -2,12 +2,11 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from catalogs.models import Category
-from catalogs.serializers import CategoryListSerializer
-from catalogs.serializers.serializers import CategorySerializer
-from utils.tests.cases import ViewTestCase
+from catalogs.serializers import CategoryListSerializer, CategorySerializer
+from utils.tests.cases import BaseTestCase
 
 
-class CategorySelectListViewTest(ViewTestCase):
+class CategorySelectListViewTest(BaseTestCase):
     url = reverse('category-select-list')
     serializer_class = CategorySerializer
     model = Category
@@ -35,16 +34,16 @@ class CategorySelectListViewTest(ViewTestCase):
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=self.create_serializer_deprecated(
+            expected_data=self.create_serializer_deprecated(
                 self.serializer_class,
                 instance=self.model.objects.filter(children=None),
                 many=True,
             ).data,
-            used_paginate=True,
+            is_paginated=True,
         )
 
 
-class CategoryListViewTest(ViewTestCase):
+class CategoryListViewTest(BaseTestCase):
     url = reverse('category-list')
     serializer_class = CategoryListSerializer
     model = Category
@@ -72,10 +71,10 @@ class CategoryListViewTest(ViewTestCase):
         self.assert_response(
             response,
             status.HTTP_200_OK,
-            output_data=self.create_serializer_deprecated(
+            expected_data=self.create_serializer_deprecated(
                 self.serializer_class,
                 instance=self.model.objects.filter(parent=None),
                 many=True,
             ).data,
-            used_paginate=True,
+            is_paginated=True,
         )
