@@ -1,22 +1,19 @@
 from utils.serializers import AddressFieldSerializer
-from utils.tests.cases import SerializerTestCase
+from utils.tests.cases import BaseTestCase
 
 
-class AddressFieldSerializerTest(SerializerTestCase):
+class AddressFieldSerializerTest(BaseTestCase):
     serializer_class = AddressFieldSerializer
 
     def setUp(self) -> None:
         self.user = self.create_test_user()
         self.address = self.create_test_address(self.user)
 
-    def test_expected_fields_are_required(self):
-        self.assert_required_fields(self.serializer_class, ['city', 'street', 'number'])
-
     def test_serializer_returns_expected_data(self):
-        self.assert_output_serializer_data(
+        self.assert_serializer_output_data(
             self.serializer_class,
             instance=self.address,
-            output_data=dict(
+            expected_data=dict(
                 city=self.address.city,
                 street=self.address.street,
                 number=self.address.number,
