@@ -28,6 +28,7 @@ django-mail-templated = "^2.6.5"
 django-cleanup = "^8.1.0"
 pydantic = "^2.8.2"
 psycopg = "^3.2.1"
+uuid = "^1.30"
 
 
 [tool.poetry.group.dev.dependencies]
