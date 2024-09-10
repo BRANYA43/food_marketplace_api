@@ -1,5 +1,7 @@
+import uuid
 from django.db import models
-from django.contrib.auth.models import User
+from utils.models.mixins import CreatedUpdatedMixin
+from django.conf import settings
 
 
 class ShippingMethod(models.TextChoices):
@@ -20,16 +22,14 @@ class PaymentMethod(models.TextChoices):
     CASH = 'cash', 'Cash'
 
 
-class Order(models.Model):
-    uuid = models.UUIDField(primary_key=True, default=models.UUIDField, editable=False)
-    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+class Order(CreatedUpdatedMixin):
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     shipping_address = models.CharField(max_length=255)
     payment_method = models.CharField(max_length=20, choices=PaymentMethod.choices)
     shipping_method = models.CharField(max_length=20, choices=ShippingMethod.choices)
     notes = models.TextField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     is_paid = models.BooleanField(default=False)
 
     def __str__(self):
