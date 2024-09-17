@@ -13,6 +13,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.models import User
 from catalogs.models import Category
 from catalogs.models.models import Advert
+from orders.models import Order
 from utils.models import Address
 
 
@@ -190,3 +191,59 @@ class BaseTestCase(APITestCase):
         for method in methods:
             response = getattr(self.client, method)(url, data)
             self.assert_response(response, status_code)
+
+
+class OrderTestCase(BaseTestCase):
+
+    def setUp(self):
+        self.user = self.create_test_user()
+        self.address = self.create_test_address(content_obj=self.user)
+        self.order_data = {
+            'customer': self.user,
+            'shipping_address': '123 Test St, Test City',
+            'payment_method': 'visa',
+            'shipping_method': 'standard',
+            'status': 'pending',
+            'is_paid': False
+        }
+
+    def test_order_creation(self):
+        # Simulate an order creation
+        order = Order.objects.create(**self.order_data)
+
+        # Check if the order was created successfully
+        self.assert_model_instance(order, {
+            'customer': self.user.id,
+            'shipping_address': '123 Test St, Test City',
+            'payment_method': 'visa',
+            'shipping_method': 'standard',
+            'status': 'pending',
+            'is_paid': False,
+        })
+
+    @skip("API not implemented yet")
+    def test_order_creation_via_api(self):
+        pass  # Skip the API test until it's ready
+
+    def test_order_status_update(self):
+        # Create an order
+        order = Order.objects.create(**self.order_data)
+
+        # Update the order status
+        order.status = 'shipped'
+        order.save()
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'shipped')
+
+    def test_order_delete(self):
+        # Create an order
+        order = Order.objects.create(**self.order_data)
+
+        # Ensure the order exists in the database
+        self.assertTrue(Order.objects.filter(uuid=order.uuid).exists())
+
+        # Delete the order
+        order.delete()
+
+        # Ensure the order no longer exists in the database
+        self.assertFalse(Order.objects.filter(uuid=order.uuid).exists())
