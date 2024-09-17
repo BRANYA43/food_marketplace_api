@@ -221,9 +221,6 @@ class OrderTestCase(BaseTestCase):
             'is_paid': False,
         })
 
-    @skip("API not implemented yet")
-    def test_order_creation_via_api(self):
-        pass  # Skip the API test until it's ready
 
     def test_order_status_update(self):
         # Create an order
