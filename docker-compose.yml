@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: ./docker/django/Dockerfile
-    image: branya/food_marketplace_api:3.0.0
+    image: branya/food_marketplace_api:3.1.0
     container_name: api
     volumes:
       - static_volume:/opt/src/static
@@ -55,8 +55,6 @@ services:
     ports:
       - "80:80"
     depends_on:
-      db:
-        condition: service_healthy
       api:
         condition: service_healthy
     healthcheck:
