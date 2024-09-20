@@ -1,11 +1,6 @@
 from datetime import timedelta
 
-from core.settings.components.base import INSTALLED_APPS, SECRET_KEY
-
-INSTALLED_APPS += [
-    'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
-]
+from django.conf import settings
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
@@ -14,7 +9,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
+    'SIGNING_KEY': settings.SECRET_KEY,
     'VERIFYING_KEY': '',
     'AUDIENCE': None,
     'ISSUER': None,
