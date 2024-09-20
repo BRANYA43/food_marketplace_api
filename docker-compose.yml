@@ -1,11 +1,8 @@
-version: "3.9"
-
 services:
   api:
     build:
       context: .
       dockerfile: ./docker/django/Dockerfile
-    image: branya/food_marketplace_api:3.1.0
     container_name: api
     volumes:
       - static_volume:/opt/src/static
@@ -32,7 +29,6 @@ services:
 
   db:
     build: ./docker/postgres
-    image: branya/food_marketplace_db:1.0.0
     container_name: db
     volumes:
       - db_volume:/var/lib/postgresql/data/
@@ -47,7 +43,6 @@ services:
 
   nginx:
     build: ./docker/nginx
-    image: branya/food_marketplace_nginx:1.0.0
     container_name: nginx
     volumes:
       - static_volume:/opt/src/static
