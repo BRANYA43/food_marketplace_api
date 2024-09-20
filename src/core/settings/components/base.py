@@ -11,6 +11,7 @@ SECRET_KEY = env.get('DJANGO_SECRET_KEY')
 ALLOWED_HOSTS = env.get('DJANGO_ALLOWED_HOSTS', '').split()
 
 INSTALLED_APPS = [
+    'baton',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -22,6 +23,7 @@ INSTALLED_APPS = [
     'catalogs',
     'orders',
     'utils',
+    'baton.autodiscover',
     'django_cleanup.apps.CleanupConfig',
 ]
 
