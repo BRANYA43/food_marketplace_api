@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'drf_spectacular',
+    'drf_standardized_errors',
     'django_filters',
     'accounts',
     'catalogs',
