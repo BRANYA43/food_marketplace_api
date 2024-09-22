@@ -2,6 +2,8 @@ from tokenize import TokenError
 from typing import Any, Type, Literal
 
 from django.db.models import Model
+from django.urls import reverse
+from rest_framework import status
 from rest_framework.fields import empty
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer, ModelSerializer
@@ -221,6 +223,11 @@ class OrderTestCase(BaseTestCase):
             'is_paid': False,
         })
 
+    def test_create_order_via_api(self):
+        url = reverse('order-create')
+        response = self.client.post(url, self.order_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Order.objects.count(), 1)
 
     def test_order_status_update(self):
         # Create an order
