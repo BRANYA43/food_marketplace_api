@@ -58,8 +58,26 @@ class BaseTestCase(APITestCase):
         return Category.objects.create(name=name, **extra_fields)
 
     @staticmethod
-    def create_test_advert(owner: User, category: Category, name='name', price='100.00', **extra_fields) -> Advert:
-        return Advert.objects.create(owner=owner, category=category, name=name, price=price, **extra_fields)
+    def create_test_advert(
+        owner: User,
+        category: Category,
+        name='name',
+        price='100.00',
+        location='location',
+        unit=Advert.Unit.KG,
+        payment_card='0123 4567 8901 2345',
+        **extra_fields,
+    ) -> Advert:
+        return Advert.objects.create(
+            owner=owner,
+            category=category,
+            name=name,
+            price=price,
+            location=location,
+            unit=unit,
+            payment_card=payment_card,
+            **extra_fields,
+        )
 
     @staticmethod
     def create_serializer_deprecated(
@@ -194,7 +212,6 @@ class BaseTestCase(APITestCase):
 
 
 class OrderTestCase(BaseTestCase):
-
     def setUp(self):
         self.user = self.create_test_user()
         self.address = self.create_test_address(content_obj=self.user)
@@ -204,7 +221,7 @@ class OrderTestCase(BaseTestCase):
             'payment_method': 'visa',
             'shipping_method': 'standard',
             'status': 'pending',
-            'is_paid': False
+            'is_paid': False,
         }
 
     def test_order_creation(self):
@@ -212,15 +229,17 @@ class OrderTestCase(BaseTestCase):
         order = Order.objects.create(**self.order_data)
 
         # Check if the order was created successfully
-        self.assert_model_instance(order, {
-            'customer': self.user.id,
-            'shipping_address': '123 Test St, Test City',
-            'payment_method': 'visa',
-            'shipping_method': 'standard',
-            'status': 'pending',
-            'is_paid': False,
-        })
-
+        self.assert_model_instance(
+            order,
+            {
+                'customer': self.user.id,
+                'shipping_address': '123 Test St, Test City',
+                'payment_method': 'visa',
+                'shipping_method': 'standard',
+                'status': 'pending',
+                'is_paid': False,
+            },
+        )
 
     def test_order_status_update(self):
         # Create an order

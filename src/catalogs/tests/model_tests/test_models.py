@@ -57,8 +57,11 @@ class AdvertModelTest(BaseTestCase):
         self.data = dict(
             owner=self.owner,
             category=self.category,
-            name='New name',
+            name='Name',
             price=100,
+            unit=self.model.Unit.KG,
+            location='Location',
+            payment_card='0000 0000 0000 0000',
         )
 
     def test_model_inherit_expected_mixins(self):
@@ -67,10 +70,34 @@ class AdvertModelTest(BaseTestCase):
     def test_address_relates_with_advert(self):
         self.assertIsInstance(self.model.address.field, GenericRelation)
 
+    def test_create_model_instance(self):
+        advert = self.model(**self.data)
+        advert.full_clean()  # not raise
+        self.data.update(
+            dict(
+                descr=None,
+                quantity=1,
+                availability=self.model.Availability.AVAILABLE,
+                delivery_method=self.model.DeliveryMethod.COURIER,
+                delivery_comment=None,
+                payment_method=self.model.PaymentMethod.CARD,
+                payment_comment=None,
+            )
+        )
+        self.assert_model_instance(advert, self.data)
+
     def test_price_field_must_be_gte_0(self):
         self.data['price'] = -1
         advert = self.model(**self.data)
         with self.assertRaisesRegex(ValidationError, r'Ensure this value is greater than or equal to 0.'):
+            advert.full_clean()
+
+    def test_payment_card_field_raises_error_for_invalid_style_of_card_number(self):
+        self.data['payment_card'] = '012 345 678 901'
+        advert = self.model(**self.data)
+        with self.assertRaisesRegex(
+            ValidationError, r'Card number should be in the such style: "0000 0000 0000 0000".'
+        ):
             advert.full_clean()
 
     def test_quantity_field_must_be_gt_0(self):
@@ -79,19 +106,14 @@ class AdvertModelTest(BaseTestCase):
         with self.assertRaisesRegex(ValidationError, r'quantity.+Ensure this value is greater than or equal to 1'):
             advert.full_clean()
 
-    def test_one_of_pickup_nova_post_courier_fields_must_be_true(self):
-        self.data.update(dict(pickup=False, nova_post=False, courier=False))
-        advert = self.model(**self.data)
-        with self.assertRaisesRegex(
-            ValidationError, r'One of the fields "pickup", "nova_post", "courier" must be True.'
-        ):
-            advert.full_clean()
-
-    def test_pickup_address_must_be_if_pickup_is_true(self):
-        self.data.update(dict(pickup=True))
-        advert = self.model(**self.data)
-        with self.assertRaisesRegex(ValidationError, r'The "pickup_address" field must be if "pickup" field is True.'):
-            advert.full_clean()
+    def test_pickup_address_should_be_if_delivery_method_has_pickup(self):
+        for method in ('PICKUP', 'PICKUP__NOVA_POST', 'PICKUP__COURIER', 'PICKUP__NOVA_POST__COURIER'):
+            advert = self.model(**self.data, delivery_method=self.model.DeliveryMethod[method])
+            with self.assertRaisesRegex(
+                ValidationError,
+                r'The "pickup_address" field must be if "pickup" field is True.',
+            ):
+                advert.full_clean()
 
 
 class CategoryModelTest(BaseTestCase):

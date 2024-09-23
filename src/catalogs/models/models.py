@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxLengthValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext as _
 
@@ -50,6 +50,34 @@ class Image(CreatedUpdatedMixin):
 
 
 class Advert(CreatedUpdatedMixin):
+    class DeliveryMethod(models.IntegerChoices):
+        PICKUP = 1, _('pickup')
+        NOVA_POST = 2, _('nova post')
+        COURIER = 4, _('courier')
+        PICKUP__NOVA_POST = 3, _('pickup, nova post')
+        PICKUP__COURIER = 5, _('pickup, courier')
+        NOVA_POST__COURIER = 6, _('nova post, courier')
+        PICKUP__NOVA_POST__COURIER = 7, _('pickup, nova post, courier')
+
+    class Unit(models.IntegerChoices):
+        G = 0, _('g')
+        KG = 1, _('kg')
+        T = 2, _('t')
+        CM3 = 3, _('cm³')
+        DM3 = 4, _('dm³')
+        M3 = 5, _('m³')
+        ML = 6, _('ml')
+        L = 7, _('l')
+
+    class Availability(models.IntegerChoices):
+        AVAILABLE = 0, _('is available')
+        NOT_AVAILABLE = 1, _('is not available')
+        ORDER = 2, _('to order')
+
+    class PaymentMethod(models.IntegerChoices):
+        CARD = 0, _('on card')
+        CASH = 1, _('in cash')
+
     owner = models.ForeignKey(
         verbose_name=_('owner'),
         to=User,
@@ -83,43 +111,69 @@ class Advert(CreatedUpdatedMixin):
         default=1,
         validators=[MinValueValidator(1)],
     )
-    pickup = models.BooleanField(
-        verbose_name=_('pickup'),
-        default=False,
+    unit = models.PositiveIntegerField(
+        verbose_name=_('unit'),
+        choices=Unit.choices,
     )
-    nova_post = models.BooleanField(
-        verbose_name=_('nova_post'),
-        default=False,
+    availability = models.PositiveIntegerField(
+        verbose_name=_('availability'),
+        choices=Availability.choices,
+        default=Availability.AVAILABLE,
     )
-    courier = models.BooleanField(
-        verbose_name=_('courier'),
-        default=True,
+    location = models.CharField(
+        verbose_name=_('location'),
+        max_length=100,
+    )
+    delivery_method = models.PositiveIntegerField(
+        verbose_name=_('delivery methods'),
+        choices=DeliveryMethod.choices,
+        default=DeliveryMethod.COURIER,
     )
     address = GenericRelation(
         verbose_name=_('pickup address'),
         to=Address,
+    )
+    delivery_comment = models.TextField(
+        verbose_name=_('delivery comment'),
+        null=True,
+        blank=True,
+        validators=[MaxLengthValidator(512)],
+    )
+    payment_method = models.PositiveIntegerField(
+        verbose_name=_('preferring payment method'),
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.CARD,
+    )
+    payment_card = models.CharField(
+        verbose_name=_('payment card number'),
+        max_length=19,
+        validators=[
+            RegexValidator(
+                r'^\d{4} \d{4} \d{4} \d{4}$',
+                message=_('Card number should be in the such style: "0000 0000 0000 0000".'),
+                code='invalid_card_number',
+            ),
+        ],
+    )
+    payment_comment = models.TextField(
+        verbose_name=_('payment comment'),
+        null=True,
+        blank=True,
+        validators=[MaxLengthValidator(512)],
     )
 
     class Meta:
         verbose_name = _('advert')
         verbose_name_plural = _('adverts')
 
-    def clean_pickup_nova_post_courier(self):
-        if not any([self.pickup, self.nova_post, self.courier]):
-            raise ValidationError(
-                'One of the fields "pickup", "nova_post", "courier" must be True.',
-                'invalid_select',
-            )
-
     def clean_pickup_address_and_pickup(self):
-        if self.pickup and not self.address.first():
+        if self.delivery_method in (1, 3, 5, 7) and not self.address.first():
             raise ValidationError(
                 'The "pickup_address" field must be if "pickup" field is True.',
                 'invalid_pickup_address',
             )
 
     def clean(self):
-        self.clean_pickup_nova_post_courier()
         self.clean_pickup_address_and_pickup()
 
     def __str__(self):

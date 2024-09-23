@@ -80,6 +80,9 @@ class AdvertCreateViewTest(BaseTestCase):
             category=self.category.pk,
             name='name',
             price=Decimal('100.00'),
+            unit=Advert.Unit.KG,
+            location='location',
+            payment_card='0000 0000 0000 0000',
         )
         self.address_input_data = dict(
             city='city',
