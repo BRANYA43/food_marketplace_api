@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxLengthValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext as _
 
@@ -50,6 +50,25 @@ class Image(CreatedUpdatedMixin):
 
 
 class Advert(CreatedUpdatedMixin):
+    class Unit(models.IntegerChoices):
+        G = 0, _('g')
+        KG = 1, _('kg')
+        T = 2, _('t')
+        CM3 = 3, _('cm³')
+        DM3 = 4, _('dm³')
+        M3 = 5, _('m³')
+        ML = 6, _('ml')
+        L = 7, _('l')
+
+    class Availability(models.IntegerChoices):
+        AVAILABLE = 0, _('is available')
+        NOT_AVAILABLE = 1, _('is not available')
+        ORDER = 2, _('to order')
+
+    class PaymentMethod(models.IntegerChoices):
+        CARD = 0, _('on card')
+        CASH = 1, _('in cash')
+
     owner = models.ForeignKey(
         verbose_name=_('owner'),
         to=User,
@@ -83,6 +102,19 @@ class Advert(CreatedUpdatedMixin):
         default=1,
         validators=[MinValueValidator(1)],
     )
+    unit = models.PositiveIntegerField(
+        verbose_name=_('unit'),
+        choices=Unit.choices,
+    )
+    availability = models.PositiveIntegerField(
+        verbose_name=_('availability'),
+        choices=Availability.choices,
+        default=Availability.AVAILABLE,
+    )
+    location = models.CharField(
+        verbose_name=_('location'),
+        max_length=100,
+    )
     pickup = models.BooleanField(
         verbose_name=_('pickup'),
         default=False,
@@ -98,6 +130,34 @@ class Advert(CreatedUpdatedMixin):
     address = GenericRelation(
         verbose_name=_('pickup address'),
         to=Address,
+    )
+    delivery_comment = models.TextField(
+        verbose_name=_('delivery comment'),
+        null=True,
+        blank=True,
+        validators=[MaxLengthValidator(512)],
+    )
+    payment_method = models.PositiveIntegerField(
+        verbose_name=_('preferring payment method'),
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.CARD,
+    )
+    payment_card = models.CharField(
+        verbose_name=_('payment card number'),
+        max_length=19,
+        validators=[
+            RegexValidator(
+                r'^\d{4} \d{4} \d{4} \d{4}$',
+                message=_('Card number should be in the such style: "0000 0000 0000 0000".'),
+                code='invalid_card_number',
+            ),
+        ],
+    )
+    payment_comment = models.TextField(
+        verbose_name=_('payment comment'),
+        null=True,
+        blank=True,
+        validators=[MaxLengthValidator(512)],
     )
 
     class Meta:

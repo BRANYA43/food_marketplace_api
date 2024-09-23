@@ -57,8 +57,11 @@ class AdvertModelTest(BaseTestCase):
         self.data = dict(
             owner=self.owner,
             category=self.category,
-            name='New name',
+            name='Name',
             price=100,
+            unit=self.model.Unit.KG,
+            location='Location',
+            payment_card='0000 0000 0000 0000',
         )
 
     def test_model_inherit_expected_mixins(self):
@@ -67,10 +70,36 @@ class AdvertModelTest(BaseTestCase):
     def test_address_relates_with_advert(self):
         self.assertIsInstance(self.model.address.field, GenericRelation)
 
+    def test_create_model_instance(self):
+        advert = self.model(**self.data)
+        advert.full_clean()  # not raise
+        self.data.update(
+            dict(
+                descr=None,
+                quantity=1,
+                availability=self.model.Availability.AVAILABLE,
+                pickup=False,
+                nova_post=False,
+                courier=True,
+                delivery_comment=None,
+                payment_method=self.model.PaymentMethod.CARD,
+                payment_comment=None,
+            )
+        )
+        self.assert_model_instance(advert, self.data)
+
     def test_price_field_must_be_gte_0(self):
         self.data['price'] = -1
         advert = self.model(**self.data)
         with self.assertRaisesRegex(ValidationError, r'Ensure this value is greater than or equal to 0.'):
+            advert.full_clean()
+
+    def test_payment_card_field_raises_error_for_invalid_style_of_card_number(self):
+        self.data['payment_card'] = '012 345 678 901'
+        advert = self.model(**self.data)
+        with self.assertRaisesRegex(
+            ValidationError, r'Card number should be in the such style: "0000 0000 0000 0000".'
+        ):
             advert.full_clean()
 
     def test_quantity_field_must_be_gt_0(self):
