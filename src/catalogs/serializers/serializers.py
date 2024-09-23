@@ -122,10 +122,17 @@ class AdvertRetrieveSerializer(serializers.ModelSerializer):
             'descr',
             'price',
             'quantity',
+            'unit',
+            'availability',
+            'location',
             'pickup',
             'nova_post',
             'courier',
             'address',
+            'delivery_comment',
+            'payment_method',
+            'payment_card',
+            'payment_comment',
             'main_image',
             'extra_images',
         )
@@ -155,10 +162,17 @@ class AdvertCreateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializ
             'descr',
             'price',
             'quantity',
+            'unit',
+            'availability',
+            'location',
             'pickup',
             'nova_post',
             'courier',
             'address',
+            'delivery_comment',
+            'payment_method',
+            'payment_card',
+            'payment_comment',
         )
         read_only_fields = ('id',)
 
@@ -174,10 +188,17 @@ class AdvertUpdateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializ
             'descr',
             'price',
             'quantity',
+            'unit',
+            'availability',
+            'location',
             'pickup',
             'nova_post',
             'courier',
             'address',
+            'delivery_comment',
+            'payment_method',
+            'payment_card',
+            'payment_comment',
         )
         read_only_fields = ('id', 'owner')
 

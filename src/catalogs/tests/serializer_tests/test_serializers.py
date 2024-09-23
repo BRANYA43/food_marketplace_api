@@ -139,10 +139,17 @@ class AdvertUpdateSerializerTest(BaseTestCase):
             descr=None,
             price=str(self.advert.price),
             quantity=self.advert.quantity,
+            unit=self.advert.unit,
+            availability=self.advert.availability,
+            location=self.advert.location,
             pickup=self.advert.pickup,
             nova_post=self.advert.nova_post,
             courier=self.advert.courier,
             address={},
+            delivery_comment=None,
+            payment_method=self.advert.payment_method,
+            payment_card=self.advert.payment_card,
+            payment_comment=None,
         )
 
         self.input_address_data = dict(city='new city', street='new stree', number='new number')
@@ -244,6 +251,9 @@ class AdvertCreateSerializerTest(BaseTestCase):
             category=self.category.id,
             name='name',
             price=Decimal('100.00'),
+            unit=Advert.Unit.KG,
+            location='location',
+            payment_card='0000 0000 0000 0000',
         )
 
         self.output_data = dict(
@@ -254,10 +264,17 @@ class AdvertCreateSerializerTest(BaseTestCase):
             descr=None,
             price=str(self.input_data['price']),
             quantity=1,
+            unit=self.input_data['unit'],
+            availability=Advert.Availability.AVAILABLE,
+            location=self.input_data['location'],
             pickup=False,
             nova_post=False,
             courier=True,
             address={},
+            delivery_comment=None,
+            payment_method=Advert.PaymentMethod.CARD,
+            payment_card=self.input_data['payment_card'],
+            payment_comment=None,
         )
 
         self.input_address_data = dict(
@@ -351,10 +368,17 @@ class AdvertRetrieveSerializerTest(MediaTestCase, BaseTestCase):
             descr=self.advert.descr,
             price=str(self.advert.price),
             quantity=self.advert.quantity,
+            unit=self.advert.unit,
+            availability=self.advert.availability,
+            location=self.advert.location,
             pickup=False,
             nova_post=False,
             courier=True,
             address={},
+            delivery_comment=None,
+            payment_method=self.advert.payment_method,
+            payment_card=self.advert.payment_card,
+            payment_comment=None,
             main_image=None,
             extra_images=[],
         )
