@@ -142,9 +142,7 @@ class AdvertUpdateSerializerTest(BaseTestCase):
             unit=self.advert.unit,
             availability=self.advert.availability,
             location=self.advert.location,
-            pickup=self.advert.pickup,
-            nova_post=self.advert.nova_post,
-            courier=self.advert.courier,
+            delivery_method=self.advert.delivery_method,
             address={},
             delivery_comment=None,
             payment_method=self.advert.payment_method,
@@ -267,9 +265,7 @@ class AdvertCreateSerializerTest(BaseTestCase):
             unit=self.input_data['unit'],
             availability=Advert.Availability.AVAILABLE,
             location=self.input_data['location'],
-            pickup=False,
-            nova_post=False,
-            courier=True,
+            delivery_method=Advert.DeliveryMethod.COURIER,
             address={},
             delivery_comment=None,
             payment_method=Advert.PaymentMethod.CARD,
@@ -304,10 +300,10 @@ class AdvertCreateSerializerTest(BaseTestCase):
 
     def test_serializer_creates_advert_with_address(self):
         self.input_data['address'] = self.input_address_data
-        self.input_data['pickup'] = True
+        self.input_data['delivery_method'] = Advert.DeliveryMethod.PICKUP
 
         self.output_data['address'] = self.input_address_data
-        self.output_data['pickup'] = True
+        self.output_data['delivery_method'] = Advert.DeliveryMethod.PICKUP
 
         self.assertEqual(self.advert_model.objects.count(), 0)
         self.assertEqual(self.address_model.objects.count(), 0)
@@ -338,11 +334,10 @@ class AdvertCreateSerializerTest(BaseTestCase):
 
     def test_serializer_returns_expected_data_with_address(self):
         self.input_data['address'] = self.input_address_data
-        self.input_data['pickup'] = True
+        self.input_data['delivery_method'] = Advert.DeliveryMethod.PICKUP
 
         self.output_data['address'] = self.input_address_data
-        self.output_data['pickup'] = True
-
+        self.output_data['delivery_method'] = Advert.DeliveryMethod.PICKUP
         self.assert_serializer_output_data(
             self.serializer_class,
             data=self.input_data,
@@ -371,9 +366,7 @@ class AdvertRetrieveSerializerTest(MediaTestCase, BaseTestCase):
             unit=self.advert.unit,
             availability=self.advert.availability,
             location=self.advert.location,
-            pickup=False,
-            nova_post=False,
-            courier=True,
+            delivery_method=self.advert.delivery_method,
             address={},
             delivery_comment=None,
             payment_method=self.advert.payment_method,
