@@ -78,9 +78,7 @@ class AdvertModelTest(BaseTestCase):
                 descr=None,
                 quantity=1,
                 availability=self.model.Availability.AVAILABLE,
-                pickup=False,
-                nova_post=False,
-                courier=True,
+                delivery_method=self.model.DeliveryMethod.COURIER,
                 delivery_comment=None,
                 payment_method=self.model.PaymentMethod.CARD,
                 payment_comment=None,
@@ -108,19 +106,14 @@ class AdvertModelTest(BaseTestCase):
         with self.assertRaisesRegex(ValidationError, r'quantity.+Ensure this value is greater than or equal to 1'):
             advert.full_clean()
 
-    def test_one_of_pickup_nova_post_courier_fields_must_be_true(self):
-        self.data.update(dict(pickup=False, nova_post=False, courier=False))
-        advert = self.model(**self.data)
-        with self.assertRaisesRegex(
-            ValidationError, r'One of the fields "pickup", "nova_post", "courier" must be True.'
-        ):
-            advert.full_clean()
-
-    def test_pickup_address_must_be_if_pickup_is_true(self):
-        self.data.update(dict(pickup=True))
-        advert = self.model(**self.data)
-        with self.assertRaisesRegex(ValidationError, r'The "pickup_address" field must be if "pickup" field is True.'):
-            advert.full_clean()
+    def test_pickup_address_should_be_if_delivery_method_has_pickup(self):
+        for method in ('PICKUP', 'PICKUP__NOVA_POST', 'PICKUP__COURIER', 'PICKUP__NOVA_POST__COURIER'):
+            advert = self.model(**self.data, delivery_method=self.model.DeliveryMethod[method])
+            with self.assertRaisesRegex(
+                ValidationError,
+                r'The "pickup_address" field must be if "pickup" field is True.',
+            ):
+                advert.full_clean()
 
 
 class CategoryModelTest(BaseTestCase):

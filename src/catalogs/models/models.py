@@ -50,6 +50,15 @@ class Image(CreatedUpdatedMixin):
 
 
 class Advert(CreatedUpdatedMixin):
+    class DeliveryMethod(models.IntegerChoices):
+        PICKUP = 1, _('pickup')
+        NOVA_POST = 2, _('nova post')
+        COURIER = 4, _('courier')
+        PICKUP__NOVA_POST = 3, _('pickup, nova post')
+        PICKUP__COURIER = 5, _('pickup, courier')
+        NOVA_POST__COURIER = 6, _('nova post, courier')
+        PICKUP__NOVA_POST__COURIER = 7, _('pickup, nova post, courier')
+
     class Unit(models.IntegerChoices):
         G = 0, _('g')
         KG = 1, _('kg')
@@ -115,17 +124,10 @@ class Advert(CreatedUpdatedMixin):
         verbose_name=_('location'),
         max_length=100,
     )
-    pickup = models.BooleanField(
-        verbose_name=_('pickup'),
-        default=False,
-    )
-    nova_post = models.BooleanField(
-        verbose_name=_('nova_post'),
-        default=False,
-    )
-    courier = models.BooleanField(
-        verbose_name=_('courier'),
-        default=True,
+    delivery_method = models.PositiveIntegerField(
+        verbose_name=_('delivery methods'),
+        choices=DeliveryMethod.choices,
+        default=DeliveryMethod.COURIER,
     )
     address = GenericRelation(
         verbose_name=_('pickup address'),
@@ -164,22 +166,14 @@ class Advert(CreatedUpdatedMixin):
         verbose_name = _('advert')
         verbose_name_plural = _('adverts')
 
-    def clean_pickup_nova_post_courier(self):
-        if not any([self.pickup, self.nova_post, self.courier]):
-            raise ValidationError(
-                'One of the fields "pickup", "nova_post", "courier" must be True.',
-                'invalid_select',
-            )
-
     def clean_pickup_address_and_pickup(self):
-        if self.pickup and not self.address.first():
+        if self.delivery_method in (1, 3, 5, 7) and not self.address.first():
             raise ValidationError(
                 'The "pickup_address" field must be if "pickup" field is True.',
                 'invalid_pickup_address',
             )
 
     def clean(self):
-        self.clean_pickup_nova_post_courier()
         self.clean_pickup_address_and_pickup()
 
     def __str__(self):
