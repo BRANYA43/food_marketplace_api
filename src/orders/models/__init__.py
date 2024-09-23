@@ -1,1 +1,1 @@
-from .models import Order, PaymentMethod, ShippingMethod, Status
+from .models import Order, PaymentMethod, ShippingMethod, Status  # noqa

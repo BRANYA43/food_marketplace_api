@@ -2,6 +2,8 @@ from tokenize import TokenError
 from typing import Any, Type, Literal
 
 from django.db.models import Model
+from django.urls import reverse
+from rest_framework import status
 from rest_framework.fields import empty
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer, ModelSerializer
@@ -161,7 +163,8 @@ class BaseTestCase(APITestCase):
         :param response: the response objects to check.
         :param status_code: the expected HTTP status code.
         :param expected_data: the expected data in the response.
-        :param is_paginated: Set True if the response data is paginated. Method will parse the 'results' key in this case.
+        :param is_paginated: Set True if the response data is paginated.
+        Method will parse the 'results' key in this case.
         """
         self.assertEqual(
             response.status_code,
@@ -199,7 +202,7 @@ class OrderTestCase(BaseTestCase):
         self.user = self.create_test_user()
         self.address = self.create_test_address(content_obj=self.user)
         self.order_data = {
-            'customer': self.user,
+            'customer': self.user.id,
             'shipping_address': '123 Test St, Test City',
             'payment_method': 'visa',
             'shipping_method': 'standard',
@@ -221,6 +224,17 @@ class OrderTestCase(BaseTestCase):
             'is_paid': False,
         })
 
+    def test_create_order_via_api(self):
+        # Log in the user by token
+        self.login_user_by_token(self.user)
+
+        # Send the POST request
+        url = reverse('order-create')
+        response = self.client.post(url, self.order_data)
+
+        # Assert the response is 201 Created
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Order.objects.count(), 1)
 
     def test_order_status_update(self):
         # Create an order
