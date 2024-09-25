@@ -42,12 +42,12 @@ services:
     restart: always
 
   nginx:
-    build: docker/nginx_me
-    container_name: nginx_me
+    build: ./docker/nginx
+    container_name: nginx
     volumes:
       - static_volume:/opt/src/static
       - media_volume:/opt/src/media
-      - ./nginx_n/ssl:/etc/nginx_n/ssl
+      - ./docker/nginx/ssl:/etc/nginx/ssl
     ports:
       - "80:80"
       - "443:443"
