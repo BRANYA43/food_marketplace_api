@@ -42,14 +42,12 @@ services:
     restart: always
 
   nginx:
-    build: ./docker/nginx
-    container_name: nginx
-    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    build: docker/nginx_me
+    container_name: nginx_me
     volumes:
       - static_volume:/opt/src/static
       - media_volume:/opt/src/media
-      - certbot_volume:/var/www/certbot
-      - letsencrypt_volume:/etc/letsencrypt
+      - ./nginx_n/ssl:/etc/nginx_n/ssl
     ports:
       - "80:80"
       - "443:443"
@@ -63,12 +61,6 @@ services:
       retries: 3
     restart: always
 
-  certbot:
-    image: certbot/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-    volumes:
-      - certbot_volume:/var/www/certbot
-      - letsencrypt_volume:/etc/letsencrypt
 
 
 volumes:
