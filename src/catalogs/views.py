@@ -82,10 +82,10 @@ class ImageViewSet(viewsets.GenericViewSet):
     create=extend_schema(summary='Create a new advert.'),
     update=extend_schema(summary='Update an advert by ID fully.'),
     partial_update=extend_schema(summary='Update an advert by ID partially.'),
-    destroy=extend_schema(summary='Delete an advert by ID with a related address.'),
+    destroy=extend_schema(summary='Delete an advert by ID.'),
 )
 class AdvertViewSet(viewsets.ModelViewSet):
-    queryset = Advert.objects.prefetch_related('address').order_by('-created_at')
+    queryset = Advert.objects.order_by('-created_at')
     serializer_classes = dict(
         list=AdvertListSerializer,
         retrieve=AdvertRetrieveSerializer,
