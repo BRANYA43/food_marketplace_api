@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 
 from catalogs.models import Category
@@ -67,16 +66,12 @@ class AdvertModelTest(BaseTestCase):
     def test_model_inherit_expected_mixins(self):
         self.assert_is_subclass(self.model, CreatedUpdatedMixin)
 
-    def test_address_relates_with_advert(self):
-        self.assertIsInstance(self.model.address.field, GenericRelation)
-
     def test_create_model_instance(self):
         advert = self.model(**self.data)
         advert.full_clean()  # not raise
         self.data.update(
             dict(
                 descr=None,
-                quantity=1,
                 availability=self.model.Availability.AVAILABLE,
                 delivery_method=self.model.DeliveryMethod.COURIER,
                 delivery_comment=None,
@@ -98,12 +93,6 @@ class AdvertModelTest(BaseTestCase):
         with self.assertRaisesRegex(
             ValidationError, r'Card number should be in the such style: "0000 0000 0000 0000".'
         ):
-            advert.full_clean()
-
-    def test_quantity_field_must_be_gt_0(self):
-        self.data['quantity'] = 0
-        advert = self.model(**self.data)
-        with self.assertRaisesRegex(ValidationError, r'quantity.+Ensure this value is greater than or equal to 1'):
             advert.full_clean()
 
 

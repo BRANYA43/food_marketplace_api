@@ -1,14 +1,12 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxLengthValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext as _
 
 from utils.models.mixins import CreatedUpdatedMixin
-from utils.models import Address
 
 User = get_user_model()
 
@@ -102,11 +100,6 @@ class Advert(CreatedUpdatedMixin):
         decimal_places=2,
         validators=[MinValueValidator(Decimal('0'))],
     )
-    quantity = models.PositiveIntegerField(
-        verbose_name=_('quantity'),
-        default=1,
-        validators=[MinValueValidator(1)],
-    )
     unit = models.CharField(
         verbose_name=_('unit'),
         max_length=5,
@@ -127,10 +120,6 @@ class Advert(CreatedUpdatedMixin):
         max_length=10,
         choices=DeliveryMethod.choices,
         default=DeliveryMethod.COURIER,
-    )
-    address = GenericRelation(
-        verbose_name=_('pickup address'),
-        to=Address,
     )
     delivery_comment = models.TextField(
         verbose_name=_('delivery comment'),
