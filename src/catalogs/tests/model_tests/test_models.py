@@ -75,7 +75,7 @@ class AdvertModelTest(BaseTestCase):
                 availability=self.model.Availability.AVAILABLE,
                 delivery_method=self.model.DeliveryMethod.COURIER,
                 delivery_comment=None,
-                payment_method=self.model.PaymentMethod.CARD,
+                payment_methods=[self.model.PaymentMethod.CARD],
                 payment_comment=None,
             )
         )

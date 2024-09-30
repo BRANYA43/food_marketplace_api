@@ -1,6 +1,8 @@
+from functools import partial
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxLengthValidator, RegexValidator
 from django.db import models
@@ -127,11 +129,14 @@ class Advert(CreatedUpdatedMixin):
         blank=True,
         validators=[MaxLengthValidator(512)],
     )
-    payment_method = models.CharField(
+    payment_methods = ArrayField(
         verbose_name=_('preferring payment method'),
-        max_length=5,
-        choices=PaymentMethod.choices,
-        default=PaymentMethod.CARD,
+        base_field=models.CharField(
+            max_length=5,
+            choices=PaymentMethod.choices,
+        ),
+        default=partial(list, [PaymentMethod.CARD]),
+        size=2,
     )
     payment_card = models.CharField(
         verbose_name=_('payment card number'),
