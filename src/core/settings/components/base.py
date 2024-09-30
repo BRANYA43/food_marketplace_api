@@ -44,6 +44,17 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'HOST': env.get('POSTGRES_HOST', 'localhost'),
+        'PORT': env.get('POSTGRES_PORT', '5432'),
+        'NAME': env.get('POSTGRES_DB'),
+        'USER': env.get('POSTGRES_USER'),
+        'PASSWORD': env.get('POSTGRES_PASSWORD'),
+    }
+}
+
 ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [
