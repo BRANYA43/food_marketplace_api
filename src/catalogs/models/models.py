@@ -50,14 +50,10 @@ class Image(CreatedUpdatedMixin):
 
 
 class Advert(CreatedUpdatedMixin):
-    class DeliveryMethod(models.IntegerChoices):
-        PICKUP = 1, _('pickup')
-        NOVA_POST = 2, _('nova post')
-        COURIER = 4, _('courier')
-        PICKUP__NOVA_POST = 3, _('pickup, nova post')
-        PICKUP__COURIER = 5, _('pickup, courier')
-        NOVA_POST__COURIER = 6, _('nova post, courier')
-        PICKUP__NOVA_POST__COURIER = 7, _('pickup, nova post, courier')
+    class DeliveryMethod(models.TextChoices):
+        PICKUP = 'pickup', _('pickup')
+        NOVA_POST = 'nova_post', _('nova post')
+        COURIER = 'courier', _('courier')
 
     class Unit(models.TextChoices):
         G = 'g', _('g')
@@ -126,8 +122,9 @@ class Advert(CreatedUpdatedMixin):
         verbose_name=_('location'),
         max_length=100,
     )
-    delivery_method = models.PositiveIntegerField(
+    delivery_method = models.CharField(
         verbose_name=_('delivery methods'),
+        max_length=10,
         choices=DeliveryMethod.choices,
         default=DeliveryMethod.COURIER,
     )
