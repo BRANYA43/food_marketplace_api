@@ -13,7 +13,7 @@ down:
 	sudo docker compose down $(fs)
 
 reup:
-	sudo docker compose down $(down_fs); sudo docker compose up $(up_f)
+	sudo docker compose down $(down_fs); sudo docker compose up $(up_fs)
 
 start:
 	sudo docker compose start $(fs)
@@ -34,7 +34,7 @@ image-prune:
 	sudo docker image prune -af $(fs)
 
 push:
-	sudo docker compose build; sudo docker compose push;
+	sudo docker compose build; sudo docker compose push
 
 shell-api:
 	sudo docker exec -it api $(shell)
@@ -54,3 +54,10 @@ logs-db:
 logs-nginx:
 	sudo docker logs nginx $(fs)
 
+create-test-db:
+	sudo docker build -t test-db docker/postgres/
+	sudo docker run --env-file .env -p 5432:5432 --name db -d test-db
+
+drop-test-db:
+	sudo docker rm db -f
+	sudo docker rmi test-db -f
