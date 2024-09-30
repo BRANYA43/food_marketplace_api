@@ -57,6 +57,7 @@ logs-nginx:
 create-test-db:
 	sudo docker build -t test-db docker/postgres/
 	sudo docker run --env-file .env -p 5432:5432 --name db -d test-db
+	sleep 5
 	python src/manage.py migrate
 	python src/manage.py createsuperuser --noinput
 
