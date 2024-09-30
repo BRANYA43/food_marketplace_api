@@ -6,8 +6,6 @@ from rest_framework.exceptions import ValidationError
 
 from catalogs.models import Category
 from catalogs.models.models import Advert, Image
-from utils.serializers import AddressFieldSerializer
-from utils.serializers.mixins import AddressCreateUpdateMixin
 
 
 class ImageMultipleDeleteSerializer(serializers.ModelSerializer):
@@ -108,7 +106,6 @@ class AdvertListSerializer(serializers.ModelSerializer):
 
 
 class AdvertRetrieveSerializer(serializers.ModelSerializer):
-    address = AddressFieldSerializer(read_only=True)
     main_image = serializers.SerializerMethodField('get_main_image')
     extra_images = serializers.SerializerMethodField('get_extra_images')
 
@@ -121,12 +118,10 @@ class AdvertRetrieveSerializer(serializers.ModelSerializer):
             'name',
             'descr',
             'price',
-            'quantity',
             'unit',
             'availability',
             'location',
             'delivery_method',
-            'address',
             'delivery_comment',
             'payment_method',
             'payment_card',
@@ -149,7 +144,7 @@ class AdvertRetrieveSerializer(serializers.ModelSerializer):
         return [str(img.file) for img in imgs]
 
 
-class AdvertCreateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializer):
+class AdvertCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advert
         fields = (
@@ -159,12 +154,10 @@ class AdvertCreateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializ
             'name',
             'descr',
             'price',
-            'quantity',
             'unit',
             'availability',
             'location',
             'delivery_method',
-            'address',
             'delivery_comment',
             'payment_method',
             'payment_card',
@@ -173,7 +166,7 @@ class AdvertCreateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializ
         read_only_fields = ('id',)
 
 
-class AdvertUpdateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializer):
+class AdvertUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advert
         fields = (
@@ -183,12 +176,10 @@ class AdvertUpdateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializ
             'name',
             'descr',
             'price',
-            'quantity',
             'unit',
             'availability',
             'location',
             'delivery_method',
-            'address',
             'delivery_comment',
             'payment_method',
             'payment_card',
