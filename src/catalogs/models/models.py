@@ -74,9 +74,9 @@ class Advert(CreatedUpdatedMixin):
         NOT_AVAILABLE = 'not_available', _('is not available')
         ORDER = 'order', _('to order')
 
-    class PaymentMethod(models.IntegerChoices):
-        CARD = 0, _('on card')
-        CASH = 1, _('in cash')
+    class PaymentMethod(models.TextChoices):
+        CARD = 'card', _('on card')
+        CASH = 'cash', _('in cash')
 
     owner = models.ForeignKey(
         verbose_name=_('owner'),
@@ -141,8 +141,9 @@ class Advert(CreatedUpdatedMixin):
         blank=True,
         validators=[MaxLengthValidator(512)],
     )
-    payment_method = models.PositiveIntegerField(
+    payment_method = models.CharField(
         verbose_name=_('preferring payment method'),
+        max_length=5,
         choices=PaymentMethod.choices,
         default=PaymentMethod.CARD,
     )
