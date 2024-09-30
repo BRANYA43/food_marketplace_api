@@ -59,15 +59,15 @@ class Advert(CreatedUpdatedMixin):
         NOVA_POST__COURIER = 6, _('nova post, courier')
         PICKUP__NOVA_POST__COURIER = 7, _('pickup, nova post, courier')
 
-    class Unit(models.IntegerChoices):
-        G = 0, _('g')
-        KG = 1, _('kg')
-        T = 2, _('t')
-        CM3 = 3, _('cm³')
-        DM3 = 4, _('dm³')
-        M3 = 5, _('m³')
-        ML = 6, _('ml')
-        L = 7, _('l')
+    class Unit(models.TextChoices):
+        G = 'g', _('g')
+        KG = 'kg', _('kg')
+        T = 't', _('t')
+        CM3 = 'cm3', _('cm³')
+        DM3 = 'dm3', _('dm³')
+        M3 = 'm3', _('m³')
+        ML = 'ml', _('ml')
+        L = 'l', _('l')
 
     class Availability(models.IntegerChoices):
         AVAILABLE = 0, _('is available')
@@ -111,8 +111,9 @@ class Advert(CreatedUpdatedMixin):
         default=1,
         validators=[MinValueValidator(1)],
     )
-    unit = models.PositiveIntegerField(
+    unit = models.CharField(
         verbose_name=_('unit'),
+        max_length=5,
         choices=Unit.choices,
     )
     availability = models.PositiveIntegerField(
