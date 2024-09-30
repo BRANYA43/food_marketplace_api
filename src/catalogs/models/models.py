@@ -117,11 +117,14 @@ class Advert(CreatedUpdatedMixin):
         verbose_name=_('location'),
         max_length=100,
     )
-    delivery_method = models.CharField(
+    delivery_methods = ArrayField(
         verbose_name=_('delivery methods'),
-        max_length=10,
-        choices=DeliveryMethod.choices,
-        default=DeliveryMethod.COURIER,
+        base_field=models.CharField(
+            max_length=10,
+            choices=DeliveryMethod.choices,
+        ),
+        size=3,
+        default=partial(list, [DeliveryMethod.COURIER]),
     )
     delivery_comment = models.TextField(
         verbose_name=_('delivery comment'),

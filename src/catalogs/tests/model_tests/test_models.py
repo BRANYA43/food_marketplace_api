@@ -73,7 +73,7 @@ class AdvertModelTest(BaseTestCase):
             dict(
                 descr=None,
                 availability=self.model.Availability.AVAILABLE,
-                delivery_method=self.model.DeliveryMethod.COURIER,
+                delivery_methods=[self.model.DeliveryMethod.COURIER],
                 delivery_comment=None,
                 payment_methods=[self.model.PaymentMethod.CARD],
                 payment_comment=None,
