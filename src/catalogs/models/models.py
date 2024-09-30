@@ -169,16 +169,6 @@ class Advert(CreatedUpdatedMixin):
         verbose_name = _('advert')
         verbose_name_plural = _('adverts')
 
-    def clean_pickup_address_and_pickup(self):
-        if self.delivery_method in (1, 3, 5, 7) and not self.address.first():
-            raise ValidationError(
-                'The "pickup_address" field must be if "pickup" field is True.',
-                'invalid_pickup_address',
-            )
-
-    def clean(self):
-        self.clean_pickup_address_and_pickup()
-
     def __str__(self):
         return self.name
 

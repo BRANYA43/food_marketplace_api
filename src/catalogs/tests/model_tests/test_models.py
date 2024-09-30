@@ -106,15 +106,6 @@ class AdvertModelTest(BaseTestCase):
         with self.assertRaisesRegex(ValidationError, r'quantity.+Ensure this value is greater than or equal to 1'):
             advert.full_clean()
 
-    def test_pickup_address_should_be_if_delivery_method_has_pickup(self):
-        for method in ('PICKUP', 'PICKUP__NOVA_POST', 'PICKUP__COURIER', 'PICKUP__NOVA_POST__COURIER'):
-            advert = self.model(**self.data, delivery_method=self.model.DeliveryMethod[method])
-            with self.assertRaisesRegex(
-                ValidationError,
-                r'The "pickup_address" field must be if "pickup" field is True.',
-            ):
-                advert.full_clean()
-
 
 class CategoryModelTest(BaseTestCase):
     model = Category
