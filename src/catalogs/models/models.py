@@ -69,10 +69,10 @@ class Advert(CreatedUpdatedMixin):
         ML = 'ml', _('ml')
         L = 'l', _('l')
 
-    class Availability(models.IntegerChoices):
-        AVAILABLE = 0, _('is available')
-        NOT_AVAILABLE = 1, _('is not available')
-        ORDER = 2, _('to order')
+    class Availability(models.TextChoices):
+        AVAILABLE = 'available', _('is available')
+        NOT_AVAILABLE = 'not_available', _('is not available')
+        ORDER = 'order', _('to order')
 
     class PaymentMethod(models.IntegerChoices):
         CARD = 0, _('on card')
@@ -116,8 +116,9 @@ class Advert(CreatedUpdatedMixin):
         max_length=5,
         choices=Unit.choices,
     )
-    availability = models.PositiveIntegerField(
+    availability = models.CharField(
         verbose_name=_('availability'),
+        max_length=20,
         choices=Availability.choices,
         default=Availability.AVAILABLE,
     )
