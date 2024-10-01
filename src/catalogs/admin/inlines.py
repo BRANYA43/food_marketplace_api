@@ -1,29 +1,13 @@
 from django.contrib import admin
 from django.utils.translation import gettext as _
 
-from catalogs.models import Category
-from catalogs.models.proxies import MainImage, ExtraImage
-
-
-class ExtraImageInline(admin.StackedInline):
-    model = ExtraImage
-    extra = 0
-    fields = ('file',)
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.filter(type=ExtraImage.Type.EXTRA)
+from catalogs.models import Category, Image
 
 
 class MainImageInline(admin.StackedInline):
-    model = MainImage
+    model = Image
     extra = 1
     fields = ('file',)
-    max_num = 1
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.filter(type=MainImage.Type.MAIN)
 
 
 class SubCategoryInline(admin.TabularInline):

@@ -1,23 +1,19 @@
+from functools import partial
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.fields import GenericRelation
-from django.core.exceptions import ValidationError
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxLengthValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext as _
 
+from catalogs.validators import validate_array_elements_uniqueness
 from utils.models.mixins import CreatedUpdatedMixin
-from utils.models import Address
 
 User = get_user_model()
 
 
 class Image(CreatedUpdatedMixin):
-    class Type(models.IntegerChoices):
-        MAIN = 0, _('main')
-        EXTRA = 1, _('extra')
-
     advert = models.ForeignKey(
         verbose_name=_('advert'),
         to='Advert',
@@ -28,55 +24,39 @@ class Image(CreatedUpdatedMixin):
         verbose_name=_('file'),
         upload_to='images/%Y/%m/%d',
     )
-    type = models.PositiveIntegerField(
-        verbose_name=_('type'),
-        choices=Type.choices,
-    )
 
     class Meta:
         verbose_name = _('image')
         verbose_name_plural = _('images')
 
     def __str__(self):
-        return f'{self.advert.name} {self.type} image'
-
-    def clean(self):
-        if not self.pk:
-            if self.advert.images.filter(type=self.Type.MAIN).exists() and self.type == self.Type.MAIN:
-                raise ValidationError(
-                    'Advert already has main image.',
-                    'image_conflict',
-                )
+        return f'{self.advert.name} image'
 
 
 class Advert(CreatedUpdatedMixin):
-    class DeliveryMethod(models.IntegerChoices):
-        PICKUP = 1, _('pickup')
-        NOVA_POST = 2, _('nova post')
-        COURIER = 4, _('courier')
-        PICKUP__NOVA_POST = 3, _('pickup, nova post')
-        PICKUP__COURIER = 5, _('pickup, courier')
-        NOVA_POST__COURIER = 6, _('nova post, courier')
-        PICKUP__NOVA_POST__COURIER = 7, _('pickup, nova post, courier')
+    class DeliveryMethod(models.TextChoices):
+        PICKUP = 'pickup', _('pickup')
+        NOVA_POST = 'nova_post', _('nova post')
+        COURIER = 'courier', _('courier')
 
-    class Unit(models.IntegerChoices):
-        G = 0, _('g')
-        KG = 1, _('kg')
-        T = 2, _('t')
-        CM3 = 3, _('cm³')
-        DM3 = 4, _('dm³')
-        M3 = 5, _('m³')
-        ML = 6, _('ml')
-        L = 7, _('l')
+    class Unit(models.TextChoices):
+        G = 'g', _('g')
+        KG = 'kg', _('kg')
+        T = 't', _('t')
+        CM3 = 'cm3', _('cm³')
+        DM3 = 'dm3', _('dm³')
+        M3 = 'm3', _('m³')
+        ML = 'ml', _('ml')
+        L = 'l', _('l')
 
-    class Availability(models.IntegerChoices):
-        AVAILABLE = 0, _('is available')
-        NOT_AVAILABLE = 1, _('is not available')
-        ORDER = 2, _('to order')
+    class Availability(models.TextChoices):
+        AVAILABLE = 'available', _('is available')
+        NOT_AVAILABLE = 'not_available', _('is not available')
+        ORDER = 'order', _('to order')
 
-    class PaymentMethod(models.IntegerChoices):
-        CARD = 0, _('on card')
-        CASH = 1, _('in cash')
+    class PaymentMethod(models.TextChoices):
+        CARD = 'card', _('on card')
+        CASH = 'cash', _('in cash')
 
     owner = models.ForeignKey(
         verbose_name=_('owner'),
@@ -106,17 +86,14 @@ class Advert(CreatedUpdatedMixin):
         decimal_places=2,
         validators=[MinValueValidator(Decimal('0'))],
     )
-    quantity = models.PositiveIntegerField(
-        verbose_name=_('quantity'),
-        default=1,
-        validators=[MinValueValidator(1)],
-    )
-    unit = models.PositiveIntegerField(
+    unit = models.CharField(
         verbose_name=_('unit'),
+        max_length=5,
         choices=Unit.choices,
     )
-    availability = models.PositiveIntegerField(
+    availability = models.CharField(
         verbose_name=_('availability'),
+        max_length=20,
         choices=Availability.choices,
         default=Availability.AVAILABLE,
     )
@@ -124,14 +101,15 @@ class Advert(CreatedUpdatedMixin):
         verbose_name=_('location'),
         max_length=100,
     )
-    delivery_method = models.PositiveIntegerField(
+    delivery_methods = ArrayField(
         verbose_name=_('delivery methods'),
-        choices=DeliveryMethod.choices,
-        default=DeliveryMethod.COURIER,
-    )
-    address = GenericRelation(
-        verbose_name=_('pickup address'),
-        to=Address,
+        base_field=models.CharField(
+            max_length=10,
+            choices=DeliveryMethod.choices,
+        ),
+        size=3,
+        default=partial(list, [DeliveryMethod.COURIER]),
+        validators=[validate_array_elements_uniqueness],
     )
     delivery_comment = models.TextField(
         verbose_name=_('delivery comment'),
@@ -139,10 +117,15 @@ class Advert(CreatedUpdatedMixin):
         blank=True,
         validators=[MaxLengthValidator(512)],
     )
-    payment_method = models.PositiveIntegerField(
+    payment_methods = ArrayField(
         verbose_name=_('preferring payment method'),
-        choices=PaymentMethod.choices,
-        default=PaymentMethod.CARD,
+        base_field=models.CharField(
+            max_length=5,
+            choices=PaymentMethod.choices,
+        ),
+        default=partial(list, [PaymentMethod.CARD]),
+        size=2,
+        validators=[validate_array_elements_uniqueness],
     )
     payment_card = models.CharField(
         verbose_name=_('payment card number'),
@@ -165,16 +148,6 @@ class Advert(CreatedUpdatedMixin):
     class Meta:
         verbose_name = _('advert')
         verbose_name_plural = _('adverts')
-
-    def clean_pickup_address_and_pickup(self):
-        if self.delivery_method in (1, 3, 5, 7) and not self.address.first():
-            raise ValidationError(
-                'The "pickup_address" field must be if "pickup" field is True.',
-                'invalid_pickup_address',
-            )
-
-    def clean(self):
-        self.clean_pickup_address_and_pickup()
 
     def __str__(self):
         return self.name

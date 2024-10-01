@@ -27,10 +27,22 @@ jobs:
         pip install poetry
         poetry config virtualenvs.create false
         poetry install
+    - name: Build PostgreSQL image and run its container.
+      run: |
+        docker build -t test-db docker/postgres/
+        docker run -e POSTGRES_DB=postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 --name db -d test-db
+
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        until docker exec db pg_isready; do sleep 1; done
+
     - name: Set up environments and run tests
       env:
         DJANGO_SETTINGS_ENV: "dev"
         DJANGO_SECRET_KEY: "django_secret_key_for_test"
+        POSTGRES_DB: "postgres"
+        POSTGRES_USER: "postgres"
+        POSTGRES_PASSWORD: "postgres"
       run: |
         cd src
         python manage.py test
