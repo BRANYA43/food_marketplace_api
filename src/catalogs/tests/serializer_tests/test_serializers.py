@@ -234,8 +234,7 @@ class AdvertRetrieveSerializerTest(MediaTestCase, BaseTestCase):
             payment_methods=self.advert.payment_methods,
             payment_card=self.advert.payment_card,
             payment_comment=None,
-            main_image=None,
-            extra_images=[],
+            images=[],
         )
 
     def test_serializer_returns_expected_data(self):
@@ -245,20 +244,10 @@ class AdvertRetrieveSerializerTest(MediaTestCase, BaseTestCase):
             expected_data=self.output_data,
         )
 
-    def test_serializer_returns_expected_data_with_main_image(self):
-        main_image = self.create_test_image(self.advert)
+    def test_serializer_returns_expected_data_with_images(self):
+        image = self.create_test_image(self.advert)
         self.advert.refresh_from_db()
-        self.output_data['main_image'] = str(main_image.file)
-        self.assert_serializer_output_data(
-            self.serializer_class,
-            instance=self.advert,
-            expected_data=self.output_data,
-        )
-
-    def test_serializer_returns_expected_data_with_extra_images(self):
-        extra_image = self.create_test_image(self.advert, type=Image.Type.EXTRA)
-        self.advert.refresh_from_db()
-        self.output_data['extra_images'] = [str(extra_image.file)]
+        self.output_data['images'] = [str(image.file)]
         self.assert_serializer_output_data(
             self.serializer_class,
             instance=self.advert,
@@ -275,7 +264,7 @@ class AdvertListSerializerTest(MediaTestCase, BaseTestCase):
         self.category = self.create_test_category()
         self.advert = self.create_test_advert(self.owner, self.category)
 
-    def test_serializer_returns_expected_data_without_main_image(self):
+    def test_serializer_returns_expected_data_without_image(self):
         self.assert_serializer_output_data(
             self.serializer_class,
             instance=self.advert,
@@ -284,12 +273,12 @@ class AdvertListSerializerTest(MediaTestCase, BaseTestCase):
                 name=self.advert.name,
                 category=self.advert.category.id,
                 price=str(self.advert.price),
-                main_image=None,
+                image=None,
             ),
         )
 
-    def test_serializer_returns_expected_data_with_main_image(self):
-        main_image = self.create_test_image(self.advert)
+    def test_serializer_returns_expected_data_with_image(self):
+        image = self.create_test_image(self.advert)
         self.advert.refresh_from_db()
         self.assert_serializer_output_data(
             self.serializer_class,
@@ -299,7 +288,7 @@ class AdvertListSerializerTest(MediaTestCase, BaseTestCase):
                 name=self.advert.name,
                 category=self.advert.category.id,
                 price=str(self.advert.price),
-                main_image=str(main_image.file),
+                image=str(image.file),
             ),
         )
 

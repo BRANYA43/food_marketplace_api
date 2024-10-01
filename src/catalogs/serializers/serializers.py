@@ -73,24 +73,23 @@ class ImageMultipleCreateSerializer(serializers.ModelSerializer):
 
 
 class AdvertListSerializer(serializers.ModelSerializer):
-    main_image = serializers.SerializerMethodField('get_main_image')
+    image = serializers.SerializerMethodField('get_image')
 
     class Meta:
         model = Advert
-        fields = ('id', 'name', 'category', 'price', 'main_image')
+        fields = ('id', 'name', 'category', 'price', 'image')
         read_only_fields = fields
 
     @staticmethod
-    def get_main_image(obj) -> Optional[str]:
-        img = obj.images.filter(type=Image.Type.MAIN).first()
+    def get_image(obj) -> Optional[str]:
+        img = obj.images.first()
         if img is None:
             return None
         return str(img.file)
 
 
 class AdvertRetrieveSerializer(serializers.ModelSerializer):
-    main_image = serializers.SerializerMethodField('get_main_image')
-    extra_images = serializers.SerializerMethodField('get_extra_images')
+    images = serializers.SerializerMethodField('get_images')
 
     class Meta:
         model = Advert
@@ -109,21 +108,13 @@ class AdvertRetrieveSerializer(serializers.ModelSerializer):
             'payment_methods',
             'payment_card',
             'payment_comment',
-            'main_image',
-            'extra_images',
+            'images',
         )
         read_only_fields = fields
 
     @staticmethod
-    def get_main_image(obj) -> Optional[str]:
-        img = obj.images.filter(type=Image.Type.MAIN).first()
-        if img is None:
-            return None
-        return str(img.file)
-
-    @staticmethod
-    def get_extra_images(obj) -> list[str]:
-        imgs = obj.images.filter(type=Image.Type.EXTRA)
+    def get_images(obj) -> list[str]:
+        imgs = obj.images.all()
         return [str(img.file) for img in imgs]
 
 
