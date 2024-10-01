@@ -56,8 +56,8 @@ logs-nginx:
 
 create-test-db:
 	sudo docker build -t test-db docker/postgres/
-	sudo docker run --env-file .env -p 5432:5432 --name db -d test-db
-	sleep 5
+	sudo docker run --env-file .env -p 5432:5432 --name db --restart always -d test-db
+	until sudo docker exec db /usr/src/healthcheck.sh; do sleep 1; done
 	python src/manage.py migrate
 	python src/manage.py createsuperuser --noinput
 
