@@ -54,39 +54,22 @@ class ImageMultipleCreateSerializer(serializers.ModelSerializer):
         allow_null=False,
         required=True,
     )
-    types = serializers.ListSerializer(
-        child=serializers.ChoiceField(choices=Image.Type.choices, allow_null=False, required=True),
-        allow_empty=False,
-        allow_null=False,
-        required=True,
-    )
 
     class Meta:
         model = Image
-        fields = ('advert', 'files', 'types')
-
-    def validate(self, attrs):
-        files = attrs.get('files', [])
-        types = attrs.get('types', [None])
-
-        if len(files) != len(types):
-            raise ValidationError(
-                'File quantity should match type quantity.',
-                'invalid_quantity',
-            )
-        return attrs
+        fields = ('advert', 'files')
 
     @transaction.atomic
     def create(self, validated_data):
         advert = validated_data.pop('advert')
-        image_data = [dict(advert=advert, file=file, type=type_) for file, type_ in zip(*validated_data.values())]
+        image_data = [dict(advert=advert, file=file) for file in validated_data['files']]
 
         for data in image_data:
             img = Image(**data)
             img.full_clean()
             img.save()
 
-        return Image.objects.filter(advert=advert).first()
+        return img
 
 
 class AdvertListSerializer(serializers.ModelSerializer):
