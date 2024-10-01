@@ -3,7 +3,6 @@ from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
-from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxLengthValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext as _
@@ -29,25 +28,13 @@ class Image(CreatedUpdatedMixin):
         verbose_name=_('file'),
         upload_to='images/%Y/%m/%d',
     )
-    type = models.PositiveIntegerField(
-        verbose_name=_('type'),
-        choices=Type.choices,
-    )
 
     class Meta:
         verbose_name = _('image')
         verbose_name_plural = _('images')
 
     def __str__(self):
-        return f'{self.advert.name} {self.type} image'
-
-    def clean(self):
-        if not self.pk:
-            if self.advert.images.filter(type=self.Type.MAIN).exists() and self.type == self.Type.MAIN:
-                raise ValidationError(
-                    'Advert already has main image.',
-                    'image_conflict',
-                )
+        return f'{self.advert.name} image'
 
 
 class Advert(CreatedUpdatedMixin):
