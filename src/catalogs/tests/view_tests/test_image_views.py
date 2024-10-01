@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -13,7 +15,7 @@ class ImageMultipleDeleteViewTest(MediaTestCase, BaseTestCase):
         self.category = self.create_test_category()
         self.advert = self.create_test_advert(self.owner, self.category)
         self.main_image = self.create_test_image(self.advert)
-        self.extra_image = self.create_test_image(self.advert, type=Image.Type.EXTRA)
+        self.extra_image = self.create_test_image(self.advert)
 
         self.data = dict(
             advert=self.advert.id,
@@ -54,6 +56,11 @@ class ImageMultipleCreateViewTest(MediaTestCase, BaseTestCase):
     url = reverse('images-multiple-create')
 
     def setUp(self):
+        date = datetime.now()
+        month = f'0{date.month}' if date.month < 10 else str(date.month)
+        day = f'0{date.day}' if date.day < 10 else str(date.day)
+        self.dirname = f'images/{date.year}/{month}/{day}/'
+
         self.owner = self.create_test_user()
         self.category = self.create_test_category()
         self.advert = self.create_test_advert(self.owner, self.category)
@@ -63,7 +70,6 @@ class ImageMultipleCreateViewTest(MediaTestCase, BaseTestCase):
         self.data = dict(
             advert=self.advert.id,
             files=[self.main_file, self.extra_file],
-            types=[Image.Type.MAIN, Image.Type.EXTRA],
         )
 
         self.login_user_by_token(self.owner)
@@ -85,8 +91,8 @@ class ImageMultipleCreateViewTest(MediaTestCase, BaseTestCase):
 
         self.assertEqual(Image.objects.count(), 2)
 
-        main_image = Image.objects.get(advert=self.advert, type=Image.Type.MAIN)
-        extra_image = Image.objects.get(advert=self.advert, type=Image.Type.EXTRA)
+        main_image = Image.objects.get(advert=self.advert, file=self.dirname + 'main_image.png')
+        extra_image = Image.objects.get(advert=self.advert, file=self.dirname + 'extra_image.png')
 
         self.assertIn(self.main_file.name, main_image.file.name)
         self.assertIn(self.extra_file.name, extra_image.file.name)
