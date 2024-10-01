@@ -14,10 +14,6 @@ User = get_user_model()
 
 
 class Image(CreatedUpdatedMixin):
-    class Type(models.IntegerChoices):
-        MAIN = 0, _('main')
-        EXTRA = 1, _('extra')
-
     advert = models.ForeignKey(
         verbose_name=_('advert'),
         to='Advert',
