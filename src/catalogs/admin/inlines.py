@@ -1,7 +1,13 @@
 from django.contrib import admin
 from django.utils.translation import gettext as _
 
-from catalogs.models import Category
+from catalogs.models import Category, Image
+
+
+class MainImageInline(admin.StackedInline):
+    model = Image
+    extra = 1
+    fields = ('file',)
 
 
 class SubCategoryInline(admin.TabularInline):
