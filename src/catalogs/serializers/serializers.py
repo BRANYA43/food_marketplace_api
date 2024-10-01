@@ -6,8 +6,6 @@ from rest_framework.exceptions import ValidationError
 
 from catalogs.models import Category
 from catalogs.models.models import Advert, Image
-from utils.serializers import AddressFieldSerializer
-from utils.serializers.mixins import AddressCreateUpdateMixin
 
 
 class ImageMultipleDeleteSerializer(serializers.ModelSerializer):
@@ -56,61 +54,42 @@ class ImageMultipleCreateSerializer(serializers.ModelSerializer):
         allow_null=False,
         required=True,
     )
-    types = serializers.ListSerializer(
-        child=serializers.ChoiceField(choices=Image.Type.choices, allow_null=False, required=True),
-        allow_empty=False,
-        allow_null=False,
-        required=True,
-    )
 
     class Meta:
         model = Image
-        fields = ('advert', 'files', 'types')
-
-    def validate(self, attrs):
-        files = attrs.get('files', [])
-        types = attrs.get('types', [None])
-
-        if len(files) != len(types):
-            raise ValidationError(
-                'File quantity should match type quantity.',
-                'invalid_quantity',
-            )
-        return attrs
+        fields = ('advert', 'files')
 
     @transaction.atomic
     def create(self, validated_data):
         advert = validated_data.pop('advert')
-        image_data = [dict(advert=advert, file=file, type=type_) for file, type_ in zip(*validated_data.values())]
+        image_data = [dict(advert=advert, file=file) for file in validated_data['files']]
 
         for data in image_data:
             img = Image(**data)
             img.full_clean()
             img.save()
 
-        return Image.objects.filter(advert=advert).first()
+        return img
 
 
 class AdvertListSerializer(serializers.ModelSerializer):
-    main_image = serializers.SerializerMethodField('get_main_image')
+    image = serializers.SerializerMethodField('get_image')
 
     class Meta:
         model = Advert
-        fields = ('id', 'name', 'category', 'price', 'main_image')
+        fields = ('id', 'name', 'category', 'price', 'image')
         read_only_fields = fields
 
     @staticmethod
-    def get_main_image(obj) -> Optional[str]:
-        img = obj.images.filter(type=Image.Type.MAIN).first()
+    def get_image(obj) -> Optional[str]:
+        img = obj.images.first()
         if img is None:
             return None
         return str(img.file)
 
 
 class AdvertRetrieveSerializer(serializers.ModelSerializer):
-    address = AddressFieldSerializer(read_only=True)
-    main_image = serializers.SerializerMethodField('get_main_image')
-    extra_images = serializers.SerializerMethodField('get_extra_images')
+    images = serializers.SerializerMethodField('get_images')
 
     class Meta:
         model = Advert
@@ -121,35 +100,25 @@ class AdvertRetrieveSerializer(serializers.ModelSerializer):
             'name',
             'descr',
             'price',
-            'quantity',
             'unit',
             'availability',
             'location',
-            'delivery_method',
-            'address',
+            'delivery_methods',
             'delivery_comment',
-            'payment_method',
+            'payment_methods',
             'payment_card',
             'payment_comment',
-            'main_image',
-            'extra_images',
+            'images',
         )
         read_only_fields = fields
 
     @staticmethod
-    def get_main_image(obj) -> Optional[str]:
-        img = obj.images.filter(type=Image.Type.MAIN).first()
-        if img is None:
-            return None
-        return str(img.file)
-
-    @staticmethod
-    def get_extra_images(obj) -> list[str]:
-        imgs = obj.images.filter(type=Image.Type.EXTRA)
+    def get_images(obj) -> list[str]:
+        imgs = obj.images.all()
         return [str(img.file) for img in imgs]
 
 
-class AdvertCreateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializer):
+class AdvertCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advert
         fields = (
@@ -159,21 +128,19 @@ class AdvertCreateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializ
             'name',
             'descr',
             'price',
-            'quantity',
             'unit',
             'availability',
             'location',
-            'delivery_method',
-            'address',
+            'delivery_methods',
             'delivery_comment',
-            'payment_method',
+            'payment_methods',
             'payment_card',
             'payment_comment',
         )
         read_only_fields = ('id',)
 
 
-class AdvertUpdateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializer):
+class AdvertUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advert
         fields = (
@@ -183,14 +150,12 @@ class AdvertUpdateSerializer(AddressCreateUpdateMixin, serializers.ModelSerializ
             'name',
             'descr',
             'price',
-            'quantity',
             'unit',
             'availability',
             'location',
-            'delivery_method',
-            'address',
+            'delivery_methods',
             'delivery_comment',
-            'payment_method',
+            'payment_methods',
             'payment_card',
             'payment_comment',
         )

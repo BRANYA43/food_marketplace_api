@@ -31,7 +31,6 @@ class MediaTestCase(BaseTestCase):
     def create_test_image(
         advert: Advert,
         file: SimpleUploadedFile = get_image_simple_uploaded_file('image_name.png'),
-        type: Image.Type = Image.Type.MAIN,  # type: ignore
         **extra_fields,
     ) -> Image:
-        return Image.objects.create(advert=advert, file=file, type=type, **extra_fields)
+        return Image.objects.create(advert=advert, file=file, **extra_fields)
