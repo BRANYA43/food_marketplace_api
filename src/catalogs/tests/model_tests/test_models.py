@@ -95,6 +95,28 @@ class AdvertModelTest(BaseTestCase):
         ):
             advert.full_clean()
 
+    def test_payment_methods_field_raises_error_for_not_unique_array_elems(self):
+        self.data['payment_methods'] = [self.model.PaymentMethod.CARD, self.model.PaymentMethod.CARD]
+        advert = self.model(**self.data)
+        with self.assertRaisesRegex(ValidationError, r'Array elements should be unique.'):
+            advert.full_clean()
+
+    def test_payment_methods_field_doesnt_raise_error_for_unique_array_elems(self):
+        self.data['payment_methods'] = [self.model.PaymentMethod.CARD, self.model.PaymentMethod.CASH]
+        advert = self.model(**self.data)
+        advert.full_clean()  # not raise
+
+    def test_delivery_methods_field_raises_error_for_not_unique_array_elems(self):
+        self.data['delivery_methods'] = [self.model.DeliveryMethod.COURIER, self.model.DeliveryMethod.COURIER]
+        advert = self.model(**self.data)
+        with self.assertRaisesRegex(ValidationError, r'Array elements should be unique.'):
+            advert.full_clean()
+
+    def test_delivery_methods_field_doesnt_raise_error_for_unique_array_elems(self):
+        self.data['delivery_methods'] = [self.model.DeliveryMethod.COURIER, self.model.DeliveryMethod.PICKUP]
+        advert = self.model(**self.data)
+        advert.full_clean()  # not raise
+
 
 class CategoryModelTest(BaseTestCase):
     model = Category

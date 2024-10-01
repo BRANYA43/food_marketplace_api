@@ -8,6 +8,7 @@ from django.core.validators import MinValueValidator, MaxLengthValidator, RegexV
 from django.db import models
 from django.utils.translation import gettext as _
 
+from catalogs.validators import validate_array_elements_uniqueness
 from utils.models.mixins import CreatedUpdatedMixin
 
 User = get_user_model()
@@ -125,6 +126,7 @@ class Advert(CreatedUpdatedMixin):
         ),
         size=3,
         default=partial(list, [DeliveryMethod.COURIER]),
+        validators=[validate_array_elements_uniqueness],
     )
     delivery_comment = models.TextField(
         verbose_name=_('delivery comment'),
@@ -140,6 +142,7 @@ class Advert(CreatedUpdatedMixin):
         ),
         default=partial(list, [PaymentMethod.CARD]),
         size=2,
+        validators=[validate_array_elements_uniqueness],
     )
     payment_card = models.CharField(
         verbose_name=_('payment card number'),
