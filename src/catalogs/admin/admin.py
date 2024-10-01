@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import gettext as _
 
-from catalogs.admin.inlines import SubCategoryInline, MainImageInline, ExtraImageInline
+from catalogs.admin.inlines import SubCategoryInline
 from catalogs.models import Category, Advert
 
 
@@ -17,7 +17,6 @@ class AdvertAdmin(admin.ModelAdmin):
     readonly_fields = ('updated_at', 'created_at')
     ordering = ('-created_at',)
     search_fields = ('name', 'owner__full_name', 'category__name')
-    inlines = (MainImageInline, ExtraImageInline)
 
 
 @admin.register(Category)
