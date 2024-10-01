@@ -9,8 +9,9 @@ from catalogs.models import Category, Advert
 class AdvertAdmin(admin.ModelAdmin):
     list_display = ('name', 'owner', 'category', 'price', 'updated_at', 'created_at')
     fieldsets = (
-        ('Info', dict(fields=('owner', 'name', 'category', 'price', 'descr'))),
-        ('Delivery', dict(fields=('pickup', 'nova_post', 'courier'))),
+        ('Info', dict(fields=('owner', 'category', 'name', 'price', 'availability', 'unit', 'location', 'descr'))),
+        ('Delivery', dict(fields=('delivery_methods', 'delivery_comment'))),
+        ('Payment', dict(fields=('payment_methods', 'payment_card', 'payment_comment'))),
         ('Dates', dict(fields=('updated_at', 'created_at'))),
     )
     readonly_fields = ('updated_at', 'created_at')
