@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.management import call_command
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from catalogs.models import Category, Advert, Image
@@ -129,7 +130,7 @@ class AdvertUpdateSerializerTest(BaseTestCase):
         self.input_data = dict(name='New name')
 
         self.output_data = dict(
-            id=1,
+            id=self.advert.id,
             owner=self.owner.id,
             category=self.category.id,
             name=self.input_data['name'],
@@ -138,9 +139,9 @@ class AdvertUpdateSerializerTest(BaseTestCase):
             unit=self.advert.unit,
             availability=self.advert.availability,
             location=self.advert.location,
-            delivery_method=self.advert.delivery_method,
+            delivery_methods=self.advert.delivery_methods,
             delivery_comment=None,
-            payment_method=self.advert.payment_method,
+            payment_methods=self.advert.payment_methods,
             payment_card=self.advert.payment_card,
             payment_comment=None,
         )
@@ -174,6 +175,8 @@ class AdvertCreateSerializerTest(BaseTestCase):
     advert_model = Advert
 
     def setUp(self):
+        call_command('flush', '--no-input')
+
         self.owner = self.create_test_user()
         self.category = self.create_test_category()
 
@@ -197,9 +200,9 @@ class AdvertCreateSerializerTest(BaseTestCase):
             unit=self.input_data['unit'],
             availability=Advert.Availability.AVAILABLE,
             location=self.input_data['location'],
-            delivery_method=Advert.DeliveryMethod.COURIER,
+            delivery_methods=[Advert.DeliveryMethod.COURIER],
             delivery_comment=None,
-            payment_method=Advert.PaymentMethod.CARD,
+            payment_methods=[Advert.PaymentMethod.CARD],
             payment_card=self.input_data['payment_card'],
             payment_comment=None,
         )
@@ -246,9 +249,9 @@ class AdvertRetrieveSerializerTest(MediaTestCase, BaseTestCase):
             unit=self.advert.unit,
             availability=self.advert.availability,
             location=self.advert.location,
-            delivery_method=self.advert.delivery_method,
+            delivery_methods=self.advert.delivery_methods,
             delivery_comment=None,
-            payment_method=self.advert.payment_method,
+            payment_methods=self.advert.payment_methods,
             payment_card=self.advert.payment_card,
             payment_comment=None,
             main_image=None,
@@ -326,6 +329,7 @@ class CategorySerializerTest(BaseTestCase):
     model = Category
 
     def test_serializer_returns_data_with_some_category(self):
+        call_command('flush', '--no-input')
         self.create_test_category(name='Category 1')
         self.create_test_category(name='Category 2')
 
@@ -333,7 +337,7 @@ class CategorySerializerTest(BaseTestCase):
             self.serializer_class,
             instance=self.model.objects.filter(children=None),
             many=True,
-            expected_data=[dict(id=category.id, name=category.name) for category in self.model.objects.all()],
+            expected_data=[dict(id=category.id, name=category.name) for category in self.model.objects.order_by('-id')],
         )
 
     def test_serializer_returns_data_with_one_category(self):
@@ -349,6 +353,9 @@ class CategorySerializerTest(BaseTestCase):
 class CategoryListSerializerTest(BaseTestCase):
     serializer_class = CategoryListSerializer
     model = Category
+
+    def setUp(self):
+        call_command('flush', '--no-input')
 
     def get_expected_category_data(self, categories):
         ret = []
